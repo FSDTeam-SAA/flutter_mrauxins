@@ -1,0 +1,45 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.project
+.directory
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Visual Studio Code related
+.vscode/
+
+# Flutter/Dart-specific
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+
+# Android-specific
+/android/app/local.properties
+/android/key.properties
+/android/local.properties
+/android/.gradle/
+
+# iOS-specific
+/ios/Flutter/Generated.xcconfig
+/ios/Flutter/flutter_export_environment.sh
+
+# Packages-specific
+**/doc/api/
+**/.dart_tool/
+**/local.properties
+**/.flutter-plugins-dependencies

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,16 +19,16 @@ import 'package:two_one_two_messenger/screens/notifications_setting.dart';
 import 'package:two_one_two_messenger/screens/otp_verify_screen.dart';
 import 'package:two_one_two_messenger/screens/primium_purchase_screen.dart';
 import 'package:two_one_two_messenger/screens/privacy_security_screen.dart';
+import 'package:two_one_two_messenger/services/api_config.dart';
 import 'package:two_one_two_messenger/services/fcm_service.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
 import 'package:two_one_two_messenger/utils/app_dialoge.dart';
 import 'package:two_one_two_messenger/utils/extensions.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
 import 'package:two_one_two_messenger/widgets/buttons.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:two_one_two_messenger/widgets/custom_loading_widget.dart';
+
 import '../models/otp_verify.dart';
-import '../services/api_client.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
 import '../utils/navigation.dart';
@@ -682,7 +683,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               icon: SvgAssets.icLogout,
                               onSubmit: () async {
                                 final token = await FCMService().getFCMToken();
-                                String userId = user?.sId ?? '';
+                                String userId = user.sId ?? '';
                                 if (userId.isNotEmpty) {
                                   SocketService().logout({"userId": userId});
                                 }

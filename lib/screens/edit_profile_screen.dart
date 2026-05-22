@@ -9,13 +9,12 @@ import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/screens/edit_phone_or_email.dart';
+import 'package:two_one_two_messenger/services/api_config.dart';
 import 'package:two_one_two_messenger/utils/image_picker.dart';
-import 'package:two_one_two_messenger/widgets/custom_loading_widget.dart';
 import 'package:two_one_two_messenger/widgets/intl_widget.dart';
 
 import '../cubit/profile_cubit.dart';
 import '../cubit/profile_state.dart';
-import '../services/api_client.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
 import '../utils/navigation.dart';
@@ -473,6 +472,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             maxLength: 300,
                             textInputAction: TextInputAction.done,
                             validator: (value) {
+                              return null;
+
                               // if (value == null || value.isEmpty) {
                               //   return AppConstants.aboutYouError;
                               // }

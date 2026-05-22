@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:easy_url_launcher/easy_url_launcher.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
@@ -19,7 +20,7 @@ import 'package:two_one_two_messenger/models/chat_message_model.dart';
 import 'package:two_one_two_messenger/models/otp_verify.dart';
 import 'package:two_one_two_messenger/models/saved_messages.dart';
 import 'package:two_one_two_messenger/screens/forward_message_screen.dart';
-import 'package:two_one_two_messenger/services/api_client.dart';
+import 'package:two_one_two_messenger/services/api_config.dart';
 import 'package:two_one_two_messenger/utils/app_dialoge.dart';
 import 'package:two_one_two_messenger/utils/colors.dart';
 import 'package:two_one_two_messenger/utils/constants.dart';
@@ -33,7 +34,6 @@ import 'package:two_one_two_messenger/widgets/media_upload_progress.dart';
 import 'package:two_one_two_messenger/widgets/network_image.dart';
 import 'package:two_one_two_messenger/widgets/svg_images.dart';
 import 'package:voice_message_package/voice_message_package.dart';
-import 'dart:math' as math;
 
 class ChatBubble extends StatefulWidget {
   final MessageModel message;
@@ -200,9 +200,9 @@ class _ChatBubbleState extends State<ChatBubble> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         shadowColor: Colors.transparent),
-
-                    dialogBackgroundColor:
-                        AppColors.dark, // Background color of reaction dialog
+                    dialogTheme: DialogThemeData(
+                        backgroundColor: AppColors
+                            .dark), // Background color of reaction dialog
                   ),
                   child: ReactionsDialogWidget(
                     widgetAlignment: widget.isSender
@@ -1824,9 +1824,9 @@ class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           shadowColor: Colors.transparent),
-
-                      dialogBackgroundColor:
-                          AppColors.dark, // Background color of reaction dialog
+                      dialogTheme: DialogThemeData(
+                          backgroundColor: AppColors
+                              .dark), // Background color of reaction dialog
                     ),
                     child: ReactionsDialogWidget(
                       widgetAlignment: widget.isSender

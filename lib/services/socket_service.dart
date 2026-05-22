@@ -2,11 +2,10 @@ import 'dart:async';
 
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:two_one_two_messenger/database/local_db.dart';
-import 'package:two_one_two_messenger/models/otp_verify.dart';
+import 'package:two_one_two_messenger/services/api_config.dart';
 import 'package:two_one_two_messenger/utils/constants.dart';
 
 import '../utils/utils.dart';
-import 'api_client.dart';
 
 // class SocketService {
 //   // Singleton instance
@@ -396,7 +395,7 @@ class SocketService {
 
   /// Registers event listeners with automatic disposal tracking
   void on(String event, Function(dynamic) callback) {
-    final listener = (data) {
+    void listener(data) {
       try {
         _logEvent('Received event', event, data);
         callback(data);
@@ -405,7 +404,7 @@ class SocketService {
           'Error in socket listener $e, $st',
         );
       }
-    };
+    }
 
     _socket.on(event, listener);
     _listeners.putIfAbsent(event, () => []).add(listener);

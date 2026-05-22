@@ -9,7 +9,7 @@ import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/models/conversation_model.dart';
 import 'package:two_one_two_messenger/models/otp_verify.dart';
 import 'package:two_one_two_messenger/screens/chat_screen.dart';
-import 'package:two_one_two_messenger/services/api_client.dart';
+import 'package:two_one_two_messenger/services/api_config.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
 import 'package:two_one_two_messenger/utils/app_dialoge.dart';
 import 'package:two_one_two_messenger/utils/colors.dart';
@@ -116,10 +116,10 @@ class ConversationTile extends StatelessWidget {
                         onPressed: () {
                           if (isArchive) {
                             homeCubit.unArchiveChat(
-                                user?.sId ?? "", conversationData.id ?? "");
+                                user.sId ?? "", conversationData.id ?? "");
                           } else {
                             homeCubit.archiveChat(
-                                user?.sId ?? "", conversationData.id ?? "");
+                                user.sId ?? "", conversationData.id ?? "");
                           }
                         },
                       );
@@ -222,7 +222,9 @@ class ConversationTile extends StatelessWidget {
                                       .isNotEmpty
                                   ? (conversationData.lastMessage?.content ??
                                       "")
-                                  : "${conversationData.lastMessage?.systemMessage?.message ?? ""}",
+                                  : conversationData.lastMessage?.systemMessage
+                                          ?.message ??
+                                      "",
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: AppTextStyles.regular(fontSize: 12.sp),

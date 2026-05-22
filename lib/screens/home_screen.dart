@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -24,7 +25,7 @@ import 'package:two_one_two_messenger/screens/search_conversation_screen.dart';
 import 'package:two_one_two_messenger/screens/search_screen.dart';
 import 'package:two_one_two_messenger/screens/view_stories_screen.dart';
 import 'package:two_one_two_messenger/screens/voice_call_page.dart';
-import 'package:two_one_two_messenger/services/api_client.dart';
+import 'package:two_one_two_messenger/services/api_config.dart';
 import 'package:two_one_two_messenger/services/notification_handler.dart';
 import 'package:two_one_two_messenger/services/push_notifications.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
@@ -37,12 +38,12 @@ import 'package:two_one_two_messenger/widgets/refresh_indicator%20copy.dart';
 import 'package:two_one_two_messenger/widgets/svg_images.dart';
 
 import '../cubit/home_cubit.dart';
-import '../widgets/appbar.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
-import '../widgets/drawer.dart';
 import '../utils/text_style.dart';
 import '../utils/utils.dart';
+import '../widgets/appbar.dart';
+import '../widgets/drawer.dart';
 import 'chat_screen.dart';
 import 'stories_view_screen.dart';
 
@@ -314,7 +315,6 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       (event) async {
         log("_handleCallKit called==>$event ==>${DateTime.now}");
         print("_handleCallKit-->${event['type']} ${DateTime.now}");
-        if (event == null) return;
         final notificationId =
             NotificationDebouncer.generateNotificationId(event);
 

@@ -24,7 +24,7 @@ import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/models/otp_verify.dart';
 import 'package:two_one_two_messenger/models/token_and_channel.dart';
-import 'package:two_one_two_messenger/services/api_client.dart';
+import 'package:two_one_two_messenger/services/api_config.dart';
 import 'package:two_one_two_messenger/services/push_notifications.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
 import 'package:two_one_two_messenger/utils/colors.dart';
@@ -255,7 +255,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
   Future<void> _initializeAgora() async {
     try {
       final appId = AppPreference.getAgoraAppId();
-      if (appId == null || appId.isEmpty) {
+      if (appId.isEmpty) {
         showMessage("Agora App ID is missing or invalid!");
         // throw Exception('Agora App ID is missing or invalid!');
 
@@ -357,7 +357,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
             setState(() {
               remoteUids.remove(remoteUid); // ✅ Remove user
             });
-            showMessage('User left: ${remoteUids}');
+            showMessage('User left: $remoteUids');
             if (remoteUids.isEmpty) {
               await FlutterCallkitIncoming.endAllCalls();
               _endCall();
@@ -477,7 +477,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
             });
           },
           onUserStateChanged: (connection, remoteUid, state) {
-            showMessage('onUserStateChanged: ${state}');
+            showMessage('onUserStateChanged: $state');
           },
         ),
       );
@@ -1338,7 +1338,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
                       // chatCubit.callReject(
                       //     context: context,reciverID:);
 
-                      prints.log("end call ${_engine} ${widget.token}");
+                      prints.log("end call $_engine ${widget.token}");
                       try {
                         // _engine = null;
                         await chatCubit.rejectCall(
@@ -1354,7 +1354,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
                       }
                     }
                   : () {
-                      prints.log("end call ${_engine} ${widget.token}");
+                      prints.log("end call $_engine ${widget.token}");
                     },
               backgroundColor: Colors.red.shade600,
               child: Text(

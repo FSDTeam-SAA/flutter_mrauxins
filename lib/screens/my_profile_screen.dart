@@ -7,10 +7,10 @@ import 'package:two_one_two_messenger/cubit/profile_state.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
+import 'package:two_one_two_messenger/services/api_config.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
 
 import '../models/otp_verify.dart';
-import '../services/api_client.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
 import '../utils/navigation.dart';
@@ -236,7 +236,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         height: 20.h,
                       ),
                       buildListTile(
-                        text: user?.userName ?? '',
+                        text: user.userName ?? '',
                         subTitle: S.of(context).username,
                         // image: SvgAssets.icQrCode,
                         size: 24.w,

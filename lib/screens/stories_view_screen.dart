@@ -5,22 +5,20 @@ import 'package:story_view/controller/story_controller.dart';
 import 'package:story_view/widgets/story_view.dart';
 import 'package:two_one_two_messenger/GoogleAds/BannerAds/BannerAdManager.dart';
 import 'package:two_one_two_messenger/extension/date_format.dart';
-import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/models/stories_response.dart';
 import 'package:two_one_two_messenger/screens/user_profile.dart';
+import 'package:two_one_two_messenger/services/api_config.dart';
 import 'package:two_one_two_messenger/utils/constants.dart';
-import 'package:two_one_two_messenger/utils/extensions.dart';
 import 'package:two_one_two_messenger/utils/text_style.dart';
 import 'package:two_one_two_messenger/widgets/avatar_widgets.dart';
 import 'package:two_one_two_messenger/widgets/custom_loading_widget.dart';
 import 'package:two_one_two_messenger/widgets/svg_images.dart';
+
 import '../cubit/stories_cubit.dart';
 import '../cubit/stories_state.dart';
-import '../services/api_client.dart';
 import '../utils/colors.dart';
 import '../utils/navigation.dart';
 import '../utils/utils.dart';
-import '../widgets/network_image.dart';
 
 class StoriesViewScreen extends StatefulWidget {
   final List<GetAllStoriesData> storiesList;
@@ -203,7 +201,7 @@ class _StoriesViewScreenState extends State<StoriesViewScreen>
   }
 
   Widget _buildProfileView(GetAllStoriesData data) {
-    return Container(
+    return SizedBox(
       // color: Colors.red,
       height: 70,
       child: Row(

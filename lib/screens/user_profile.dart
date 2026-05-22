@@ -3,10 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
+import 'package:two_one_two_messenger/services/api_config.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
 
 import '../models/otp_verify.dart';
-import '../services/api_client.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
 import '../utils/text_style.dart';

@@ -1,15 +1,14 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
 import 'package:chewie/chewie.dart';
-import 'package:flick_video_player/flick_video_player.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_thumbnail_video/index.dart';
 import 'package:get_thumbnail_video/video_thumbnail.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:two_one_two_messenger/models/stories_response.dart';
+import 'package:two_one_two_messenger/services/api_config.dart';
 import 'package:video_player/video_player.dart';
 
 import '../services/api_client.dart';
@@ -212,7 +211,7 @@ class ViewStoriesCubit extends Cubit<ViewStoriesState> {
               ? 0
               : currentUserStoriesList.length - 1;
         }
-log("current index == $currentIndex");
+        log("current index == $currentIndex");
         callback?.call();
 
         emit(state.copyWith(

@@ -14,13 +14,12 @@ import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/models/otp_verify.dart';
 import 'package:two_one_two_messenger/models/stories_response.dart';
 import 'package:two_one_two_messenger/screens/user_profile.dart';
+import 'package:two_one_two_messenger/services/api_config.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
-import 'package:two_one_two_messenger/widgets/avatar_widgets.dart';
 import 'package:two_one_two_messenger/widgets/custom_loading_widget.dart';
 
 import '../cubit/view_stories_cubit.dart';
 import '../cubit/view_stories_state.dart';
-import '../services/api_client.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
 import '../utils/navigation.dart';
@@ -29,7 +28,6 @@ import '../widgets/appbar.dart';
 import '../widgets/buttons.dart';
 import '../widgets/network_image.dart';
 import '../widgets/svg_images.dart';
-import 'home_screen.dart';
 
 class ViewStoriesScreen extends StatefulWidget {
   // final CreateStoriesResponse? createStoriesResponse;

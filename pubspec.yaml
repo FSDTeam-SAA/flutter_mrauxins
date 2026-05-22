@@ -168,7 +168,7 @@ flutter:
           style: italic
         - asset: assets/font/NotoSans-Light.ttf
           weight: 300
-        - asset: lib/assets/font/NotoSans-LightItalic.ttf
+        - asset: assets/font/NotoSans-LightItalic.ttf
           weight: 300
           style: italic
         - asset: assets/font/NotoSans-Regular.ttf

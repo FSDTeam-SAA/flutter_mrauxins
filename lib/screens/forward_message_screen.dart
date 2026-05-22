@@ -12,9 +12,9 @@ import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/models/chat_message_model.dart';
 import 'package:two_one_two_messenger/models/conversation_model.dart';
 import 'package:two_one_two_messenger/screens/chat_screen.dart';
+import 'package:two_one_two_messenger/services/api_config.dart';
 import 'package:two_one_two_messenger/services/encryption_service.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
-import 'package:two_one_two_messenger/utils/loader_overlay.dart';
 import 'package:two_one_two_messenger/utils/navigation.dart';
 import 'package:two_one_two_messenger/widgets/app_check_box.dart';
 import 'package:two_one_two_messenger/widgets/buttons.dart';
@@ -23,7 +23,6 @@ import 'package:two_one_two_messenger/widgets/custom_loading_widget.dart';
 import 'package:two_one_two_messenger/widgets/refresh_indicator%20copy.dart';
 
 import '../models/otp_verify.dart';
-import '../services/api_client.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
 import '../utils/text_style.dart';
@@ -585,7 +584,9 @@ class _ForwardMessageScreenState extends State<ForwardMessageScreen> {
                                                                       .start,
                                                               children: [
                                                                 Text(
-                                                                  AppMethods.getNickNameForParticipateDetails(participantList[ind]),
+                                                                  AppMethods.getNickNameForParticipateDetails(
+                                                                      participantList[
+                                                                          ind]),
                                                                   // participantList[ind].name ??'',
                                                                   softWrap:
                                                                       true,
