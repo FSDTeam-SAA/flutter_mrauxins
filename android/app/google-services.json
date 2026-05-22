@@ -1,0 +1,70 @@
+{
+  "project_info": {
+    "project_number": "36500912954",
+    "project_id": "the212",
+    "storage_bucket": "the212.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:36500912954:android:8f98621103a674d4f6ee03",
+        "android_client_info": {
+          "package_name": "com.freshcodes.twoonetwomessenger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "36500912954-4og2jge8i9m19o1obd4el2p02ivotr8p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.freshcodes.twoonetwomessenger",
+            "certificate_hash": "4b20e46691ee97ee23e5e771dfc6a70d8af5bb53"
+          }
+        },
+        {
+          "client_id": "36500912954-92uuhmqikk0fuhg2u6p6q1hd7stqbaie.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.freshcodes.twoonetwomessenger",
+            "certificate_hash": "7e29c1dbbe7f04447abb14bf3a768cc77fb77b5b"
+          }
+        },
+        {
+          "client_id": "36500912954-tbsg3r5h032m58k7fkoqjab82o9hqlc9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.freshcodes.twoonetwomessenger",
+            "certificate_hash": "a1fa5421f7983904a4aab1e8bccb96fc79f157ae"
+          }
+        },
+        {
+          "client_id": "36500912954-vsujmaqpds4v1gq2adeqi2lprgrc8i34.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSAfkbc48NvtSZ6OwVrDCpzVrYVj93AAM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "36500912954-vsujmaqpds4v1gq2adeqi2lprgrc8i34.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "36500912954-dmvil4834e5hqm2r5ur0lsd0p073decg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.freshcodes.twoonetwomessenger"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

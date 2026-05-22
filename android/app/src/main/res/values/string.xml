@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">212 Messenger</string>
+    <string name="facebook_app_id">1624254818189533</string>
+    <string name="facebook_client_token">f341ec62825524ec5ea6ad851a16a594</string>
+    <string name="fb_login_protocol_scheme">fb1624254818189533</string>
+</resources>

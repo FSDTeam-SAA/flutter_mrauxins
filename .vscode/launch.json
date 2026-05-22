@@ -1,0 +1,65 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Telegram-Clone",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "Telegram-Clone (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "Telegram-Clone (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "flutter_chat_reactions",
+            "cwd": "packages/flutter_chat_reactions",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flutter_chat_reactions (profile mode)",
+            "cwd": "packages/flutter_chat_reactions",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "flutter_chat_reactions (release mode)",
+            "cwd": "packages/flutter_chat_reactions",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "giphy_get-main",
+            "cwd": "packages/giphy_get-main",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "giphy_get-main (profile mode)",
+            "cwd": "packages/giphy_get-main",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "giphy_get-main (release mode)",
+            "cwd": "packages/giphy_get-main",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}

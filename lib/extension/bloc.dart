@@ -1,0 +1,19 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:two_one_two_messenger/GoogleAds/ConfigController.dart';
+import 'package:two_one_two_messenger/GoogleAds/adsConfigController.dart';
+import 'package:two_one_two_messenger/cubit/chat_cubit.dart';
+import 'package:two_one_two_messenger/cubit/home_cubit.dart';
+import 'package:two_one_two_messenger/cubit/profile_cubit.dart';
+import 'package:two_one_two_messenger/cubit/send_otp_cubit.dart';
+import 'package:two_one_two_messenger/cubit/user_data_cubit.dart';
+import 'package:two_one_two_messenger/cubit/view_stories_cubit.dart';
+import 'package:two_one_two_messenger/main.dart';
+
+final userDataCubit = navigatorKey.currentState!.context.read<UserDataCubit>();
+final homeCubit = navigatorKey.currentState!.context.read<HomeCubit>();
+final chatCubit = navigatorKey.currentState!.context.read<ChatCubit>();
+final profileCubit = navigatorKey.currentState!.context.read<ProfileCubit>();
+final adConfigCubit = navigatorKey.currentState!.context.read<ConfigCubit>();
+final adsCubit = navigatorKey.currentState!.context.read<AdsConfigCubit>();
+final storyCubit = navigatorKey.currentState!.context.read<ViewStoriesCubit>();
+final sendOtpCubit = navigatorKey.currentState!.context.read<SendOtpCubit>();
