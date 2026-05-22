@@ -16,6 +16,7 @@ import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/models/conversation_model.dart';
 import 'package:two_one_two_messenger/screens/channel_info.dart';
+import 'package:two_one_two_messenger/screens/chat/pinned_messages_widget.dart';
 import 'package:two_one_two_messenger/screens/groupCall.dart';
 import 'package:two_one_two_messenger/screens/group_info.dart';
 import 'package:two_one_two_messenger/screens/report_user_screen.dart';
@@ -30,6 +31,7 @@ import 'package:two_one_two_messenger/widgets/custom_loading_widget.dart';
 import 'package:two_one_two_messenger/widgets/error_widget.dart';
 import 'package:two_one_two_messenger/widgets/sent_media_widgets.dart';
 import 'package:two_one_two_messenger/widgets/typing_status_bubble.dart';
+
 import '../cubit/chat_cubit.dart';
 import '../cubit/chat_state.dart';
 import '../cubit/user_data_cubit.dart';
@@ -42,7 +44,6 @@ import '../utils/text_style.dart';
 import '../utils/utils.dart';
 import '../widgets/buttons.dart';
 import '../widgets/svg_images.dart';
-import 'package:two_one_two_messenger/screens/chat/pinned_messages_widget.dart';
 
 class ChatScreen extends StatefulWidget {
   final String userName;
@@ -554,7 +555,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               widget.sender!.toJson(),
                             ),
                             onNickNameStatusChangge: (newStatus) {
-                              // print("New Status >> $newStatus");
+                              // debugPrint("New Status >> $newStatus");
                               setState(() {
                                 widget.sender?.isActiveNickname = newStatus;
                               });
@@ -620,7 +621,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     : "",
                             style: AppTextStyles.regular(
                                 fontSize: 10.sp,
-                                color: AppColors.white.withOpacity(0.5)),
+                                color: AppColors.white.withValues(alpha: 0.5)),
                           );
                         }
                         return BlocBuilder<HomeCubit, HomeState>(
@@ -637,7 +638,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             // "",
                             style: AppTextStyles.regular(
                                 fontSize: 10.sp,
-                                color: AppColors.white.withOpacity(0.5)),
+                                color: AppColors.white.withValues(alpha: 0.5)),
                           );
                         });
                       }),
@@ -1055,7 +1056,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       } else if (state.chatLoadingState ==
                           LoadingState.success) {
                         // chatList = state.chatList.reversed.toList();
-                        print("chat message build called");
+                        debugPrint("chat message build called");
                         final chatList =
                             List<MessageModel>.from(state.chatList ?? []);
                         // messageList.clear();
@@ -1491,7 +1492,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                           color: highlightedMessageId ==
                                                   chatList[index].messageId
                                               ? AppColors.primaryColor
-                                                  .withOpacity(0.3)
+                                                  .withValues(alpha: 0.3)
                                               : Colors
                                                   .transparent, // 🔥 Highlight effect
                                         ),
@@ -1544,8 +1545,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                         'scroll-${chatList[index].messageId ?? index}'),
                                     controller: _scrollController,
                                     index: index,
-                                    highlightColor:
-                                        AppColors.primaryColor.withOpacity(0.3),
+                                    highlightColor: AppColors.primaryColor
+                                        .withValues(alpha: 0.3),
                                     child: child,
                                   );
                                 },
@@ -2018,7 +2019,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     GestureDetector(
                       behavior: HitTestBehavior.translucent,
                       onTap: () {
-                        // print(
+                        // debugPrint(
                         //   "disAppearingMessagesTime<><>$disAppearingMessagesTime",
                         // );
                         Navigator.pop(context);
@@ -2027,7 +2028,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           disAppearingMessagesTime,
                           (p0) async {
                             // ChatMessageModel
-                            // print(chatCubit.state.createConversationModel.d)
+                            // debugPrint(chatCubit.state.createConversationModel.d)
 
                             String senderId = userDataCubit.state?.sId ??
                                 (await chatCubit.dbHelper.getLoginData())

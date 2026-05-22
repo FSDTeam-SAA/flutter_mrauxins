@@ -68,7 +68,7 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   void updateOnlineLastStatus({required dynamic data}) {
-    log("updateOnlineLastStatus ${data}");
+    log("updateOnlineLastStatus $data");
     if (chatId.isNotEmpty) {
       ChatMessageModel? chatMessageModel = state.chatMessageModel;
       chatMessageModel = chatMessageModel?.copyWith(
@@ -143,7 +143,7 @@ class ChatCubit extends Cubit<ChatState> {
     emit(state.copyWith(
         chatLoadingState: LoadingState.success,
         chatMessageModel: ChatMessageModel(),
-        chatList: Set.of([])));
+        chatList: <MessageModel>{}));
     await Future.delayed(Durations.extralong1);
   }
 
@@ -236,7 +236,7 @@ class ChatCubit extends Cubit<ChatState> {
 
       for (final message in pendingMessages) {
         if (message.sender?.id == currentUser.sId) {
-          print(
+          debugPrint(
               "checkAndRetryPendingMessages>>>>${message.content} ==>$aesKey");
           await retryFailedMessage(
               context: context, // or pass context
@@ -428,7 +428,7 @@ class ChatCubit extends Cubit<ChatState> {
   //         chatPaginationController.hasMore = false;
   //         chatPaginationController.currentPage = 1;
   //       }
-  //       print(
+  //       debugPrint(
   //           "getChat Message = ${response.data?.isOnline} ${response.data?.lastSeen}");
   //       emit(state.copyWith(
   //         chatLoadingState: LoadingState.success,
@@ -535,9 +535,9 @@ class ChatCubit extends Cubit<ChatState> {
           chatId: chatId,
         );
         emit(state.copyWith(
-            chatList: Set.of([]),
+            chatList: <MessageModel>{},
             chatMessageModel:
-                state.chatMessageModel?.copyWith(messages: Set.of([]))));
+                state.chatMessageModel?.copyWith(messages: <MessageModel>{})));
         callback?.call(response);
       }
     } catch (e, st) {
@@ -729,7 +729,7 @@ class ChatCubit extends Cubit<ChatState> {
     } catch (e, st) {
       // Utils.showSnackBar(context, e.toString().replaceAll("Exception: ", ""),
       //     seconds: 3);
-      showMessage("Error ==> ${e} $st");
+      showMessage("Error ==> $e $st");
     }
   }
 
@@ -925,7 +925,8 @@ class ChatCubit extends Cubit<ChatState> {
 
   void updateMessageFromChatList(
       BuildContext context, MessageModel message, String messageId) {
-    Set<MessageModel> updatedMessages = (state.chatList ?? Set.of([])).map(
+    Set<MessageModel> updatedMessages =
+        (state.chatList ?? <MessageModel>{}).map(
       (e) {
         if (e.id == messageId) {
           return message;
@@ -941,7 +942,7 @@ class ChatCubit extends Cubit<ChatState> {
 
   Future<void> updateMessageStatus(
       {required BuildContext context, required String lastMsgId}) async {
-    final updatedMessages = (state.chatList ?? Set.of([])).map((message) {
+    final updatedMessages = (state.chatList ?? <MessageModel>{}).map((message) {
       // showMessage(
       //     "changeMessageStatus  ${message.messageId} ${message.isRead}");
       return message.uploadStatus == MessageUploadStatus.sent &&
@@ -963,7 +964,7 @@ class ChatCubit extends Cubit<ChatState> {
 //       return oldmessage;
 //     }).toList();
     // await Future.delayed(Durations.extralong1);
-    print("changeMessageStatus==> updateMessageStatus  ${lastMsgId}");
+    debugPrint("changeMessageStatus==> updateMessageStatus  $lastMsgId");
     emit(state.copyWith(chatList: updatedMessages));
   }
 
@@ -1016,13 +1017,13 @@ class ChatCubit extends Cubit<ChatState> {
         message.content ?? "",
         aesKey ?? "",
       );
-      print(
+      debugPrint(
           "retryFailedMessage=> ${message.content} $aesKey  $mediaType $from");
       if (mediaType == 0) {
         // Save to local DB first
 
         // Send via socket
-        print("retryFailedMessage=> ${message.content} $encryptedContent");
+        debugPrint("retryFailedMessage=> ${message.content} $encryptedContent");
         _socketService.sendMessage({
           "chatId": chatId,
           "content": encryptedContent,
@@ -1042,7 +1043,7 @@ class ChatCubit extends Cubit<ChatState> {
             await messageRepo.saveMessage(
                 message.copyWith(uploadStatus: MessageUploadStatus.sent),
                 currentUser.sId!);
-            print("sent message sucessfully>>");
+            debugPrint("sent message sucessfully>>");
           }
         });
 
@@ -1253,7 +1254,7 @@ class ChatCubit extends Cubit<ChatState> {
                         .toJson(),
                     aesKey ?? ""),
                 currentUser.sId!);
-            print("sent message sucessfully>>");
+            debugPrint("sent message sucessfully>>");
           } else if ((responseData['resStatus'] == "failed")) {
             updateChatList(
                 context,
@@ -1419,7 +1420,7 @@ class ChatCubit extends Cubit<ChatState> {
       String messageTime = message.createdAt?.toUtc().toIso8601String() ??
           DateTime.now().toUtc().toIso8601String();
 
-      print("Message Time :->$messageTime");
+      debugPrint("Message Time :->$messageTime");
       // Perform the actual upload
       final response = await apiClient.sentMessage(
         context,
@@ -1490,7 +1491,7 @@ class ChatCubit extends Cubit<ChatState> {
       chatCubit.updateUploadProgress(
           message.messageId!, -1); // -1 indicates error
 
-      print("Media upload failed: ${e.toString()}\n$st");
+      debugPrint("Media upload failed: ${e.toString()}\n$st");
       Utils.showSnackBar(
         context,
         'Failed to upload media: ${e.toString().replaceAll("Exception: ", "")}',
@@ -1804,7 +1805,7 @@ class ChatCubit extends Cubit<ChatState> {
         return;
       }
 
-      showMessage("sent message requiest ==>${mimeType.name}  ${content}");
+      showMessage("sent message requiest ==>${mimeType.name}  $content");
       SentMessageModel response = await apiClient.sentSaveMessage(context,
           mediaType: mediaType,
           type: type,
@@ -1850,7 +1851,7 @@ class ChatCubit extends Cubit<ChatState> {
     } catch (e, st) {
       Utils.showSnackBar(context, e.toString().replaceAll("Exception: ", ""),
           seconds: 3);
-      log("sent Message==${e} $st");
+      log("sent Message==$e $st");
       // emit(SentMessageError(e.toString()));
     } finally {
       if (mediaType != 0) {
@@ -1898,7 +1899,7 @@ class ChatCubit extends Cubit<ChatState> {
         savedMessagesData.copyWith(savedMessages: updatedMessageList);
         callback?.call(response);
         emit(state.copyWith(savedMessagesData: savedMessagesData));
-        showMessage("deleteSavedMessages==>${messageId}");
+        showMessage("deleteSavedMessages==>$messageId");
       }
     } catch (e) {
       Utils.showSnackBar(context, e.toString().replaceAll("Exception: ", ""),
@@ -2113,7 +2114,7 @@ class ChatCubit extends Cubit<ChatState> {
           List.from(chatMessageModel.pinnedMessages ?? []);
 
       List<MessageModel> chatMessages =
-          (chatMessageModel.messages ?? Set.of([])).isEmpty
+          (chatMessageModel.messages ?? <dynamic>{}).isEmpty
               ? []
               : List.from(chatMessageModel.messages!.toList());
 
@@ -2142,7 +2143,7 @@ class ChatCubit extends Cubit<ChatState> {
           List.from(chatMessageModel.pinnedMessages ?? []);
 
       List<MessageModel> chatMessages =
-          (chatMessageModel.messages ?? Set.of([])).isEmpty
+          (chatMessageModel.messages ?? <dynamic>{}).isEmpty
               ? []
               : List.from(chatMessageModel.messages!.toList());
 
@@ -2280,9 +2281,7 @@ class ChatCubit extends Cubit<ChatState> {
       }
       Utils.showLoader();
       ToggleNickNameResponse response = await apiClient.toggleNickName(
-        contactUserId: contactUserId,
-        isActiveNickname: isActiveNickname
-      );
+          contactUserId: contactUserId, isActiveNickname: isActiveNickname);
       if (response.status == Utils.APISUCCESS) {
         // await messageRepo.clearChat(
         //   chatId: chatId,

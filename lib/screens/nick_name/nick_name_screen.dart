@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
-import 'package:two_one_two_messenger/utils/app_dialoge.dart';
 import 'package:two_one_two_messenger/utils/colors.dart';
 import 'package:two_one_two_messenger/utils/text_style.dart';
-import 'package:two_one_two_messenger/utils/utils.dart';
 import 'package:two_one_two_messenger/widgets/buttons.dart';
 import 'package:two_one_two_messenger/widgets/text_fields.dart';
 
@@ -23,11 +20,11 @@ Future<void> showNickNameDialog(
   String? nickName,
   Function(String? name)? onPressed,
 }) async {
-  // print("nickName >> $nickName");
+  // debugPrint("nickName >> $nickName");
   final controller = TextEditingController(text: nickName);
   showDialog(
     context: context,
-    barrierColor: Colors.black.withOpacity(.5),
+    barrierColor: Colors.black.withValues(alpha: .5),
     builder: (context) => AlertDialog(
       backgroundColor: AppColors.scaffoldBgDark,
       content: Column(

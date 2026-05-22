@@ -35,7 +35,7 @@ class ImageEditorScreen extends StatelessWidget {
             }
           },
           // onCloseEditor: () {
-          //   print("close Editor");
+          //   debugPrint("close Editor");
           //   // Navigator.pop(context);
           // },
         ),

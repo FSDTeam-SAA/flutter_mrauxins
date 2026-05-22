@@ -1,14 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer' as prints;
+import 'dart:developer' as debugPrints;
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:avatar_glow/avatar_glow.dart';
-// import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -85,7 +83,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
   final SocketService _socketService = SocketService();
   @override
   void initState() {
-    prints.log(
+    debugPrints.log(
         "in side init ==== from${widget.from}==>${widget.channelName} ${widget.token}");
 
     WidgetsBinding.instance.addObserver(this);
@@ -107,7 +105,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
         });
         _initializeCall();
       } else {
-        prints.log("Call ring start =====");
+        debugPrints.log("Call ring start =====");
         _startRinging();
       }
     });
@@ -225,7 +223,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
       await _initializeAgora();
       showMessage("_initializeIncomingCall ${widget.token}");
       if (widget.token != null) {
-        prints.log("_initializeIncomingCall");
+        debugPrints.log("_initializeIncomingCall");
         await _initializeIncomingCall();
       } else {
         await _initializeOutgoingCall();
@@ -574,7 +572,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    // prints.log("FlutterCallkitIncoming =====> $isAccepted");
+    // debugPrints.log("FlutterCallkitIncoming =====> $isAccepted");
     return BlocBuilder<ChatCubit, ChatState>(
       builder: (context, state) {
         return PopScope(
@@ -602,7 +600,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withOpacity(0.3),
+                        Colors.black.withValues(alpha: 0.3),
                         Colors.transparent
                       ],
                     ),
@@ -672,7 +670,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
                                 //   decoration: BoxDecoration(
                                 //     shape: BoxShape.circle,
                                 //     color: context.theme.dividerColor
-                                //         .withOpacity(0.05),
+                                //         .withValues(alpha:0.05),
                                 //     image: widget.image.isEmpty?null: DecorationImage(
                                 //         image: CachedNetworkImageProvider(
                                 //             widget.image),
@@ -688,7 +686,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
                                   padding: const EdgeInsets.all(5),
                                   child: Icon(
                                     Icons.mic_off_rounded,
-                                    color: Colors.white.withOpacity(0.7),
+                                    color: Colors.white.withValues(alpha: 0.7),
                                   ),
                                 ),
                               ),
@@ -707,7 +705,8 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
                                     boxShadow: [
                                       BoxShadow(
                                           blurRadius: 10,
-                                          color: Colors.black.withOpacity(0.1))
+                                          color: Colors.black
+                                              .withValues(alpha: 0.1))
                                     ],
                                     color:
                                         context.theme.scaffoldBackgroundColor,
@@ -761,7 +760,8 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
                                       padding: const EdgeInsets.all(5),
                                       child: Icon(
                                         Icons.videocam_off_rounded,
-                                        color: Colors.white.withOpacity(0.7),
+                                        color:
+                                            Colors.white.withValues(alpha: 0.7),
                                       ),
                                     ),
                                   ),
@@ -774,7 +774,8 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
                                       padding: const EdgeInsets.all(5),
                                       child: Icon(
                                         Icons.mic_off_rounded,
-                                        color: Colors.white.withOpacity(0.7),
+                                        color:
+                                            Colors.white.withValues(alpha: 0.7),
                                       ),
                                     ),
                                   ),
@@ -879,10 +880,11 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
                                                         ? AppColors.white
                                                         : context.theme
                                                             .scaffoldBackgroundColor
-                                                            .withOpacity(
-                                                                isDisableVideo
-                                                                    ? 1
-                                                                    : 0.5))),
+                                                            .withValues(
+                                                                alpha:
+                                                                    isDisableVideo
+                                                                        ? 1
+                                                                        : 0.5))),
                                           ),
                                         ),
                                         // 5.s,
@@ -912,9 +914,10 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
                                                       ? AppColors.white
                                                       : context.theme
                                                           .scaffoldBackgroundColor
-                                                          .withOpacity(isMute
-                                                              ? 1
-                                                              : 0.5))),
+                                                          .withValues(
+                                                              alpha: isMute
+                                                                  ? 1
+                                                                  : 0.5))),
                                         ),
                                       ),
                                       // 5.s,

@@ -260,7 +260,7 @@ class _ForwardMessageScreenState extends State<ForwardMessageScreen> {
             [];
         if (participantList.isNotEmpty) {
           // CommonLoader.showLoader();
-          print("Forward message to ${participantList[0].name}");
+          debugPrint("Forward message to ${participantList[0].name}");
           NavigationService().popUntil();
           // await Future.delayed(Durations.long1);
           await chatCubit.resetChatScreenState();
@@ -522,7 +522,7 @@ class _ForwardMessageScreenState extends State<ForwardMessageScreen> {
                                               //                 fontSize: 12.sp,
                                               //                 color: AppColors
                                               //                     .white
-                                              //                     .withOpacity(
+                                              //                     .withValues(alpha:
                                               //                         0.65)),
                                               //       ),
                                               //   ],
@@ -664,7 +664,7 @@ class _ForwardMessageScreenState extends State<ForwardMessageScreen> {
                                                   //                     12.sp,
                                                   //                 color: AppColors
                                                   //                     .white
-                                                  //                     .withOpacity(
+                                                  //                     .withValues(alpha:
                                                   //                         0.65)),
                                                   //       ),
                                                   //   ],

@@ -84,7 +84,7 @@ class _UploadStoriesScreenState extends State<UploadStoriesScreen> {
               return GestureDetector(
                 onTap: () async {
                   // String filePath = cubit.selectedFile!.path.split("/").last;
-                  // print("filePath===> $filePath");
+                  // debugPrint("filePath===> $filePath");
 
                   Navigator.push(
                     context,
@@ -155,14 +155,14 @@ class _UploadStoriesScreenState extends State<UploadStoriesScreen> {
 //new
 
                   //   String filePath = cubit.selectedFile!.path.split("/").last;
-                  // print("filePath===> $filePath");
+                  // debugPrint("filePath===> $filePath");
                   // final image =
                   //     await Utils.fileToUint8List(cubit.selectedFile!);
 
                   // img.Image? originalImage = img.decodeImage(image);
 
                   // if (originalImage == null) {
-                  //   print("Error: Unable to decode the original image.");
+                  //   debugPrint("Error: Unable to decode the original image.");
                   //   return;
                   // }
 
@@ -183,7 +183,7 @@ class _UploadStoriesScreenState extends State<UploadStoriesScreen> {
                   //   //     DateTime.now().millisecondsSinceEpoch.toString());
                   //   File file = await Utils.fixEditedImageSize(
                   //       editedImage, originalWidth, originalHeight);
-                  //   print("Edited Image Path: ${file.path}");
+                  //   debugPrint("Edited Image Path: ${file.path}");
 
                   //   cubit.setImageFile(file);
                   //   setState(() {});
@@ -267,7 +267,7 @@ class _UploadStoriesScreenState extends State<UploadStoriesScreen> {
                     //       onPressed: () async {
                     //         String filePath =
                     //             cubit.selectedFile!.path.split("/").last;
-                    //         print("filePath===> $filePath");
+                    //         debugPrint("filePath===> $filePath");
                     //         final image = await Utils.fileToUint8List(
                     //             cubit.selectedFile!);
                     //         final editedImage = await Navigator.push(
@@ -313,7 +313,7 @@ class _UploadStoriesScreenState extends State<UploadStoriesScreen> {
                       padding: EdgeInsets.symmetric(horizontal: 16.w),
                       child: CustomButton(
                         onPressed: () {
-                          // print("create Story ==> ${cubit.mimeType?.name}");
+                          // debugPrint("create Story ==> ${cubit.mimeType?.name}");
                           contextStories
                               .read<CreateStoriesCubit>()
                               .createStories(

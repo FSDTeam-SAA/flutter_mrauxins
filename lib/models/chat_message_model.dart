@@ -94,7 +94,7 @@ class ChatMessageModel extends Equatable {
       );
 
   factory ChatMessageModel.fromJson(Map<String, dynamic> json, String aesKey) {
-    print("ChatMessageModel==> ${json["otherUserRemoveFromChat"]}");
+    debugPrint("ChatMessageModel==> ${json["otherUserRemoveFromChat"]}");
     return ChatMessageModel(
       messages: json["messages"] == null
           ? Set.of([])
@@ -274,7 +274,7 @@ class MessageModel extends Equatable {
       // showMessage(
       //     "SentMessageModel in message ${json['content']} == $decryptedContent");
     }
-    // print("SentMessageModel in message ${json["upload_status"]}");
+    // debugPrint("SentMessageModel in message ${json["upload_status"]}");
     showMessage(
         "messageId XYX in messageId ${json["messageId"]} _IDD ${json["_id"]}");
 

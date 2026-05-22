@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:typed_data';
+
 import 'package:basic_utils/basic_utils.dart';
 import 'package:convert/convert.dart'; // Provides base16 decoding
 import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:flutter/foundation.dart';
 import 'package:pointycastle/export.dart';
 import 'package:two_one_two_messenger/database/local_db.dart';
 
@@ -107,7 +108,9 @@ class EncryptionHelper {
 
       return decrypted;
     } catch (e, st) {
-      print("Failed to decrypt message: $e $st");
+      if (kDebugMode) {
+        debugPrint("Failed to decrypt message: $e $st");
+      }
       return encryptedJson;
     }
   }

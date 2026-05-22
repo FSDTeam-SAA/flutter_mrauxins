@@ -1,6 +1,5 @@
 import 'dart:developer' as p;
 import 'dart:io';
-
 import 'dart:math';
 
 import 'package:easy_url_launcher/easy_url_launcher.dart';
@@ -15,6 +14,7 @@ import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_thumbnail_video/index.dart';
 import 'package:get_thumbnail_video/video_thumbnail.dart';
+import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
 import 'package:intl_phone_field/countries.dart';
 import 'package:intl_phone_field/phone_number.dart';
@@ -28,10 +28,8 @@ import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/main.dart';
 import 'package:two_one_two_messenger/models/chat_message_model.dart';
 import 'package:two_one_two_messenger/models/conversation_model.dart';
-import 'package:two_one_two_messenger/models/group_info_model.dart';
 import 'package:two_one_two_messenger/models/otp_verify.dart';
 import 'package:two_one_two_messenger/widgets/alert_dialog.dart';
-import 'package:two_one_two_messenger/widgets/buttons.dart';
 import 'package:two_one_two_messenger/widgets/svg_images.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -40,7 +38,6 @@ import 'constants.dart';
 import 'logger.dart';
 import 'navigation.dart';
 import 'text_style.dart';
-import 'package:image/image.dart' as img;
 
 extension GeneralExtensions on BuildContext {
   ThemeData get theme => Theme.of(this);
@@ -629,7 +626,7 @@ class Utils {
   }
 
   static Future<void> onOpenLink(LinkableElement link) async {
-    print("onOpenLink==>${_ensureProperUrl(link.url)}");
+    debugPrint("onOpenLink==>${_ensureProperUrl(link.url)}");
     EasyLauncher.url(url: _ensureProperUrl(link.url), mode: Mode.inAppBrowser);
   }
 

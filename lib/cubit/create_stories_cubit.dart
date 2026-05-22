@@ -8,7 +8,6 @@ import 'package:get_thumbnail_video/video_thumbnail.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:two_one_two_messenger/cubit/view_stories_cubit.dart';
-import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/main.dart';
 import 'package:two_one_two_messenger/utils/loader_overlay.dart';
@@ -40,22 +39,30 @@ class CreateStoriesCubit extends Cubit<CreateStoriesState> {
   Future<void> createStories(File? file, String caption, BuildContext context,
       {Function(CreateStoriesResponse)? callback,
       required MimeType? mimeType}) async {
+    final viewStoriesCubit = context.read<ViewStoriesCubit>();
+    final globalContext = navigatorKey.currentContext;
+    final apiContext = globalContext ?? context;
+
     emit(CreateStoriesLoading());
     try {
       Loader.show();
       CreateStoriesResponse response = await apiClient.createStories(
-          file, caption, videoDuration, context, mimeType);
+          file, caption, videoDuration, apiContext, mimeType);
       if (response.status == Utils.APISUCCESS) {
         callback?.call(response);
-        await context.read<ViewStoriesCubit>().getLoggedInUserStories(context);
+        if (globalContext != null) {
+          await viewStoriesCubit.getLoggedInUserStories(globalContext);
+        }
       }
       emit(CreateStoriesSuccess());
       emit(CreateStoriesLoaded(response));
     } catch (e) {
-      Utils.showSnackBar(
-        context,
-        e.toString().replaceAll("Exception: ", ""),
-      );
+      if (globalContext != null) {
+        Utils.showSnackBar(
+          globalContext,
+          e.toString().replaceAll("Exception: ", ""),
+        );
+      }
       emit(CreateStoriesError(e.toString()));
     } finally {
       Loader.hide();
@@ -84,7 +91,7 @@ class CreateStoriesCubit extends Cubit<CreateStoriesState> {
       if (pickedImage != null) {
         file = pickedImage;
         videoDuration = 5;
-        selectedFile = File(file!.path);
+        selectedFile = File(file.path);
         mimeType = Utils.getMimeType(file.path);
         NavigationService().goBackTo(1);
         NavigationService().navigateTo(UploadStoriesScreen());
@@ -102,7 +109,7 @@ class CreateStoriesCubit extends Cubit<CreateStoriesState> {
               S.current.videoDurationIsMorethen30Sec);
           return;
         } else {
-          selectedFile = File(file!.path);
+          selectedFile = File(file.path);
           mimeType = Utils.getMimeType(file.path);
 
           NavigationService().navigateTo(UploadStoriesScreen());
@@ -201,12 +208,7 @@ class CreateStoriesCubit extends Cubit<CreateStoriesState> {
       imageFormat: ImageFormat.JPEG,
       quality: 100,
     );
-    if (thumbnailFile != null) {
-      videoThumbnail = File(thumbnailFile.path);
-    } else {
-      showMessage("Error in getVideoThumbnail");
-      throw Exception("Failed to generate video thumbnail");
-    }
+    videoThumbnail = File(thumbnailFile.path);
   }
 
   void initializeVideoPlayer(File videoFile) {

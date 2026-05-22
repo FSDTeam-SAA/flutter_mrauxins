@@ -1,9 +1,8 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:two_one_two_messenger/GoogleAds/BannerAds/BannerAdManager.dart';
 import 'package:two_one_two_messenger/cubit/chat_cubit.dart';
@@ -29,12 +28,9 @@ import 'package:two_one_two_messenger/utils/utils.dart';
 import 'package:two_one_two_messenger/widgets/avatar_widgets.dart';
 import 'package:two_one_two_messenger/widgets/buttons.dart';
 import 'package:two_one_two_messenger/widgets/custom_loading_widget.dart';
-import 'package:two_one_two_messenger/widgets/sent_media_widgets.dart';
 import 'package:two_one_two_messenger/widgets/svg_images.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 
 import '../cubit/chat_state.dart';
-import '../services/socket_service.dart';
 import '../utils/app_dialoge.dart';
 
 class ContactsScreen extends StatefulWidget {
@@ -395,7 +391,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
             ],
           ),
           onTap: () {
-            print("ContactUserId ${contactUser.sId}");
+            debugPrint("ContactUserId ${contactUser.sId}");
             // ContactUser contact = ContactUser(...); // populated contact
             UserData user = UserData.fromContactUser(contactUser);
             NavigationService().navigateTo(
@@ -504,8 +500,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
         //         Utils.showSnackBar(context, "Conversation not Started");
         //         return;
         //       }
-        //       // print("TIME p0");
-        //       // print(
+        //       // debugPrint("TIME p0");
+        //       // debugPrint(
         //       //     "contactUser.messageAutoDeleteTime ${contactUser.messageAutoDeleteTime}");
         //       showDisappearingMessageTimerSheet(
         //         context,
@@ -673,7 +669,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
         //     ),
         //     onTap: () async {
         //       String? chatId = contactUser.chatId;
-        //       // print("ChatId >> ${contactUser.chatId.toString()}");
+        //       // debugPrint("ChatId >> ${contactUser.chatId.toString()}");
         //       if (chatId == null) {
         //         Utils.showSnackBar(context, "Conversation not Started");
         //         return;
@@ -784,7 +780,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
 
   void gotoChatScreen(ContactUser user) async {
     if (user.isRegistered ?? false) {
-      print("userChatId >> ${user.chatId}");
+      debugPrint("userChatId >> ${user.chatId}");
       showMessage("call ===>");
       ParticipantDetail sender = ParticipantDetail.fromJson(user.toJson());
       showMessage("call ===>  ${sender.toJson()}");

@@ -77,7 +77,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     try {
-      print("dispose==> emitUserOnlineStatus==>${{
+      debugPrint("dispose==> emitUserOnlineStatus==>${{
         "userId": user?.sId,
         "isOnline": false,
       }} ");
@@ -87,7 +87,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _notificationService.dispose();
       super.dispose();
     } catch (e, st) {
-      print("Dispose error $e $st");
+      debugPrint("Dispose error $e $st");
     }
 
     _handleAsyncDisposeTasks();
@@ -300,7 +300,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       },
     );
 
-    print("init ==> emitUserOnlineStatus==>${{
+    debugPrint("init ==> emitUserOnlineStatus==>${{
       "userId": user?.sId,
       "isOnline": true,
     }} ");
@@ -314,7 +314,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         .listen(
       (event) async {
         log("_handleCallKit called==>$event ==>${DateTime.now}");
-        print("_handleCallKit-->${event['type']} ${DateTime.now}");
+        debugPrint("_handleCallKit-->${event['type']} ${DateTime.now}");
         final notificationId =
             NotificationDebouncer.generateNotificationId(event);
 
@@ -412,8 +412,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 currentConversationId: event["chat_id"],
               ));
             } else {
-              print("DATA>>>>>>>>>> ******$event");
-              print("NAME>>>>>>>*****. ${event["sender"]["name"]}");
+              debugPrint("DATA>>>>>>>>>> ******$event");
+              debugPrint("NAME>>>>>>>*****. ${event["sender"]["name"]}");
               NavigationService().navigateTo(CallingPage(
                 token: event["token"],
                 channelName: event["channel_name"],
@@ -534,7 +534,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!isOnline) {
       _stopHeartBeat();
     }
-    print("emitUserOnlineStatus==>${{
+    debugPrint("emitUserOnlineStatus==>${{
       "userId": user?.sId,
       "isOnline": isOnline,
     }} ");
@@ -547,9 +547,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Timer? _heartBeatTimer;
   void _startHeartBeat() {
     _heartBeatTimer?.cancel();
-    print("_start HeartBeat");
+    debugPrint("_start HeartBeat");
     _heartBeatTimer = Timer.periodic(Duration(seconds: 55), (timer) {
-      print("_start HeartBeat==>");
+      debugPrint("_start HeartBeat==>");
       _socketService.sendHeartBeat({"userId": user?.sId});
     });
   }
@@ -557,7 +557,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _stopHeartBeat() {
     _heartBeatTimer?.cancel();
     _heartBeatTimer = null;
-    print("_stop HeartBeat");
+    debugPrint("_stop HeartBeat");
   }
 
   void disposeAllEvents() {
@@ -1170,7 +1170,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               //                     style: AppTextStyles.regular(
                               //                         fontSize: 12.sp,
                               //                         color: AppColors.white
-                              //                             .withOpacity(0.65)),
+                              //                             .withValues(alpha:0.65)),
                               //                   ),
                               //                 ],
                               //               )
@@ -1363,7 +1363,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               //                                   fontSize: 12.sp,
                               //                                   color: AppColors
                               //                                       .white
-                              //                                       .withOpacity(
+                              //                                       .withValues(alpha:
                               //                                           0.65)),
                               //                         ),
                               //                       ],
@@ -1615,7 +1615,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 //                                 style: AppTextStyles.regular(
                 //                                     fontSize: 12.sp,
                 //                                     color: AppColors.white
-                //                                         .withOpacity(0.65)),
+                //                                         .withValues(alpha:0.65)),
                 //                               ),
                 //                             ],
                 //                           )
@@ -1783,7 +1783,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 //                                     style: AppTextStyles.regular(
                 //                                         fontSize: 12.sp,
                 //                                         color: AppColors.white
-                //                                             .withOpacity(0.65)),
+                //                                             .withValues(alpha:0.65)),
                 //                                   ),
                 //                                 ],
                 //                               )

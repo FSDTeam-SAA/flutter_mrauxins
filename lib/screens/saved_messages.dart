@@ -1,6 +1,3 @@
-import 'dart:developer';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -538,7 +535,8 @@ class _SavedMessagesState extends State<SavedMessages> {
                                                             chatList[index]
                                                                 .messageId
                                                         ? AppColors.primaryColor
-                                                            .withOpacity(0.3)
+                                                            .withValues(
+                                                                alpha: 0.3)
                                                         : Colors
                                                             .transparent, // 🔥 Highlight effect
                                                   ),
@@ -632,7 +630,7 @@ class _SavedMessagesState extends State<SavedMessages> {
                                               color: highlightedMessageId ==
                                                       chatList[index].messageId
                                                   ? AppColors.primaryColor
-                                                      .withOpacity(0.3)
+                                                      .withValues(alpha: 0.3)
                                                   : Colors
                                                       .transparent, // 🔥 Highlight effect
                                             ),
@@ -731,7 +729,7 @@ class _SavedMessagesState extends State<SavedMessages> {
                                 //                                   .messageId
                                 //                           ? AppColors
                                 //                               .primaryColor
-                                //                               .withOpacity(0.3)
+                                //                               .withValues(alpha:0.3)
                                 //                           : Colors
                                 //                               .transparent, // 🔥 Highlight effect
                                 //                     ),
@@ -818,7 +816,7 @@ class _SavedMessagesState extends State<SavedMessages> {
                                 //                         chatList[index]
                                 //                             .messageId
                                 //                     ? AppColors.primaryColor
-                                //                         .withOpacity(0.3)
+                                //                         .withValues(alpha:0.3)
                                 //                     : Colors
                                 //                         .transparent, // 🔥 Highlight effect
                                 //               ),

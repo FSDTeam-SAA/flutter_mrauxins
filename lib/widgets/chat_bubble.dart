@@ -604,7 +604,7 @@ class _MessageWidgetState extends State<MessageWidget> {
                             "Sending..",
                             style: AppTextStyles.regular(
                                 fontSize: 12.sp,
-                                color: AppColors.white.withOpacity(0.65)),
+                                color: AppColors.white.withValues(alpha: 0.65)),
                           ),
                         ),
                       // if (widget.message.createdAt != null && widget.isSender)
@@ -620,7 +620,7 @@ class _MessageWidgetState extends State<MessageWidget> {
                       //                   DateTime.now())),
                       //           style: AppTextStyles.regular(
                       //               fontSize: 12.sp,
-                      //               color: AppColors.white.withOpacity(0.65)),
+                      //               color: AppColors.white.withValues(alpha:0.65)),
                       //         ),
                       //       ),
                       //     ],
@@ -638,7 +638,7 @@ class _MessageWidgetState extends State<MessageWidget> {
                                       Duration(minutes: 1))))
                         GestureDetector(
                           onTap: () async {
-                            // print(
+                            // debugPrint(
                             //     "onTap Message==>${widget.message.createdAt!.add(Duration(minutes: 1))} ${widget.message.uploadStatus == MessageUploadStatus.failed || (widget.message.uploadStatus == MessageUploadStatus.pending && widget.message.createdAt != null && DateTime.now().difference(widget.message.createdAt!) > Duration(minutes: 1))}");
                             if (widget.message.uploadStatus ==
                                 MessageUploadStatus.failed) {
@@ -1574,7 +1574,7 @@ class _MessageWidgetState extends State<MessageWidget> {
                             "Sending..",
                             style: AppTextStyles.regular(
                                 fontSize: 12.sp,
-                                color: AppColors.white.withOpacity(0.65)),
+                                color: AppColors.white.withValues(alpha: 0.65)),
                           ),
                         ),
                       // if (widget.message.createdAt != null && (!widget.isSender))
@@ -1589,7 +1589,7 @@ class _MessageWidgetState extends State<MessageWidget> {
                       //               widget.message.createdAt ?? DateTime.now()),
                       //           style: AppTextStyles.regular(
                       //               fontSize: 12.sp,
-                      //               color: AppColors.white.withOpacity(0.65)),
+                      //               color: AppColors.white.withValues(alpha:0.65)),
                       //         ),
                       //       ),
                       //     ],
@@ -1607,7 +1607,7 @@ class _MessageWidgetState extends State<MessageWidget> {
                                       Duration(minutes: 1))))
                         GestureDetector(
                           onTap: () async {
-                            // print(
+                            // debugPrint(
                             //     "onTap Message==>${widget.message.createdAt!.add(Duration(minutes: 1))} ${widget.message.uploadStatus == MessageUploadStatus.failed || (widget.message.uploadStatus == MessageUploadStatus.pending && widget.message.createdAt != null && DateTime.now().difference(widget.message.createdAt!) > Duration(minutes: 1))}");
                             if (widget.message.uploadStatus ==
                                 MessageUploadStatus.failed) {
@@ -1651,7 +1651,7 @@ class _MessageWidgetState extends State<MessageWidget> {
                           .format((widget.message.createdAt ?? DateTime.now())),
                       style: AppTextStyles.regular(
                           fontSize: 12.sp,
-                          color: AppColors.white.withOpacity(0.65)),
+                          color: AppColors.white.withValues(alpha: 0.65)),
                     ),
                   ),
                 ),
@@ -1666,7 +1666,7 @@ class _MessageWidgetState extends State<MessageWidget> {
               //         "Sending..",
               //         style: AppTextStyles.regular(
               //             fontSize: 12.sp,
-              //             color: AppColors.white.withOpacity(0.65)),
+              //             color: AppColors.white.withValues(alpha:0.65)),
               //       ),
               //     ),
               //   ),
@@ -2248,7 +2248,7 @@ class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
           //                         margin: EdgeInsets.symmetric(vertical: 5.h),
           //                         padding: EdgeInsets.all(10),
           //                         decoration: BoxDecoration(
-          //                             color: Colors.black.withOpacity(0.1),
+          //                             color: Colors.black.withValues(alpha:0.1),
           //                             borderRadius: BorderRadius.circular(10)),
           //                         child: Row(
           //                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2305,7 +2305,7 @@ class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
           //                             BoxConstraints(maxWidth: context.w * 0.7),
           //                         padding: EdgeInsets.all(10),
           //                         decoration: BoxDecoration(
-          //                             color: Colors.black.withOpacity(0.1),
+          //                             color: Colors.black.withValues(alpha:0.1),
           //                             borderRadius: BorderRadius.circular(10)),
           //                         child: Row(
           //                           mainAxisSize: MainAxisSize.min,
@@ -2416,7 +2416,8 @@ class SavedMessageWidget extends StatelessWidget {
                               "Sending..",
                               style: AppTextStyles.regular(
                                   fontSize: 12.sp,
-                                  color: AppColors.white.withOpacity(0.65)),
+                                  color:
+                                      AppColors.white.withValues(alpha: 0.65)),
                             ),
                           ),
                       Stack(
@@ -3317,7 +3318,7 @@ class SavedMessageWidget extends StatelessWidget {
                       //                   DateTime.now()),
                       //           style: AppTextStyles.regular(
                       //               fontSize: 12.sp,
-                      //               color: AppColors.white.withOpacity(0.65)),
+                      //               color: AppColors.white.withValues(alpha:0.65)),
                       //         ),
                       //       ),
                       //     ],
@@ -3334,7 +3335,7 @@ class SavedMessageWidget extends StatelessWidget {
                         message.messageDetails?.createdAt ?? DateTime.now()),
                     style: AppTextStyles.regular(
                         fontSize: 12.sp,
-                        color: AppColors.white.withOpacity(0.65)),
+                        color: AppColors.white.withValues(alpha: 0.65)),
                   ),
                 ),
             ],

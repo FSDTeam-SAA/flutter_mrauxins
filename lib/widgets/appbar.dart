@@ -8,10 +8,10 @@ import 'package:two_one_two_messenger/screens/notification_screen.dart';
 import 'package:two_one_two_messenger/utils/colors.dart';
 import 'package:two_one_two_messenger/utils/text_style.dart';
 import 'package:two_one_two_messenger/widgets/svg_images.dart';
+
 import '../screens/search_screen.dart';
 import '../utils/constants.dart';
 import '../utils/navigation.dart';
-import '../utils/utils.dart'; // Assuming you're using flutter_svg package
 
 class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
@@ -83,7 +83,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                   Text(subTitle ?? '',
                       style: AppTextStyles.medium(
                           fontSize: 10.sp,
-                          color: AppColors.white.withOpacity(0.5))),
+                          color: AppColors.white.withValues(alpha: 0.5))),
               ],
             ),
       actions: isActionsShow

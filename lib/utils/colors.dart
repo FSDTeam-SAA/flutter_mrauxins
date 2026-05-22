@@ -48,7 +48,7 @@ class AppColors {
   // Other common colors
 
   // static const Color dividerColor = Color(0xFF434a61);
-  static Color get dividerColor => Color(0XFFF4F5F8).withOpacity(0.1);
+  static Color get dividerColor => Color(0XFFF4F5F8).withValues(alpha: 0.1);
   static const Color buttonColor = Color(0xFF3E5EFE);
   static const Color checkboxColor = Color(0xFFD1D1D1);
   static const Color iconColor = Color(0xFF002E5B);

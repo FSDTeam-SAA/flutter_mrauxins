@@ -16,7 +16,6 @@ import 'package:two_one_two_messenger/screens/group_info.dart';
 import 'package:two_one_two_messenger/screens/voice_call_page.dart';
 import 'package:two_one_two_messenger/services/push_notifications.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
-import 'package:two_one_two_messenger/utils/colors.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
 
 import '../utils/navigation.dart';
@@ -365,7 +364,7 @@ class NotificationService {
             .listen(
       (event) async {
         log("_handleCallKit called==>$event ==>${DateTime.now}");
-        print("_handleCallKit-->${event['type']} ${DateTime.now}");
+        debugPrint("_handleCallKit-->${event['type']} ${DateTime.now}");
         if (event == null) return;
         final notificationId =
             NotificationDebouncer.generateNotificationId(event);

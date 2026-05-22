@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer' as prints;
+import 'dart:developer' as debugPrints;
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
@@ -96,7 +96,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
   }
 
   Future<void> onInit() async {
-    prints.log("in side init ==== from${widget.from} ${widget.token}");
+    debugPrints.log("in side init ==== from${widget.from} ${widget.token}");
 
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -119,7 +119,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
         });
         _initializeCall();
       } else {
-        prints.log("Call ring start =====");
+        debugPrints.log("Call ring start =====");
         _startRinging();
       }
     });
@@ -241,7 +241,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
       showMessage("_initializeIncomingCall  CALLID ${widget.callId} ");
 
       if (widget.token != null) {
-        prints.log("_initializeIncomingCall");
+        debugPrints.log("_initializeIncomingCall");
         await _initializeIncomingCall();
       } else {
         await _initializeOutgoingCall();
@@ -749,7 +749,8 @@ class _GroupCallingPageState extends State<GroupCallingPage>
                               maxWidth: 300, maxHeight: 300),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: context.theme.dividerColor.withOpacity(0.05),
+                            color: context.theme.dividerColor
+                                .withValues(alpha: 0.05),
                             image: widget.image.isNotEmpty
                                 ? DecorationImage(
                                     image: CachedNetworkImageProvider(
@@ -777,7 +778,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
                       //       padding: const EdgeInsets.all(5),
                       //       child: Icon(
                       //         Icons.mic_off_rounded,
-                      //         color: Colors.white.withOpacity(0.7),
+                      //         color: Colors.white.withValues(alpha:0.7),
                       //       ),
                       //     ),
                       //   ),
@@ -947,7 +948,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
 
   Widget _buildVoiceCallUI() {
     // List<Widget> userTiles = [];
-    prints.log(
+    debugPrints.log(
         "build Voice call ui  =>${(currentUser?.profilePicture ?? "").isNotEmpty ? "${Urls.mediaUrl}${currentUser?.profilePicture ?? ""}" : ""}");
     // // ✅ Add current user at the top (Full-width row)
     // userTiles.add(
@@ -1083,7 +1084,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
               constraints: const BoxConstraints(maxWidth: 150, maxHeight: 150),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: context.theme.dividerColor.withOpacity(0.05),
+                color: context.theme.dividerColor.withValues(alpha: 0.05),
                 image: imageUrl.isEmpty
                     ? null
                     : DecorationImage(
@@ -1238,7 +1239,8 @@ class _GroupCallingPageState extends State<GroupCallingPage>
                               color: isDisableVideo
                                   ? AppColors.white
                                   : context.theme.scaffoldBackgroundColor
-                                      .withOpacity(isDisableVideo ? 1 : 0.5))),
+                                      .withValues(
+                                          alpha: isDisableVideo ? 1 : 0.5))),
                     ),
                   ),
                   // 5.s,
@@ -1263,7 +1265,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
                             color: isMute
                                 ? AppColors.white
                                 : context.theme.scaffoldBackgroundColor
-                                    .withOpacity(isMute ? 1 : 0.5))),
+                                    .withValues(alpha: isMute ? 1 : 0.5))),
                   ),
                 ),
                 // 5.s,
@@ -1338,7 +1340,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
                       // chatCubit.callReject(
                       //     context: context,reciverID:);
 
-                      prints.log("end call $_engine ${widget.token}");
+                      debugPrints.log("end call $_engine ${widget.token}");
                       try {
                         // _engine = null;
                         await chatCubit.rejectCall(
@@ -1354,7 +1356,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
                       }
                     }
                   : () {
-                      prints.log("end call $_engine ${widget.token}");
+                      debugPrints.log("end call $_engine ${widget.token}");
                     },
               backgroundColor: Colors.red.shade600,
               child: Text(

@@ -3,9 +3,9 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 import 'package:two_one_two_messenger/models/all_user.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
 
@@ -97,9 +97,9 @@ class DatabaseHelper {
       // 5. Delete the old database
       await deleteDatabase(oldPath);
 
-      print('Database migration completed successfully');
+      debugPrint('Database migration completed successfully');
     } catch (e) {
-      print('Error during database migration: $e');
+      debugPrint('Error during database migration: $e');
       // If migration fails, the app will continue with the old database
       // You might want to implement a retry mechanism or fallback
     }
@@ -127,7 +127,7 @@ class DatabaseHelper {
 
   // Create tables
   Future<void> _createDatabase(Database db, int version) async {
-    print("create Table==>$version");
+    debugPrint("create Table==>$version");
     await db.execute('''
       CREATE TABLE login_data (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -234,7 +234,7 @@ class DatabaseHelper {
   // Handle database upgrades
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     try {
-      print(
+      debugPrint(
           "onUpgrade: oldVersion: $oldVersion newVersion: $newVersion ${oldVersion <= newVersion}");
       showMessage(
           "onUpgrade: oldVersion: $oldVersion newVersion: $newVersion ${oldVersion <= newVersion}");
@@ -688,9 +688,9 @@ class DatabaseHelper {
     final result = await db.query(
       'contacts',
       where: '''
-      (name IS NOT NULL AND name LIKE ?) OR 
-      (userName IS NOT NULL AND userName LIKE ?) OR 
-      (email IS NOT NULL AND email LIKE ?) OR 
+      (name IS NOT NULL AND name LIKE ?) OR
+      (userName IS NOT NULL AND userName LIKE ?) OR
+      (email IS NOT NULL AND email LIKE ?) OR
       (phone IS NOT NULL AND phone LIKE ?)
     ''',
       whereArgs: [
@@ -700,8 +700,8 @@ class DatabaseHelper {
         '%$searchQuery%'
       ],
       orderBy: '''
-      (CASE WHEN lastSeen IS NULL OR lastSeen = '' THEN 1 ELSE 0 END), 
-      lastSeen DESC, 
+      (CASE WHEN lastSeen IS NULL OR lastSeen = '' THEN 1 ELSE 0 END),
+      lastSeen DESC,
       name ASC
     ''',
       // limit: limit,

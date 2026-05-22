@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:two_one_two_messenger/database/local_db.dart';
 import 'package:two_one_two_messenger/models/chat_message_model.dart';
@@ -62,7 +63,7 @@ class MessageRepository {
       decryptedContent = map['content'] ?? "";
     } else if (((map['content'] as String?) ?? "").isNotEmpty) {
       final encryptionService = EncryptionHelper();
-      showMessage("_mapToMessage ${aesKey} == ${map['content']}");
+      showMessage("_mapToMessage $aesKey == ${map['content']}");
       // decryptedAESKey = encryptionService.decryptAESKey(
       //   aesKey,
       // );
@@ -279,7 +280,9 @@ class MessageRepository {
         );
       }
     } catch (e) {
-      print('Error deleting message: $e');
+      if (kDebugMode) {
+        print('Error deleting message: $e');
+      }
       rethrow;
     }
   }
@@ -300,7 +303,9 @@ class MessageRepository {
         ],
       );
     } catch (e) {
-      print('Error clearing chat: $e');
+      if (kDebugMode) {
+        print('Error clearing chat: $e');
+      }
       // rethrow;
     }
   }
@@ -315,7 +320,7 @@ class MessageRepository {
         whereArgs: [userId],
       );
     } catch (e) {
-      print('Error clearing all messages: $e');
+      debugPrint('Error clearing all messages: $e');
       rethrow;
     }
   }
@@ -345,7 +350,7 @@ class MessageRepository {
           )
           .toList();
     } catch (e) {
-      print('Error searching messages: $e');
+      debugPrint('Error searching messages: $e');
       rethrow;
     }
   }
@@ -369,7 +374,7 @@ class MessageRepository {
           )
           .toList();
     } catch (e) {
-      print('Error getting pinned messages: $e');
+      debugPrint('Error getting pinned messages: $e');
       rethrow;
     }
   }
@@ -392,7 +397,7 @@ class MessageRepository {
         whereArgs: [messageId, userId],
       );
     } catch (e) {
-      print('Error updating message content: $e');
+      debugPrint('Error updating message content: $e');
       rethrow;
     }
   }
@@ -439,7 +444,7 @@ class MessageRepository {
         whereArgs: [messageId, userId],
       );
     } catch (e) {
-      print('Error adding reaction: $e');
+      debugPrint('Error adding reaction: $e');
       rethrow;
     }
   }
@@ -461,7 +466,7 @@ class MessageRepository {
         whereArgs: [messageId, userId],
       );
     } catch (e) {
-      print('Error toggling pin status: $e');
+      debugPrint('Error toggling pin status: $e');
       rethrow;
     }
   }
@@ -481,7 +486,7 @@ class MessageRepository {
       );
       return maps.isNotEmpty ? _mapToMessage(maps.first, aesKey) : null;
     } catch (e) {
-      print('Error getting message by ID: $e');
+      debugPrint('Error getting message by ID: $e');
       rethrow;
     }
   }
@@ -503,7 +508,7 @@ class MessageRepository {
       }
       await batch.commit(noResult: true);
     } catch (e) {
-      print('Error in batch insert messages: $e');
+      debugPrint('Error in batch insert messages: $e');
       rethrow;
     }
   }
@@ -525,7 +530,7 @@ class MessageRepository {
         whereArgs: [messageId, chatId],
       );
     } catch (e) {
-      print('Error editing message: $e');
+      debugPrint('Error editing message: $e');
       rethrow;
     }
   }

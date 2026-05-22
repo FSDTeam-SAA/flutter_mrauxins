@@ -1,6 +1,5 @@
-import 'package:http/http.dart' as http;
-import 'package:two_one_two_messenger/GoogleAds/config_model.dart';
 import 'package:bloc/bloc.dart';
+import 'package:two_one_two_messenger/GoogleAds/config_model.dart';
 import 'package:two_one_two_messenger/GoogleAds/config_state.dart';
 import 'package:two_one_two_messenger/database/local_db.dart';
 import 'package:two_one_two_messenger/services/api_client.dart';
@@ -100,11 +99,9 @@ class ConfigCubit extends Cubit<ConfigState> {
   }
 
   Future<void> getConfigFromSharedPreferences() async {
-    final String? configJson = AppPreference.getString("configKey");
+    final String configJson = AppPreference.getString("configKey");
 
-    if (configJson != null) {
-      final configModel = configModelFromJson(configJson);
-      emit(state.copyWith(configModel: configModel, isCall: true));
-    }
+    final configModel = configModelFromJson(configJson);
+    emit(state.copyWith(configModel: configModel, isCall: true));
   }
 }

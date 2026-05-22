@@ -1,6 +1,7 @@
 library flutter_chat_reactions;
 
 import 'dart:ui';
+
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_reactions/model/menu_item.dart';
@@ -93,14 +94,14 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
         child: Container(
           width: MediaQuery.of(context).size.width * widget.menuItemsWidth,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.background,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(10),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
                 // color: Colors.grey.shade500,
                 spreadRadius: 1,
                 blurRadius: 2,
-                offset: const Offset(0, 1), // changes position of shadow
+                offset: Offset(0, 1), // changes position of shadow
               ),
             ],
           ),
@@ -108,7 +109,7 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(
+              const SizedBox(
                 height: 8,
               ),
               for (var item in widget.menuItems)
@@ -158,13 +159,13 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
                       ),
                     ),
                     if (widget.menuItems.last != item)
-                      Divider(
+                      const Divider(
                         color: Colors.grey,
                         thickness: 1,
                       ),
                   ],
                 ),
-              SizedBox(
+              const SizedBox(
                 height: 8,
               ),
             ],
@@ -192,7 +193,7 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
         child: Container(
           padding: const EdgeInsets.all(5),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.background,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(

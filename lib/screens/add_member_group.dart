@@ -9,7 +9,6 @@ import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/models/group_info_model.dart';
 import 'package:two_one_two_messenger/models/otp_verify.dart';
 import 'package:two_one_two_messenger/utils/colors.dart';
-import 'package:two_one_two_messenger/utils/constants.dart';
 import 'package:two_one_two_messenger/utils/text_style.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
 import 'package:two_one_two_messenger/widgets/app_check_box.dart';
@@ -113,7 +112,7 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
       //             AppConstants.sNewGroup,
       //             style: AppTextStyles.medium(fontSize: 20.sp),
       //           ),
-      //           Text(AppConstants.upTo200000Members, style: AppTextStyles.medium(fontSize: 10.sp,color: AppColors.white.withOpacity(0.5))),
+      //           Text(AppConstants.upTo200000Members, style: AppTextStyles.medium(fontSize: 10.sp,color: AppColors.white.withValues(alpha:0.5))),
       //         ],
       //       )
       //  ,
@@ -346,7 +345,7 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
 
   //         return Center(child: Text(AppConstants.noContactsFound));
   //       }
-        
+
   //     }
   //     showMessage("other Users== ${(state.otherContact ?? Set.of([]))}");
   //     return Column(

@@ -106,6 +106,10 @@ dependencies:
   shimmer: ^3.0.0
   flutter_easyloading: ^3.0.5
   fluttertoast: ^8.2.12
+  flutter_callkit_incoming: ^2.5.8
+  rxdart: ^0.28.0
+  sqflite: ^2.4.2+1
+  video_player: ^2.11.1
   # cached_video_player_plus:
   # firebase_crashlytics: ^4.3.5
   

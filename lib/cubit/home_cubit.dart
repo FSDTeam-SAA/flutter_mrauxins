@@ -148,7 +148,7 @@ class HomeCubit extends Cubit<HomeState> {
     }
 
     // String token = AppPreference.getFCMToken();
-    // print("old Fcm Token $token");
+    // debugPrint("old Fcm Token $token");
     String newToken = await FireBaseNotification().getToken();
     if (AppPreference.getCurrentUserId().isNotEmpty) {
       updateFcmToken(apiClient, {
@@ -164,12 +164,12 @@ class HomeCubit extends Cubit<HomeState> {
     try {
       CommonResponseModel? response = await apiClient.updateFcmToken(data);
       if (response?.status == Utils.APISUCCESS) {
-        print("update old Fcm Token ${data["deviceToken"]}");
+        debugPrint("update old Fcm Token ${data["deviceToken"]}");
         await AppPreference.setString(
             LocalDbConstants.firebaseToken, data["deviceToken"]);
       }
     } catch (e, st) {
-      print("Error ==>$e  $st");
+      debugPrint("Error ==>$e  $st");
     }
   }
 

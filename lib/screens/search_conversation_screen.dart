@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:intl/intl.dart';
 import 'package:two_one_two_messenger/GoogleAds/BannerAds/BannerAdManager.dart';
 import 'package:two_one_two_messenger/cubit/home_cubit.dart';
 import 'package:two_one_two_messenger/cubit/home_state.dart';
@@ -12,17 +11,12 @@ import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/models/conversation_model.dart';
-import 'package:two_one_two_messenger/screens/chat_screen.dart';
-import 'package:two_one_two_messenger/utils/navigation.dart';
 import 'package:two_one_two_messenger/widgets/buttons.dart';
 import 'package:two_one_two_messenger/widgets/conversation_tile.dart';
 import 'package:two_one_two_messenger/widgets/custom_loading_widget.dart';
 import 'package:two_one_two_messenger/widgets/refresh_indicator%20copy.dart';
 
-import '../cubit/search_cubit.dart';
-import '../cubit/search_state.dart';
 import '../models/otp_verify.dart';
-import '../services/api_client.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
 import '../utils/text_style.dart';
@@ -148,7 +142,7 @@ class _SearchConversationScreenState extends State<SearchConversationScreen> {
                         return Center(child: Text("No Conversations Found"));
                       }
 
-                      return  SlidableAutoCloseBehavior(
+                      return SlidableAutoCloseBehavior(
                         child: ListView.separated(
                           controller: _scrollController,
                           separatorBuilder: (context, index) => Divider(
@@ -192,7 +186,7 @@ class _SearchConversationScreenState extends State<SearchConversationScreen> {
                                 conversationData:
                                     state.conversationModel!.data![index],
                                 participantDetails: participant);
-                        
+
                             // Padding(
                             //   padding: EdgeInsets.symmetric(
                             //       horizontal: 16.w, vertical: 16.h),
@@ -348,7 +342,7 @@ class _SearchConversationScreenState extends State<SearchConversationScreen> {
                             //                       style: AppTextStyles.regular(
                             //                           fontSize: 12.sp,
                             //                           color: AppColors.white
-                            //                               .withOpacity(0.65)),
+                            //                               .withValues(alpha:0.65)),
                             //                     ),
                             //                 ],
                             //               )
@@ -514,7 +508,7 @@ class _SearchConversationScreenState extends State<SearchConversationScreen> {
                             //                                   fontSize: 12.sp,
                             //                                   color: AppColors
                             //                                       .white
-                            //                                       .withOpacity(
+                            //                                       .withValues(alpha:
                             //                                           0.65)),
                             //                         ),
                             //                     ],

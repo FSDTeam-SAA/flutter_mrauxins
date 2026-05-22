@@ -22,7 +22,6 @@ import 'package:two_one_two_messenger/models/toggle_nickname_response.dart';
 import 'package:two_one_two_messenger/models/token_and_channel.dart';
 import 'package:two_one_two_messenger/models/user_name_check_res.dart';
 import 'package:two_one_two_messenger/screens/login_screen.dart';
-import 'package:two_one_two_messenger/utils/constants.dart';
 
 import '../database/local_db.dart';
 import '../models/all_user.dart';
@@ -30,10 +29,10 @@ import '../models/chat_message_model.dart';
 import '../models/conversation_model.dart';
 import '../models/create_conversaion_model.dart';
 import '../models/delete_device_token.dart';
-import '../models/stories_response.dart';
 import '../models/otp_verify.dart';
 import '../models/send_otp.dart';
 import '../models/sent_message_model.dart';
+import '../models/stories_response.dart';
 import '../models/update_profile.dart';
 import '../utils/logger.dart';
 import '../utils/navigation.dart';
@@ -692,7 +691,7 @@ class ApiClient {
 
       final allUserResponse = AllUserResponse.fromJson(response.data);
 
-      print("All Users Length${allUserResponse.data?.users?.length}");
+      debugPrint("All Users Length${allUserResponse.data?.users?.length}");
 
       return allUserResponse; // Return the parsed response
     } on DioException catch (e) {
@@ -840,7 +839,7 @@ class ApiClient {
               "size": sizeForGIF,
             "createdAt": messageTime,
           });
-          print("sent Message = data ${{
+          debugPrint("sent Message = data ${{
             "chatId": chatId,
             // if (content != null && content.isNotEmpty) "content": content,
             // "type": type,
@@ -1481,7 +1480,7 @@ class ApiClient {
         requiresToken: true,
       );
 
-      print("DTA. >> uID $userId chatId $chatId");
+      debugPrint("DTA. >> uID $userId chatId $chatId");
 
       final blockedUserResponse = CommonResponseModel.fromJson(response.data);
       return blockedUserResponse; // Return the parsed response
@@ -1655,7 +1654,7 @@ class ApiClient {
           ToggleNickNameResponse.fromJson(response.data);
       return toggleNickNameResponse; // Return the parsed response
     } on DioException catch (e) {
-      print("Error Message >> ${e}");
+      debugPrint("Error Message >> ${e}");
       String errorMessage =
           e.response?.data?['message']['message'] ?? 'Something went wrong';
       // Utils.showSnackBar(context, errorMessage);

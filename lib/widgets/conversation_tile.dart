@@ -279,7 +279,8 @@ class ConversationTile extends StatelessWidget {
                                       .formatMessageTimestamp(),
                                   style: AppTextStyles.regular(
                                       fontSize: 12.sp,
-                                      color: AppColors.white.withOpacity(0.65)),
+                                      color: AppColors.white
+                                          .withValues(alpha: 0.65)),
                                 ),
                             ],
                           ),
@@ -453,7 +454,7 @@ class ConversationTile extends StatelessWidget {
                     //   );
                     // },
                     onTap: () async {
-                      // print(
+                      // debugPrint(
                       //     "lastMessahge=== ${state.conversationModel?.data?[index].lastMessage?.toJson()}");
                       await chatCubit.resetChatScreenState();
                       NavigationService().navigateToChat(
@@ -575,7 +576,8 @@ class ConversationTile extends StatelessWidget {
                                         .formatMessageTimestamp(),
                                     style: AppTextStyles.regular(
                                       fontSize: 12.sp,
-                                      color: AppColors.white.withOpacity(0.65),
+                                      color: AppColors.white
+                                          .withValues(alpha: 0.65),
                                     ),
                                   ),
                               ],

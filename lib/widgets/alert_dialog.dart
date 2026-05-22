@@ -1,10 +1,10 @@
 // ignore_for_file: non_constant_identifier_names, use_build_context_synchronously
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:two_one_two_messenger/utils/text_style.dart';
 import 'package:two_one_two_messenger/widgets/buttons.dart';
-import 'package:two_one_two_messenger/widgets/svg_images.dart';
 
 import '../utils/colors.dart';
 import '../utils/utils.dart';
@@ -21,7 +21,7 @@ Future<void> CustomAlertDialog(
   await showDialog(
     context: context,
     barrierDismissible: isClose,
-    // barrierColor: context.theme.scaffoldBackgroundColor.withOpacity(0.3),
+    // barrierColor: context.theme.scaffoldBackgroundColor.withValues(alpha:0.3),
     builder: (context) {
       return PopScope(
         canPop: isClose,

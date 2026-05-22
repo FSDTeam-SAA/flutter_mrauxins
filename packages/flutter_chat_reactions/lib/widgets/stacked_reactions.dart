@@ -38,11 +38,11 @@ class StackedReactions extends StatelessWidget {
         margin: EdgeInsets.only(left: leftOffset * index),
         padding: const EdgeInsets.fromLTRB(5.0, 2.0, 5.0, 2.0),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.background,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: const BorderRadius.all(Radius.circular(25)),
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).colorScheme.onBackground,
+              color: Theme.of(context).colorScheme.onSurface,
               offset: const Offset(0.0, 1.0),
               blurRadius: 6.0,
             ),
@@ -83,11 +83,11 @@ class StackedReactions extends StatelessWidget {
                   padding: const EdgeInsets.all(2.0),
                   margin: const EdgeInsets.all(2.0),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.background,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: const BorderRadius.all(Radius.circular(25)),
                     boxShadow: [
                       BoxShadow(
-                        color: Theme.of(context).colorScheme.onBackground,
+                        color: Theme.of(context).colorScheme.onSurface,
                         offset: const Offset(0.0, 1.0),
                         blurRadius: 6.0,
                       ),

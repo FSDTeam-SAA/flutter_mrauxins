@@ -90,7 +90,7 @@ class _GiphyGifWidgetState extends State<GiphyGifWidget> {
                 height: 35,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  color: Colors.black.withOpacity(0.8),
+                  color: Colors.black.withValues(alpha: 0.8),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

@@ -519,7 +519,7 @@ packages:
     source: hosted
     version: "3.4.1"
   flutter_callkit_incoming:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       name: flutter_callkit_incoming
       sha256: "993fb0f0cd990961072f0d13ff815a91773f92bfa1895be17d3366b2225ec9cd"
@@ -1404,7 +1404,7 @@ packages:
     source: hosted
     version: "1.0.7"
   rxdart:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: rxdart
       sha256: "5c3004a4a8dbb94bd4bf5412a4def4acdaa12e12f269737a5751369e12d1a962"
@@ -1529,7 +1529,7 @@ packages:
     source: hosted
     version: "1.10.2"
   sqflite:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: sqflite
       sha256: "564cfed0746fe53140c23b70b308e045c3b31f17778f2f326ccb7d804ea0250a"
@@ -1801,7 +1801,7 @@ packages:
     source: hosted
     version: "0.1.2"
   video_player:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: video_player
       sha256: "48a7bdaa38a3d50ec10c78627abdbfad863fdf6f0d6e08c7c3c040cfd80ae36f"

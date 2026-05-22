@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'dart:developer';
+
 // import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_callkit_incoming/entities/android_params.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
 import 'package:flutter_callkit_incoming/entities/ios_params.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:two_one_two_messenger/database/local_db.dart';
-import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/models/otp_verify.dart';
 import 'package:two_one_two_messenger/services/push_notifications.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
@@ -27,7 +27,7 @@ class CallKitEventHandler {
     }
 
     // Fix 'sender' field, as it's a string containing JSON
-    if (parsedData != null && parsedData["sender"] is String) {
+    if (parsedData["sender"] is String) {
       parsedData["sender"] = json.decode(parsedData["sender"]);
     }
     showMessage("handleIncomingCall==>parsedData ${jsonEncode(parsedData)}");
@@ -110,7 +110,9 @@ class CallKitEventHandler {
     // FlutterCallkitIncoming.requestFullIntentPermission();
     FlutterCallkitIncoming.onEvent.listen((event) {
       if (event == null) return;
-      print("FlutterCallkitIncoming listener == ${event.toString()}");
+      if (kDebugMode) {
+        print("FlutterCallkitIncoming listener == ${event.toString()}");
+      }
       log("FlutterCallkitIncoming listener == ${event.event.toString()}");
       showMessage(
           "FlutterCallkitIncoming listener name == ${event.body.toString()}");
@@ -123,7 +125,9 @@ class CallKitEventHandler {
           onCallEnded(event.body);
           break;
         default:
-          print('Unhandled event: ${event.event.name}');
+          if (kDebugMode) {
+            print('Unhandled event: ${event.event.name}');
+          }
           break;
       }
     });
@@ -142,7 +146,9 @@ class CallKitEventHandler {
       FireBaseNotification.selectNotificationSubject.add(data);
       // FireBaseNotification.selectNotificationSubject.add(body["extra"]);
     } catch (e, st) {
-      showMessage("error ==>$e, $st");
+      if (kDebugMode) {
+        print("error ==>$e, $st");
+      }
     }
   }
 
@@ -152,7 +158,7 @@ class CallKitEventHandler {
       UserData? currentuser = await DatabaseHelper().getLoginData();
       final userId = currentuser?.sId ?? "";
 
-      showMessage("onCallDeclined${body}");
+      showMessage("onCallDeclined$body");
 
       SocketService().connect();
       SocketService()

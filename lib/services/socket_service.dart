@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:two_one_two_messenger/database/local_db.dart';
 import 'package:two_one_two_messenger/services/api_config.dart';
@@ -281,18 +282,24 @@ class SocketService {
   void _setupConnectionHandlers() {
     _socket.onConnect((_) {
       _isConnected = true;
-      print('✅ Socket connected');
+      if (kDebugMode) {
+        print('✅ Socket connected');
+      }
       onConnectionChange?.call(true);
     });
 
     _socket.onDisconnect((_) {
       _isConnected = false;
-      print('❌ Socket disconnected');
+      if (kDebugMode) {
+        print('❌ Socket disconnected');
+      }
       onConnectionChange?.call(false);
     });
 
     _socket.onReconnect((_) async {
-      print('🔄 Socket reconnected');
+      if (kDebugMode) {
+        print('🔄 Socket reconnected');
+      }
       final user = await DatabaseHelper().getLoginData();
       if ((user?.sId ?? "").isNotEmpty) {
         joinEvent(AppConstants.socketJoinChat, {"userId": user?.sId});
@@ -300,7 +307,9 @@ class SocketService {
     });
 
     _socket.onConnectError((err) {
-      print('Socket connection error');
+      if (kDebugMode) {
+        print('Socket connection error');
+      }
       _socket.connect();
     });
     _socket.onclose((reason) {
@@ -339,7 +348,7 @@ class SocketService {
   void sendMessage(dynamic data, Function(dynamic) ackCallback) {
     _logEvent('Send event', AppConstants.sendMessage, data);
     _socket.emitWithAck(AppConstants.sendMessage, data, ack: (data) {
-      print("Send Message==> $data");
+      debugPrint("Send Message==> $data");
       ackCallback(data);
     });
   }

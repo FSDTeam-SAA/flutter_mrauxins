@@ -91,7 +91,7 @@ class NavigationService {
   Future<void> popUntil() async {
     await Utils.hideKeyboard();
     Navigator.popUntil(navigatorKey.currentState!.context, (route) {
-      print("routes = ${route.isFirst}");
+      debugPrint("routes = ${route.isFirst}");
       return route.isFirst;
     });
   }
@@ -111,7 +111,4 @@ class NavigationService {
       goBack();
     }
   }
-
-
-  
 }

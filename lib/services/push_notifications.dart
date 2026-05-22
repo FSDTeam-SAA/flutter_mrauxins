@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
 import 'package:two_one_two_messenger/database/local_db.dart';
 import 'package:two_one_two_messenger/models/common_res.dart';
 import 'package:two_one_two_messenger/screens/groupCall.dart';
@@ -15,6 +16,7 @@ import 'package:two_one_two_messenger/services/api_client.dart';
 import 'package:two_one_two_messenger/services/calllit_handler.dart';
 import 'package:two_one_two_messenger/utils/navigation.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
+
 import '../extension/bloc.dart';
 
 @pragma('vm:entry-point')
@@ -24,10 +26,10 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
     showMessage("back ground shoe data is === ${message.toMap().toString()}");
     if (message.data['type'] == 'agora_call_invitation') {
-      print("back ground shoe data is data=== ${message.data}");
+      debugPrint("back ground shoe data is data=== ${message.data}");
       await CallKitEventHandler.handleIncomingCall(message);
     } else if (message.data['type'] == 'agora_end_call') {
-      print("agora_end_call=== ${message.data}");
+      debugPrint("agora_end_call=== ${message.data}");
       await FlutterCallkitIncoming.endAllCalls();
     }
 //   else if(message.data['type'] == 'chat'&&(message.notification?.body == 'missed voice call'||message.notification?.body == 'missed video call')){
@@ -83,7 +85,7 @@ class FireBaseNotification {
 
     firebaseMessaging.onTokenRefresh.listen(
       (newToken) {
-        if ( AppPreference.getCurrentUserId().isNotEmpty) {
+        if (AppPreference.getCurrentUserId().isNotEmpty) {
           updateFcmToken(apiClient, {
             "userId": AppPreference.getCurrentUserId(),
             "deviceToken": newToken,
@@ -211,7 +213,7 @@ class FireBaseNotification {
               "onDidReceiveNotificationResponse playLoadData $playLoadData");
           if (playLoadData != {}) {
             if (playLoadData["type"] != "agora_call_invitation") {
-              print(
+              debugPrint(
                   "onDidReceiveNotificationResponse playLoadData Local notification $playLoadData");
               selectNotificationSubject.add(playLoadData);
               //  _handleMessageClick(message, "background_click");
@@ -237,7 +239,7 @@ class FireBaseNotification {
             LocalDbConstants.firebaseToken, data["deviceToken"]);
       }
     } catch (e, st) {
-      print("Error ==>$e  $st");
+      debugPrint("Error ==>$e  $st");
     }
   }
 

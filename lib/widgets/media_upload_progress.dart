@@ -22,7 +22,7 @@ class CircularMediaUploadProgress extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.5),
+        color: Colors.black.withValues(alpha: 0.5),
         shape: BoxShape.circle,
       ),
       child: Stack(
@@ -31,7 +31,7 @@ class CircularMediaUploadProgress extends StatelessWidget {
           CircularProgressIndicator(
             value: progress,
             strokeWidth: 5,
-            backgroundColor: Colors.white.withOpacity(0.3),
+            backgroundColor: Colors.white.withValues(alpha: 0.3),
             valueColor:
                 const AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
           ),

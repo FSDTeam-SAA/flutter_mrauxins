@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -14,23 +13,17 @@ import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/models/all_user.dart';
 import 'package:two_one_two_messenger/models/conversation_model.dart';
-import 'package:two_one_two_messenger/models/group_info_model.dart';
 import 'package:two_one_two_messenger/screens/chat_screen.dart';
 import 'package:two_one_two_messenger/screens/new_group.dart';
 import 'package:two_one_two_messenger/utils/navigation.dart';
 import 'package:two_one_two_messenger/widgets/avatar_widgets.dart';
 import 'package:two_one_two_messenger/widgets/custom_loading_widget.dart';
 
-import '../cubit/search_cubit.dart';
-import '../cubit/search_state.dart';
-import '../models/otp_verify.dart';
-import '../services/api_client.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
 import '../utils/text_style.dart';
 import '../utils/utils.dart';
 import '../widgets/appbar.dart';
-import '../widgets/network_image.dart';
 import '../widgets/svg_images.dart';
 import '../widgets/text_fields.dart';
 
@@ -237,7 +230,7 @@ class _SearchScreenState extends State<SearchScreen> {
           ));
         }
       }
-      // print("other Users== ${(state.otherContact ?? Set.of([]))}");
+      // debugPrint("other Users== ${(state.otherContact ?? Set.of([]))}");
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
