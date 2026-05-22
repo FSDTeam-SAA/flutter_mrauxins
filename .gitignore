@@ -30,6 +30,7 @@
 
 # Android-specific
 /android/app/local.properties
+/android/app/upload-keystore.jks
 /android/key.properties
 /android/local.properties
 /android/.gradle/
