@@ -170,6 +170,8 @@ class ConversationTile extends StatelessWidget {
                         chatId: conversationData.id ?? '',
                         lastMessage: conversationData.lastMessage,
                         isSendMessage: conversationData.isSendMessage ?? true,
+                        restrictContentSharing:
+                            conversationData.restrictContentSharing ?? false,
                         isShowProfileImage:
                             conversationData.isProfilePhoto ?? true,
                       ));
@@ -473,6 +475,9 @@ class ConversationTile extends StatelessWidget {
                             lastMessage: conversationData.lastMessage,
                             isSendMessage:
                                 conversationData.isSendMessage ?? true,
+                            restrictContentSharing:
+                                conversationData.restrictContentSharing ??
+                                    false,
                             isShowProfileImage:
                                 conversationData.isProfilePhoto ?? true,
                             // isDeletedUser: true,

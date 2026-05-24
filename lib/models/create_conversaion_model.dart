@@ -1,5 +1,3 @@
-import 'package:two_one_two_messenger/models/group_info_model.dart';
-
 class CreateConversionModel {
   int? status;
   String? message;
@@ -74,6 +72,9 @@ class CreateConversionData {
   final String? groupName;
   final bool? isProfilePhoto;
   final bool? isSendMessage;
+  final bool? hideMembersInfo;
+  final bool? hideNewMembersMessage;
+  final bool? restrictContentSharing;
   final String? id;
   final DateTime? createdAt;
   final String? groupImage;
@@ -89,6 +90,9 @@ class CreateConversionData {
     this.groupName,
     this.isProfilePhoto,
     this.isSendMessage,
+    this.hideMembersInfo,
+    this.hideNewMembersMessage,
+    this.restrictContentSharing,
     this.id,
     this.createdAt,
     this.groupImage,
@@ -105,6 +109,9 @@ class CreateConversionData {
     String? groupName,
     bool? isProfilePhoto,
     bool? isSendMessage,
+    bool? hideMembersInfo,
+    bool? hideNewMembersMessage,
+    bool? restrictContentSharing,
     String? id,
     DateTime? createdAt,
     String? groupImage,
@@ -120,6 +127,11 @@ class CreateConversionData {
         groupName: groupName ?? this.groupName,
         isProfilePhoto: isProfilePhoto ?? this.isProfilePhoto,
         isSendMessage: isSendMessage ?? this.isSendMessage,
+        hideMembersInfo: hideMembersInfo ?? this.hideMembersInfo,
+        hideNewMembersMessage:
+            hideNewMembersMessage ?? this.hideNewMembersMessage,
+        restrictContentSharing:
+            restrictContentSharing ?? this.restrictContentSharing,
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
         groupImage: groupImage ?? this.groupImage,
@@ -145,6 +157,9 @@ class CreateConversionData {
         groupName: json["groupName"],
         isProfilePhoto: json["isProfilePhoto"],
         isSendMessage: json["isSendMessage"],
+        hideMembersInfo: json["hideMembersInfo"],
+        hideNewMembersMessage: json["hideNewMembersMessage"],
+        restrictContentSharing: json["restrictContentSharing"],
         id: json["_id"],
         createdAt: json["createdAt"] == null
             ? null
@@ -170,6 +185,9 @@ class CreateConversionData {
         "groupName": groupName,
         "isProfilePhoto": isProfilePhoto,
         "isSendMessage": isSendMessage,
+        "hideMembersInfo": hideMembersInfo,
+        "hideNewMembersMessage": hideNewMembersMessage,
+        "restrictContentSharing": restrictContentSharing,
         "_id": id,
         "createdAt": createdAt?.toIso8601String(),
         "groupImage": groupImage,

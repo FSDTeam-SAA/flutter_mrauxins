@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -57,6 +58,7 @@ class ChatScreen extends StatefulWidget {
   final bool isShowProfileImage;
   bool isSendMessage;
   final bool isDeletedUser;
+  final bool restrictContentSharing;
   final ParticipantDetail? createdBy;
   String aesKey;
 
@@ -69,6 +71,7 @@ class ChatScreen extends StatefulWidget {
     this.chatId = '',
     this.lastMessage,
     this.isDeletedUser = false,
+    this.restrictContentSharing = false,
     required this.chatType,
     required this.isShowProfileImage,
     required this.isSendMessage,
@@ -524,7 +527,9 @@ class _ChatScreenState extends State<ChatScreen> {
       },
       child: SafeArea(
         top: false,
+        bottom: false,
         child: Scaffold(
+          resizeToAvoidBottomInset: true,
           appBar: AppBar(
             backgroundColor: AppColors.dark,
             leading: IconButton(
@@ -1407,8 +1412,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                     //     chatList[index].key;
                                     child = ChatBubble(
                                         aesKey: widget.aesKey,
-                                        isShowProfileImage:
-                                            widget.isShowProfileImage,
+                                        isShowProfileImage: widget
+                                            .isShowProfileImage,
                                         message: chatList[index],
                                         isSender: chatList[index].sender?.id ==
                                             userData?.sId,
@@ -1437,6 +1442,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                           }
                                         },
                                         onSwipe: () {},
+                                        restrictContentSharing:
+                                            widget.restrictContentSharing,
                                         isGroup: widget.chatType !=
                                             ChatType.one_to_one,
                                         mainContext: context);
@@ -1534,6 +1541,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                               }
                                             },
                                             onSwipe: () {},
+                                            restrictContentSharing:
+                                                widget.restrictContentSharing,
                                             isGroup: widget.chatType !=
                                                 ChatType.one_to_one,
                                             mainContext: context),
@@ -1587,8 +1596,12 @@ class _ChatScreenState extends State<ChatScreen> {
                         false) &&
                     !(state.chatMessageModel?.isBlocked ?? false)) {
                   return Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w)
-                        .copyWith(bottom: 16.h),
+                    padding: EdgeInsets.symmetric(horizontal: 16.w).copyWith(
+                      bottom: 16.h +
+                          (Platform.isIOS
+                              ? MediaQuery.of(context).viewPadding.bottom
+                              : 0),
+                    ),
                     child: Column(
                       children: [
                         if (state.replyingToMessage != null)

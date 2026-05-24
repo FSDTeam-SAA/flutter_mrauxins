@@ -404,6 +404,8 @@ class NotificationService {
                 chatId: event["chat_id"],
                 aesKey: event["encryptedAESKey"],
                 isSendMessage: event["groupInfo"]["isSendMessage"] ?? true,
+                restrictContentSharing:
+                    event["groupInfo"]["restrictContentSharing"] ?? false,
                 isShowProfileImage:
                     event["groupInfo"]["isProfilePhoto"] ?? true,
                 lastMessage: LastMessage(

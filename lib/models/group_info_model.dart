@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
-import 'package:two_one_two_messenger/models/chat_message_model.dart';
 
 GroupResponseModel groupResponseModelFromJson(String str) =>
     GroupResponseModel.fromJson(json.decode(str));
@@ -60,6 +59,9 @@ class GroupData extends Equatable {
   final List<Participant>? admins;
   final bool? isProfilePhoto;
   final bool? isSendMessage;
+  final bool? hideMembersInfo;
+  final bool? hideNewMembersMessage;
+  final bool? restrictContentSharing;
   final bool? isCreatedBy;
 //  final String? createdBy;
   final String? privacy;
@@ -74,6 +76,9 @@ class GroupData extends Equatable {
     this.admins,
     this.isProfilePhoto,
     this.isSendMessage,
+    this.hideMembersInfo,
+    this.hideNewMembersMessage,
+    this.restrictContentSharing,
     this.isCreatedBy,
     this.inviteLink,
     this.privacy,
@@ -89,6 +94,9 @@ class GroupData extends Equatable {
     List<Participant>? admins,
     bool? isProfilePhoto,
     bool? isSendMessage,
+    bool? hideMembersInfo,
+    bool? hideNewMembersMessage,
+    bool? restrictContentSharing,
     bool? isCreatedBy,
     String? privacy,
     String? inviteLink,
@@ -103,6 +111,11 @@ class GroupData extends Equatable {
           admins: admins ?? this.admins,
           isProfilePhoto: isProfilePhoto ?? this.isProfilePhoto,
           isSendMessage: isSendMessage ?? this.isSendMessage,
+          hideMembersInfo: hideMembersInfo ?? this.hideMembersInfo,
+          hideNewMembersMessage:
+              hideNewMembersMessage ?? this.hideNewMembersMessage,
+          restrictContentSharing:
+              restrictContentSharing ?? this.restrictContentSharing,
           isCreatedBy: isCreatedBy ?? this.isCreatedBy,
           privacy: privacy ?? this.privacy,
           inviteLink: inviteLink ?? this.inviteLink);
@@ -125,6 +138,9 @@ class GroupData extends Equatable {
                 json["admins"]!.map((x) => Participant.fromJson(x))),
         isProfilePhoto: json["isProfilePhoto"],
         isSendMessage: json["isSendMessage"],
+        hideMembersInfo: json["hideMembersInfo"],
+        hideNewMembersMessage: json["hideNewMembersMessage"],
+        restrictContentSharing: json["restrictContentSharing"],
         isCreatedBy: json["isCreatedBy"],
         privacy: json["privacy"],
         inviteLink: json["inviteLink"],
@@ -144,12 +160,14 @@ class GroupData extends Equatable {
             : List<dynamic>.from(admins!.map((x) => x.toJson())),
         "isProfilePhoto": isProfilePhoto,
         "isSendMessage": isSendMessage,
+        "hideMembersInfo": hideMembersInfo,
+        "hideNewMembersMessage": hideNewMembersMessage,
+        "restrictContentSharing": restrictContentSharing,
         "isCreatedBy": isCreatedBy,
         "privacy": privacy,
         "inviteLink": inviteLink
       };
   @override
-
   List<Object?> get props => [
         groupId,
         isAdmin,
@@ -160,6 +178,9 @@ class GroupData extends Equatable {
         admins,
         isProfilePhoto,
         isSendMessage,
+        hideMembersInfo,
+        hideNewMembersMessage,
+        restrictContentSharing,
         privacy,
         inviteLink
       ];

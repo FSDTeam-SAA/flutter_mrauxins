@@ -711,10 +711,44 @@ class HomeCubit extends Cubit<HomeState> {
     );
   }
 
+  void togglePrivateGroup(bool value) {
+    emit(state.copyWith(privateGroup: value));
+  }
+
+  void toggleHideMembersInfo(bool value) {
+    emit(state.copyWith(hideMembersInfo: value));
+  }
+
+  void toggleHideNewMembersMessage(bool value) {
+    emit(state.copyWith(hideNewMembersMessage: value));
+  }
+
+  void toggleRestrictContentSharing(bool value) {
+    emit(state.copyWith(restrictContentSharing: value));
+  }
+
+  void updateGroupSetting(
+      BuildContext context, String groupId, ChatType chatType) {
+    if (debounceTimerShowProfilePhoto != null) {
+      debounceTimerShowProfilePhoto?.cancel();
+    }
+    debounceTimerShowProfilePhoto = Timer(
+      Duration(seconds: 1),
+      () async {
+        await updateGroup(context, groupId, chatType,
+            showSuccessMessage: false);
+      },
+    );
+  }
+
   void cleanGroupData() {
     emit(state.copyWith(
         showProfilePhotoForGroup: true,
         sendMessageForGroup: true,
+        privateGroup: false,
+        hideMembersInfo: false,
+        hideNewMembersMessage: false,
+        restrictContentSharing: false,
         groupNameController: TextEditingController(),
         clearSelectedGroupPic: true,
         isUpdateGroupData: true,
@@ -746,6 +780,10 @@ class HomeCubit extends Cubit<HomeState> {
         "isProfilePhoto": state.showProfilePhotoForGroup,
         "isSendMessage":
             chatType == ChatType.group ? state.sendMessageForGroup : false,
+        "privacy": state.privateGroup ? "private" : "public",
+        "hideMembersInfo": state.hideMembersInfo,
+        "hideNewMembersMessage": state.hideNewMembersMessage,
+        "restrictContentSharing": state.restrictContentSharing,
         "chatType": chatType.name,
       };
 
@@ -866,7 +904,8 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   Future<void> updateGroup(
-      BuildContext context, String groupId, ChatType chatType) async {
+      BuildContext context, String groupId, ChatType chatType,
+      {bool showSuccessMessage = true}) async {
     Utils.showLoader();
 
     try {
@@ -879,6 +918,10 @@ class HomeCubit extends Cubit<HomeState> {
         "groupName": state.groupNameController.text.trim(),
         "isProfilePhoto": state.showProfilePhotoForGroup,
         "isSendMessage": state.sendMessageForGroup,
+        "privacy": state.privateGroup ? "private" : "public",
+        "hideMembersInfo": state.hideMembersInfo,
+        "hideNewMembersMessage": state.hideNewMembersMessage,
+        "restrictContentSharing": state.restrictContentSharing,
         "chatType": chatType.name
       };
 
@@ -901,8 +944,10 @@ class HomeCubit extends Cubit<HomeState> {
           clearSelectedGroupPic();
         }
         // NavigationService().popUntil();
-        Utils.showSnackBar(
-            context, S.current.groupOrChannelUpdateSuccessfully(chatType.name));
+        if (showSuccessMessage) {
+          Utils.showSnackBar(context,
+              S.current.groupOrChannelUpdateSuccessfully(chatType.name));
+        }
         getConversation(context: context);
       } else {
         Utils.showSnackBar(context, response.message ?? "", seconds: 3);
@@ -932,6 +977,10 @@ class HomeCubit extends Cubit<HomeState> {
             groupLoadingState: LoadingState.success,
             showProfilePhotoForGroup: response.groupData?.isProfilePhoto,
             sendMessageForGroup: response.groupData?.isSendMessage,
+            privateGroup: response.groupData?.privacy == "private",
+            hideMembersInfo: response.groupData?.hideMembersInfo,
+            hideNewMembersMessage: response.groupData?.hideNewMembersMessage,
+            restrictContentSharing: response.groupData?.restrictContentSharing,
             groupData: response.groupData,
             selectedUserForGroup:
                 Set.from((response.groupData?.participants ?? []).map(
