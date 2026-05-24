@@ -273,6 +273,16 @@ class _NewGroupScreenState extends State<NewGroupScreen> {
                       children: [
                         buildGroupPermission(
                           context,
+                          text: widget.isGroup
+                              ? 'Private Group'
+                              : 'Private Channel',
+                          defaultValue: state.privateGroup,
+                          onChanged: (value) {
+                            homeCubit.togglePrivateGroup(value);
+                          },
+                        ),
+                        buildGroupPermission(
+                          context,
                           text: S.of(context).lblShowProfilePhoto,
                           defaultValue: state.showProfilePhotoForGroup,
                           onChanged: (value) {
@@ -288,6 +298,34 @@ class _NewGroupScreenState extends State<NewGroupScreen> {
                               homeCubit.toggleSendMessage(value);
                             },
                           ),
+                        buildGroupPermission(
+                          context,
+                          text: widget.isGroup
+                              ? 'Hide Members Info'
+                              : 'Hide Subscribers Info',
+                          defaultValue: state.hideMembersInfo,
+                          onChanged: (value) {
+                            homeCubit.toggleHideMembersInfo(value);
+                          },
+                        ),
+                        buildGroupPermission(
+                          context,
+                          text: widget.isGroup
+                              ? 'Hide New Members Message'
+                              : 'Hide New Subscribers Message',
+                          defaultValue: state.hideNewMembersMessage,
+                          onChanged: (value) {
+                            homeCubit.toggleHideNewMembersMessage(value);
+                          },
+                        ),
+                        buildGroupPermission(
+                          context,
+                          text: 'Restrict Content Sharing',
+                          defaultValue: state.restrictContentSharing,
+                          onChanged: (value) {
+                            homeCubit.toggleRestrictContentSharing(value);
+                          },
+                        ),
                       ],
                     );
                   }),

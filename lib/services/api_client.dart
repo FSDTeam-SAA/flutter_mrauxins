@@ -64,7 +64,7 @@ class ApiClient {
   Future<void> _initializeBaseURL() async {
     String? baseURL = await _databaseHelper.getBaseURL();
     AppLogger.logs(baseURL.toString());
-    if (baseURL != null) {
+    if (baseURL != null && !(Platform.isIOS && baseURL.contains('10.0.2.2'))) {
       dio.options.baseUrl = baseURL;
       AppLogger.logs(dio.options.baseUrl);
     } else {

@@ -206,6 +206,16 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
                           children: [
                             buildGroupPermission(
                               context,
+                              text: 'Private Channel',
+                              defaultValue: state.privateGroup,
+                              onChanged: (value) {
+                                homeCubit.togglePrivateGroup(value);
+                                homeCubit.updateGroupSetting(
+                                    context, widget.groupId, ChatType.channel);
+                              },
+                            ),
+                            buildGroupPermission(
+                              context,
                               text: S.of(context).lblShowProfilePhoto,
                               defaultValue: state.showProfilePhotoForGroup,
                               onChanged: (value) {
@@ -216,11 +226,94 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
                                     ChatType.channel);
                               },
                             ),
+                            buildGroupPermission(
+                              context,
+                              text: 'Hide Subscribers Info',
+                              defaultValue: state.hideMembersInfo,
+                              onChanged: (value) {
+                                homeCubit.toggleHideMembersInfo(value);
+                                homeCubit.updateGroupSetting(
+                                    context, widget.groupId, ChatType.channel);
+                              },
+                            ),
+                            buildGroupPermission(
+                              context,
+                              text: 'Hide New Subscribers Message',
+                              defaultValue: state.hideNewMembersMessage,
+                              onChanged: (value) {
+                                homeCubit.toggleHideNewMembersMessage(value);
+                                homeCubit.updateGroupSetting(
+                                    context, widget.groupId, ChatType.channel);
+                              },
+                            ),
+                            buildGroupPermission(
+                              context,
+                              text: 'Restrict Content Sharing',
+                              defaultValue: state.restrictContentSharing,
+                              onChanged: (value) {
+                                homeCubit.toggleRestrictContentSharing(value);
+                                homeCubit.updateGroupSetting(
+                                    context, widget.groupId, ChatType.channel);
+                              },
+                            ),
                           ],
                         );
                       }),
                     ),
                   ),
+                  30.s,
+                  if ((state.groupData?.inviteLink ?? '').isNotEmpty)
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: Container(
+                        padding: EdgeInsets.all(16.w),
+                        decoration: BoxDecoration(
+                          color: AppColors.dialogBg,
+                          borderRadius: BorderRadius.circular(14.r),
+                          border: Border.all(color: AppColors.darkInputFill),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Invite Link',
+                                style: AppTextStyles.medium(fontSize: 16.sp)),
+                            12.s,
+                            Text(
+                              state.privateGroup
+                                  ? 'People can only join this channel using an invite link.'
+                                  : 'This channel is public, so anyone with this link can view and join it.',
+                              style: AppTextStyles.regular(
+                                fontSize: 13.sp,
+                                color: AppColors.white.withValues(alpha: 0.65),
+                              ),
+                            ),
+                            12.s,
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 12.w, vertical: 12.h),
+                              decoration: BoxDecoration(
+                                color: AppColors.darkInputFill,
+                                borderRadius: BorderRadius.circular(8.r),
+                              ),
+                              child: Text(
+                                state.groupData?.inviteLink ?? '',
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.regular(fontSize: 13.sp),
+                              ),
+                            ),
+                            12.s,
+                            CustomButton(
+                              onPressed: () => Utils.copyToClipboard(
+                                  context, state.groupData?.inviteLink ?? ''),
+                              child: Text('Copy Link',
+                                  style: AppTextStyles.medium(
+                                      fontSize: 14.sp, color: AppColors.white)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   30.s,
                   Padding(
                     padding: EdgeInsets.symmetric(

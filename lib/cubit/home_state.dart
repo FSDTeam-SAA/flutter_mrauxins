@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/contact.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:two_one_two_messenger/models/all_user.dart';
 import 'package:two_one_two_messenger/models/call_history_model.dart';
@@ -34,6 +33,10 @@ class HomeState extends Equatable {
   final bool getAllUsersLoadMore;
   final bool showProfilePhotoForGroup;
   final bool sendMessageForGroup;
+  final bool privateGroup;
+  final bool hideMembersInfo;
+  final bool hideNewMembersMessage;
+  final bool restrictContentSharing;
   final bool searchContacts;
   final bool searchNotifications;
   final bool getCallsHistoryLoadMore;
@@ -71,6 +74,10 @@ class HomeState extends Equatable {
     this.getAllUsersLoadMore = false,
     this.showProfilePhotoForGroup = true,
     this.sendMessageForGroup = true,
+    this.privateGroup = false,
+    this.hideMembersInfo = false,
+    this.hideNewMembersMessage = false,
+    this.restrictContentSharing = false,
     this.searchContacts = false,
     this.searchNotifications = false,
     this.userHaveStory = false,
@@ -111,6 +118,10 @@ class HomeState extends Equatable {
     bool? getAllUsersLoadMore,
     bool? showProfilePhotoForGroup,
     bool? sendMessageForGroup,
+    bool? privateGroup,
+    bool? hideMembersInfo,
+    bool? hideNewMembersMessage,
+    bool? restrictContentSharing,
     bool? searchContacts,
     bool? searchNotifications,
     bool? userHaveStory,
@@ -157,6 +168,12 @@ class HomeState extends Equatable {
       showProfilePhotoForGroup:
           showProfilePhotoForGroup ?? this.showProfilePhotoForGroup,
       sendMessageForGroup: sendMessageForGroup ?? this.sendMessageForGroup,
+      privateGroup: privateGroup ?? this.privateGroup,
+      hideMembersInfo: hideMembersInfo ?? this.hideMembersInfo,
+      hideNewMembersMessage:
+          hideNewMembersMessage ?? this.hideNewMembersMessage,
+      restrictContentSharing:
+          restrictContentSharing ?? this.restrictContentSharing,
       searchContacts: searchContacts ?? this.searchContacts,
       searchNotifications: searchNotifications ?? this.searchNotifications,
       currentContactPage: currentContactPage ?? this.currentContactPage,
@@ -200,6 +217,10 @@ class HomeState extends Equatable {
         otherContact,
         showProfilePhotoForGroup,
         sendMessageForGroup,
+        privateGroup,
+        hideMembersInfo,
+        hideNewMembersMessage,
+        restrictContentSharing,
         searchContacts,
         searchNotifications,
         homeErrorMessage,
@@ -307,7 +328,7 @@ class HomeState extends Equatable {
 //     bool? clearSelectedGroupPic,
 //     AllUserData? allUserData,
 //     bool? getAllUsersLoadMore,   bool? showProfilePhotoForGroup,
-// bool? getCallsHistoryLoadMore, bool? getAllNotificationLoadMore, 
+// bool? getCallsHistoryLoadMore, bool? getAllNotificationLoadMore,
 
 //     bool? sendMessageForGroup,
 //     bool? isUpdateGroupData,
@@ -362,4 +383,3 @@ class HomeState extends Equatable {
 //         groupLoadingState,searchNotifications
 //       ];
 // }
-

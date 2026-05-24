@@ -43,6 +43,7 @@ class ChatBubble extends StatefulWidget {
   final bool isGroup;
   final bool isShowProfileImage;
   final bool isAccessToMessageUtilities;
+  final bool restrictContentSharing;
   final VoidCallback onSwipe;
   final VoidCallback? onTapScroll;
   final String? aesKey;
@@ -58,6 +59,7 @@ class ChatBubble extends StatefulWidget {
     required this.onSwipe,
     required this.onTapScroll,
     this.isAccessToMessageUtilities = true,
+    this.restrictContentSharing = false,
     required this.aesKey,
   });
 
@@ -84,6 +86,7 @@ class _ChatBubbleState extends State<ChatBubble> {
         break;
 
       case "copy":
+        if (widget.restrictContentSharing) return;
         Utils.copyToClipboard(context, widget.message.content ?? "");
 
         break;
@@ -103,6 +106,7 @@ class _ChatBubbleState extends State<ChatBubble> {
         }
         break;
       case "forward":
+        if (widget.restrictContentSharing) return;
         if ((widget.aesKey ?? "").isNotEmpty) {
           showMessage("TempMessage==> ${widget.message.toJson()}");
           UserData? user = await homeCubit.dbHelper.getLoginData();
@@ -271,8 +275,9 @@ class _ChatBubbleState extends State<ChatBubble> {
                         //   showMessage("TempMessage==> ${message.toJson()}");
                         // },
                       ),
-                      if (widget.message.type == 'text' ||
-                          widget.message.type == 'mixed')
+                      if (!widget.restrictContentSharing &&
+                          (widget.message.type == 'text' ||
+                              widget.message.type == 'mixed'))
                         MenuItem(
                           value: ChatMessageOption.copy.name,
                           icon: Icon(
@@ -329,7 +334,8 @@ class _ChatBubbleState extends State<ChatBubble> {
                         //   ],
                         // ),
                       ),
-                      if (widget.aesKey != null)
+                      if (widget.aesKey != null &&
+                          !widget.restrictContentSharing)
                         MenuItem(
                           value: ChatMessageOption.forward.name,
                           icon: Transform(

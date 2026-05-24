@@ -73,6 +73,9 @@ class ConversationData extends Equatable {
   final int? unreadMessageCount;
   final bool? isProfilePhoto;
   final bool? isSendMessage;
+  final bool? hideMembersInfo;
+  final bool? hideNewMembersMessage;
+  final bool? restrictContentSharing;
   final String? groupName;
   final String? groupImage;
   final String? privacy;
@@ -93,6 +96,9 @@ class ConversationData extends Equatable {
     this.unreadMessageCount,
     this.isProfilePhoto,
     this.isSendMessage,
+    this.hideMembersInfo,
+    this.hideNewMembersMessage,
+    this.restrictContentSharing,
     this.groupName,
     this.groupImage,
     this.inviteLink,
@@ -115,6 +121,9 @@ class ConversationData extends Equatable {
     int? unreadMessageCount,
     bool? isProfilePhoto,
     bool? isSendMessage,
+    bool? hideMembersInfo,
+    bool? hideNewMembersMessage,
+    bool? restrictContentSharing,
     String? groupName,
     String? groupImage,
     String? privacy,
@@ -135,6 +144,11 @@ class ConversationData extends Equatable {
         unreadMessageCount: unreadMessageCount ?? this.unreadMessageCount,
         isProfilePhoto: isProfilePhoto ?? this.isProfilePhoto,
         isSendMessage: isSendMessage ?? this.isSendMessage,
+        hideMembersInfo: hideMembersInfo ?? this.hideMembersInfo,
+        hideNewMembersMessage:
+            hideNewMembersMessage ?? this.hideNewMembersMessage,
+        restrictContentSharing:
+            restrictContentSharing ?? this.restrictContentSharing,
         groupName: groupName ?? this.groupName,
         groupImage: groupImage ?? this.groupImage,
         privacy: privacy ?? this.privacy,
@@ -171,6 +185,9 @@ class ConversationData extends Equatable {
       unreadMessageCount: json["unreadMessageCount"],
       isProfilePhoto: json["isProfilePhoto"],
       isSendMessage: json["isSendMessage"],
+      hideMembersInfo: json["hideMembersInfo"],
+      hideNewMembersMessage: json["hideNewMembersMessage"],
+      restrictContentSharing: json["restrictContentSharing"],
       groupName: json["groupName"],
       groupImage: json["groupImage"],
       privacy: json["privacy"],
@@ -198,6 +215,9 @@ class ConversationData extends Equatable {
         "unreadMessageCount": unreadMessageCount,
         "isProfilePhoto": isProfilePhoto,
         "isSendMessage": isSendMessage,
+        "hideMembersInfo": hideMembersInfo,
+        "hideNewMembersMessage": hideNewMembersMessage,
+        "restrictContentSharing": restrictContentSharing,
         "groupName": groupName,
         "groupImage": groupImage,
         "privacy": privacy,
@@ -221,6 +241,9 @@ class ConversationData extends Equatable {
         groupImage,
         isProfilePhoto,
         isSendMessage,
+        hideMembersInfo,
+        hideNewMembersMessage,
+        restrictContentSharing,
         inviteLink,
         encryptedAESKey,
         privacy,
