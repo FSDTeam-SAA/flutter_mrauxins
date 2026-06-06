@@ -415,6 +415,7 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
                                     .navigateTo(AddMemberGroupScreen(
                                   title: S.of(context).addSubscribers,
                                   admins: state.groupData?.participants ?? [],
+                                  isGroup: false,
                                   onSubmit: () => homeCubit.addMembersToGroup(
                                       context, widget.groupId),
                                 ));

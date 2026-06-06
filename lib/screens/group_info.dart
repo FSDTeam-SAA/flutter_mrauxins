@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:two_one_two_messenger/cubit/home_cubit.dart';
 import 'package:two_one_two_messenger/cubit/home_state.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
@@ -11,7 +12,6 @@ import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/models/group_info_model.dart';
 import 'package:two_one_two_messenger/models/otp_verify.dart';
-import 'package:two_one_two_messenger/utils/app_dialoge.dart';
 import 'package:two_one_two_messenger/utils/app_pop_up.dart';
 import 'package:two_one_two_messenger/utils/image_picker.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
@@ -37,8 +37,14 @@ class GroupInfoScreen extends StatefulWidget {
   State<GroupInfoScreen> createState() => _GroupInfoScreenState();
 }
 
+enum _GroupInfoSection { settings, invite }
+
+enum _GroupInfoTab { members, admins }
+
 class _GroupInfoScreenState extends State<GroupInfoScreen> {
   final _groupFormKey = GlobalKey<FormState>();
+  _GroupInfoSection? _expandedSection;
+  _GroupInfoTab _selectedTab = _GroupInfoTab.members;
 
   @override
   void initState() {
@@ -83,16 +89,18 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               ],
             );
           }
-          List<Participant> participants =
-              (state.groupData?.participants ?? []);
-// if(participants.isNotEmpty&&participants.length==1&&(participants.first.id == widget.currentUser.sId)){
+          final participants = state.groupData?.participants ?? [];
+          final admins = state.groupData?.admins ?? [];
+          final selectedPeople =
+              _selectedTab == _GroupInfoTab.members ? participants : admins;
+          final isAdmin = state.groupData?.isAdmin ?? false;
 
-// }
           return Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.h).copyWith(bottom: 0),
+            padding: EdgeInsets.only(top: 20.h),
             child: Form(
               key: _groupFormKey,
               child: ListView(
+                padding: EdgeInsets.only(bottom: 24.h),
                 children: [
                   Stack(
                     alignment: Alignment.center,
@@ -142,7 +150,15 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                             onTap: () {
                               showCustomImageOptionPickerDialog(
                                   context: context,
-                                  onImagePicked: homeCubit.selectGroupImage);
+                                  onImagePicked: (image) {
+                                    homeCubit.selectGroupImage(image);
+                                    if (_groupFormKey.currentState
+                                            ?.validate() ??
+                                        false) {
+                                      homeCubit.updateGroup(context,
+                                          widget.groupId, ChatType.group);
+                                    }
+                                  });
                             },
                             child: CircleAvatar(
                               radius: 15.r,
@@ -164,13 +180,20 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                     child: CustomTextField(
                       controller: state.groupNameController,
                       label: S.of(context).groupNamePlaceholder,
-                      readOnly: !(state.groupData?.isAdmin ?? false),
+                      readOnly: !isAdmin,
                       prefixIcon: SvgImage(
                         source: SvgAssets.icNewGroup,
                         fit: BoxFit.scaleDown,
                         color: AppColors.white,
                       ),
                       textInputAction: TextInputAction.next,
+                      onChanged: (_) {
+                        if (isAdmin &&
+                            (_groupFormKey.currentState?.validate() ?? false)) {
+                          homeCubit.updateGroupSetting(
+                              context, widget.groupId, ChatType.group);
+                        }
+                      },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return S.of(context).groupNameError;
@@ -179,310 +202,86 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                       },
                     ),
                   ),
-                  SizedBox(height: 24.h),
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                    ),
-                    child: Text(
-                      S.of(context).groupPermission,
-                      style: AppTextStyles.medium(
-                        fontSize: 14.sp,
-                        color: AppColors.purpleText,
-                      ),
-                    ),
+                  24.s,
+                  _accordionHeader(
+                    title: 'Group Settings',
+                    section: _GroupInfoSection.settings,
                   ),
-                  16.s,
-                  IgnorePointer(
-                    ignoring: !(state.groupData?.isAdmin ?? false),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                      ),
-                      child: BlocBuilder<HomeCubit, HomeState>(
-                          builder: (context, state) {
-                        return Column(
-                          children: [
-                            buildGroupPermission(
-                              context,
-                              text: 'Private Group',
-                              defaultValue: state.privateGroup,
-                              onChanged: (value) {
-                                homeCubit.togglePrivateGroup(value);
-                                homeCubit.updateGroupSetting(
-                                    context, widget.groupId, ChatType.group);
-                              },
-                            ),
-                            buildGroupPermission(
-                              context,
-                              text: S.of(context).lblShowProfilePhoto,
-                              defaultValue: state.showProfilePhotoForGroup,
-                              onChanged: (value) {
-                                homeCubit.toggleShowProfilePhotoForUpdate(
-                                    context,
-                                    widget.groupId,
-                                    value,
-                                    ChatType.group);
-                              },
-                            ),
-                            buildGroupPermission(
-                              context,
-                              text: S.of(context).allowMembersToSendMessage,
-                              defaultValue: state.sendMessageForGroup,
-                              onChanged: (value) {
-                                homeCubit.toggleSendMessageForUpdateGroup(
-                                    context,
-                                    widget.groupId,
-                                    value,
-                                    ChatType.group);
-                              },
-                            ),
-                            buildGroupPermission(
-                              context,
-                              text: 'Hide Members Info',
-                              defaultValue: state.hideMembersInfo,
-                              onChanged: (value) {
-                                homeCubit.toggleHideMembersInfo(value);
-                                homeCubit.updateGroupSetting(
-                                    context, widget.groupId, ChatType.group);
-                              },
-                            ),
-                            buildGroupPermission(
-                              context,
-                              text: 'Hide New Members Message',
-                              defaultValue: state.hideNewMembersMessage,
-                              onChanged: (value) {
-                                homeCubit.toggleHideNewMembersMessage(value);
-                                homeCubit.updateGroupSetting(
-                                    context, widget.groupId, ChatType.group);
-                              },
-                            ),
-                            buildGroupPermission(
-                              context,
-                              text: 'Restrict Content Sharing',
-                              defaultValue: state.restrictContentSharing,
-                              onChanged: (value) {
-                                homeCubit.toggleRestrictContentSharing(value);
-                                homeCubit.updateGroupSetting(
-                                    context, widget.groupId, ChatType.group);
-                              },
-                            ),
-                          ],
-                        );
-                      }),
+                  if (_expandedSection == _GroupInfoSection.settings)
+                    _settingsPanel(context, state, isAdmin),
+                  12.s,
+                  if ((state.groupData?.inviteLink ?? '').isNotEmpty) ...[
+                    _accordionHeader(
+                      title: 'Invite Link',
+                      section: _GroupInfoSection.invite,
                     ),
-                  ),
-                  30.s,
-                  if ((state.groupData?.inviteLink ?? '').isNotEmpty)
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w),
-                      child: Container(
-                        padding: EdgeInsets.all(16.w),
-                        decoration: BoxDecoration(
-                          color: AppColors.dialogBg,
-                          borderRadius: BorderRadius.circular(14.r),
-                          border: Border.all(color: AppColors.darkInputFill),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Invite Link',
-                                style: AppTextStyles.medium(fontSize: 16.sp)),
-                            12.s,
-                            Text(
-                              state.privateGroup
-                                  ? 'People can only join this group using an invite link.'
-                                  : 'This group is public, so anyone with this link can view and join it.',
-                              style: AppTextStyles.regular(
-                                fontSize: 13.sp,
-                                color: AppColors.white.withValues(alpha: 0.65),
-                              ),
-                            ),
-                            12.s,
-                            Container(
-                              width: double.infinity,
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 12.w, vertical: 12.h),
-                              decoration: BoxDecoration(
-                                color: AppColors.darkInputFill,
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                              child: Text(
-                                state.groupData?.inviteLink ?? '',
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTextStyles.regular(fontSize: 13.sp),
-                              ),
-                            ),
-                            12.s,
-                            CustomButton(
-                              onPressed: () => Utils.copyToClipboard(
-                                  context, state.groupData?.inviteLink ?? ''),
-                              child: Text('Copy Link',
-                                  style: AppTextStyles.medium(
-                                      fontSize: 14.sp, color: AppColors.white)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  30.s,
+                    if (_expandedSection == _GroupInfoSection.invite)
+                      _invitePanel(context, state),
+                    20.s,
+                  ],
+                  _peopleTabs(),
+                  26.s,
                   Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                    ),
-                    child: Row(
-                      children: [
-                        if (state.groupData?.isAdmin ?? false)
-                          Expanded(
-                            child: CustomButton(
-                                onPressed: () async {
-                                  // if (state.selectedGroupPic == null &&
-                                  //     (state.groupData?.groupImage ?? '')
-                                  //         .isEmpty) {
-                                  //   Utils.showSnackBar(context,
-                                  //       AppConstants.pleaseSelectGroupImage);
-                                  //   return;
-                                  // }
-
-                                  if (_groupFormKey.currentState!.validate()) {
-                                    homeCubit.updateGroup(context,
-                                        widget.groupId, ChatType.group);
-                                    // if ((state.groupData?.isAdmin ?? false)) {
-
-                                    //         homeCubit.deleteGroup(context, widget.groupId);
-                                    // } else {
-                                    //            homeCubit.leaveGroup(context, widget.groupId);
-                                    // }
-                                  }
-                                },
-                                child: Text(
-                                  S.of(context).update,
-                                  style: AppTextStyles.medium(
-                                    fontSize: 16.sp,
-                                    color: AppColors.white,
-                                  ),
-                                )),
-                          ),
-                        10.s,
-                        if (participants.any(
-                          (element) => element.id == widget.currentUser.sId,
-                        ))
-                          Expanded(
-                            child: CustomButton(
-                                onPressed: () async {
-                                  if (participants.isNotEmpty &&
-                                      participants.length == 1 &&
-                                      (participants.first.id ==
-                                          widget.currentUser.sId)) {
-                                    showCommonAlertDialog(
-                                      context: context,
-                                      title: S.of(context).deleteGroup,
-                                      subTitle:
-                                          S.of(context).lblDeleteGroupSubTitle,
-                                      submitBtnText: S.of(context).delete,
-                                      onSubmit: () => homeCubit.deleteGroup(
-                                          context, widget.groupId),
-                                    );
-
-                                    return;
-                                  }
-
-                                  if ((state.groupData?.isAdmin ?? false) &&
-                                      (state.groupData?.isCreatedBy ?? false)) {
-                                    // showCommonAlertDialog(
-                                    //   context: context,
-                                    //   title: AppConstants.deleteGroup,
-                                    //   subTitle:
-                                    //       AppConstants.lblDeleteGroupSubTitle,
-                                    //   submitBtnText: AppConstants.delete,
-                                    //   onSubmit: () => homeCubit.deleteGroup(
-                                    //       context, widget.groupId),
-                                    // );
-                                    showCommonAlertDialog(
-                                      context: context,
-                                      title: S.of(context).leaveGroup,
-                                      subTitle:
-                                          S.of(context).lblLeaveGroupSubTitle,
-                                      submitBtnText: S.of(context).yes,
-                                      onSubmit: () => homeCubit.leaveGroup(
-                                          context, widget.groupId),
-                                    );
-                                  } else {
-                                    showCommonAlertDialog(
-                                      context: context,
-                                      title: S.of(context).leaveGroup,
-                                      subTitle:
-                                          S.of(context).lblLeaveGroupSubTitle,
-                                      submitBtnText: S.of(context).yes,
-                                      onSubmit: () => homeCubit.leaveGroup(
-                                          context, widget.groupId),
-                                    );
-                                  }
-                                },
-                                child: Text(
-                                  (participants.isNotEmpty &&
-                                          participants.length == 1 &&
-                                          (participants.first.id ==
-                                              widget.currentUser.sId))
-                                      ? S.of(context).deleteGroup
-                                      : S.of(context).leaveGroup,
-                                  style: AppTextStyles.medium(
-                                    fontSize: 16.sp,
-                                    color: AppColors.white,
-                                  ),
-                                )),
-                          ),
-                      ],
-                    ),
-                  ),
-                  30.s,
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          S.of(context).groupMembers,
+                          _selectedTab == _GroupInfoTab.members
+                              ? S.of(context).groupMembers
+                              : S.of(context).admin,
                           style: AppTextStyles.medium(
-                              fontSize: 18.sp, color: AppColors.purpleText),
+                            fontSize: 18.sp,
+                            color: AppColors.purpleText,
+                          ),
                         ),
-                        if ((state.groupData?.isAdmin ?? false))
+                        if (isAdmin && _selectedTab == _GroupInfoTab.members)
                           GestureDetector(
-                              behavior: HitTestBehavior.translucent,
-                              onTap: () {
-                                NavigationService()
-                                    .navigateTo(AddMemberGroupScreen(
+                            behavior: HitTestBehavior.translucent,
+                            onTap: () {
+                              NavigationService().navigateTo(
+                                AddMemberGroupScreen(
                                   title: S.of(context).addMembers,
                                   admins: state.groupData?.participants ?? [],
+                                  isGroup: true,
                                   onSubmit: () => homeCubit.addMembersToGroup(
                                       context, widget.groupId),
-                                ));
-                              },
-                              child: Text(
-                                S.of(context).addMembers,
-                                style: AppTextStyles.medium(
-                                    fontSize: 18.sp,
-                                    color: AppColors.purpleText),
-                              ))
+                                ),
+                              );
+                            },
+                            child: Text(
+                              S.of(context).addMembers,
+                              style: AppTextStyles.medium(
+                                fontSize: 16.sp,
+                                color: AppColors.purpleText,
+                              ),
+                            ),
+                          )
                       ],
                     ),
                   ),
-                  // ...(state.groupData?.admins ?? []).map(
-                  //   (admin) => membersTile(
-                  //       context: context,
-                  //       isAdmin: true,
-                  //       currentUserIsAdmin: (state.groupData?.isAdmin ?? false),
-                  //       participant: admin),
-                  // ),
-                  ...participants.map(
+                  if (selectedPeople.isEmpty)
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 16.w, vertical: 28.h),
+                      child: Text(
+                        _selectedTab == _GroupInfoTab.members
+                            ? 'No members to show'
+                            : 'No admins to show',
+                        style: AppTextStyles.regular(
+                          fontSize: 14.sp,
+                          color: AppColors.white.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ),
+                  ...selectedPeople.map(
                     (participant) => membersTile(
-                        context: context,
-                        // isAdmin: participant.isAdmin??false,
-                        groupId: widget.groupId,
-                        currentUserIsAdmin: (state.groupData?.isAdmin ?? false),
-                        participant: participant),
+                      context: context,
+                      groupId: widget.groupId,
+                      currentUserIsAdmin: isAdmin,
+                      participant: participant,
+                      forceAdminBadge: _selectedTab == _GroupInfoTab.admins,
+                    ),
                   )
                 ],
               ),
@@ -493,11 +292,468 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     );
   }
 
+  Widget _accordionHeader({
+    required String title,
+    required _GroupInfoSection section,
+  }) {
+    final isExpanded = _expandedSection == section;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14.r),
+        onTap: () {
+          setState(() {
+            _expandedSection = isExpanded ? null : section;
+          });
+        },
+        child: Container(
+          constraints: BoxConstraints(minHeight: 48.h),
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+          decoration: BoxDecoration(
+            color: isExpanded
+                ? const Color(0xFF2D2029)
+                : AppColors.dialogBg.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(14.r),
+            border: Border.all(
+              color: const Color(0xFF86334D).withValues(alpha: 0.65),
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTextStyles.medium(fontSize: 15.sp),
+                ),
+              ),
+              Icon(
+                isExpanded
+                    ? Icons.keyboard_arrow_up
+                    : Icons.keyboard_arrow_down,
+                color: AppColors.white,
+                size: 22.sp,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _settingsPanel(BuildContext context, HomeState state, bool isAdmin) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w).copyWith(top: 10.h),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 18.h),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2B1F25),
+          borderRadius: BorderRadius.circular(18.r),
+          border: Border.all(
+            color: const Color(0xFF86334D).withValues(alpha: 0.55),
+          ),
+        ),
+        child: Column(
+          children: [
+            buildGroupPermission(
+              context,
+              text: 'Private Group',
+              defaultValue: state.privateGroup,
+              onChanged: isAdmin
+                  ? (value) {
+                      homeCubit.togglePrivateGroup(value);
+                      homeCubit.updateGroupSetting(
+                          context, widget.groupId, ChatType.group);
+                    }
+                  : null,
+            ),
+            buildGroupPermission(
+              context,
+              text: S.of(context).lblShowProfilePhoto,
+              defaultValue: state.showProfilePhotoForGroup,
+              onChanged: isAdmin
+                  ? (value) {
+                      homeCubit.toggleShowProfilePhotoForUpdate(
+                          context, widget.groupId, value, ChatType.group);
+                    }
+                  : null,
+            ),
+            buildGroupPermission(
+              context,
+              text: S.of(context).allowMembersToSendMessage,
+              defaultValue: state.sendMessageForGroup,
+              onChanged: isAdmin
+                  ? (value) {
+                      homeCubit.toggleSendMessageForUpdateGroup(
+                          context, widget.groupId, value, ChatType.group);
+                    }
+                  : null,
+            ),
+            buildGroupPermission(
+              context,
+              text: 'Hide Members Info',
+              defaultValue: state.hideMembersInfo,
+              onChanged: isAdmin
+                  ? (value) {
+                      homeCubit.toggleHideMembersInfo(value);
+                      homeCubit.updateGroupSetting(
+                          context, widget.groupId, ChatType.group);
+                    }
+                  : null,
+            ),
+            buildGroupPermission(
+              context,
+              text: 'Hide New Members Message',
+              defaultValue: state.hideNewMembersMessage,
+              onChanged: isAdmin
+                  ? (value) {
+                      homeCubit.toggleHideNewMembersMessage(value);
+                      homeCubit.updateGroupSetting(
+                          context, widget.groupId, ChatType.group);
+                    }
+                  : null,
+            ),
+            buildGroupPermission(
+              context,
+              text: 'Restrict Content Sharing',
+              defaultValue: state.restrictContentSharing,
+              onChanged: isAdmin
+                  ? (value) {
+                      homeCubit.toggleRestrictContentSharing(value);
+                      homeCubit.updateGroupSetting(
+                          context, widget.groupId, ChatType.group);
+                    }
+                  : null,
+              isLast: true,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _invitePanel(BuildContext context, HomeState state) {
+    final link = state.groupData?.inviteLink ?? '';
+    final isPrivate = state.privateGroup;
+    final groupName = state.groupData?.groupName ?? '';
+    final publicName = Utils.removeSpaceAndSpecialCharectorsFromString(
+      groupName.isEmpty ? 'Group' : groupName,
+    );
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w).copyWith(top: 10.h),
+      child: Container(
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2B1F25),
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(
+            color: AppColors.white.withValues(alpha: 0.18),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Invite Link', style: AppTextStyles.medium(fontSize: 17.sp)),
+            22.s,
+            Text(
+              isPrivate
+                  ? 'This group is set to private, so people can only join using an invite link.'
+                  : 'This group is public and has no custom privacy settings, so anyone can view and join it.',
+              style: AppTextStyles.regular(
+                fontSize: 14.sp,
+                color: AppColors.white.withValues(alpha: 0.6),
+              ),
+            ),
+            16.s,
+            Text(
+              isPrivate
+                  ? 'Your unique invite link is below, and you can revoke it or create a new one at any time.'
+                  : 'Create a share link to give people quick access.',
+              style: AppTextStyles.regular(
+                fontSize: 14.sp,
+                color: AppColors.white.withValues(alpha: 0.6),
+              ),
+            ),
+            14.s,
+            Container(
+              height: 45.h,
+              padding: EdgeInsets.only(left: 14.w),
+              decoration: BoxDecoration(
+                color: AppColors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(
+                  color: AppColors.white.withValues(alpha: 0.12),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      link,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.regular(fontSize: 14.sp),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: isPrivate
+                        ? () => _showRevokeDialog(context)
+                        : () => Utils.copyToClipboard(context, link),
+                    icon: Icon(
+                      Icons.more_vert,
+                      color: AppColors.white,
+                      size: 20.sp,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (!isPrivate) ...[
+              16.s,
+              Text(
+                '$publicName is available.',
+                style: AppTextStyles.regular(
+                  fontSize: 14.sp,
+                  color: Colors.green,
+                ),
+              ),
+              16.s,
+              Text(
+                'You can use a-z, 0-9 and underscores.\nMinimum length is 20 Characters.',
+                style: AppTextStyles.regular(
+                  fontSize: 14.sp,
+                  color: AppColors.white.withValues(alpha: 0.55),
+                ),
+              ),
+            ],
+            22.s,
+            Row(
+              children: [
+                Expanded(
+                  child: _inviteActionButton(
+                    text: 'Copy Link',
+                    color: AppColors.white.withValues(alpha: 0.12),
+                    onPressed: () => Utils.copyToClipboard(context, link),
+                  ),
+                ),
+                12.s,
+                Expanded(
+                  child: _inviteActionButton(
+                    text: 'Get QR Code',
+                    color: const Color(0xFF930C17),
+                    borderColor: const Color(0xFFDF3340),
+                    onPressed: () => _showQrDialog(context, link),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _inviteActionButton({
+    required String text,
+    required Color color,
+    Color? borderColor,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      height: 46.h,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: AppColors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24.r),
+            side: BorderSide(color: borderColor ?? Colors.transparent),
+          ),
+        ),
+        child: Text(
+          text,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.medium(fontSize: 15.sp),
+        ),
+      ),
+    );
+  }
+
+  void _showQrDialog(BuildContext context, String link) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: AppColors.dialogBg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14.r),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Invite QR Code',
+                    style: AppTextStyles.medium(fontSize: 18.sp)),
+                16.s,
+                Container(
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: QrImageView(
+                    data: link,
+                    version: QrVersions.auto,
+                    size: 220.w,
+                  ),
+                ),
+                18.s,
+                CustomButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: Text(
+                    'Close',
+                    style: AppTextStyles.medium(color: AppColors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showRevokeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: const Color(0xFF1E1D22),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14.r),
+            side: BorderSide(
+              color: const Color(0xFF8E1322).withValues(alpha: 0.8),
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleAvatar(
+                  radius: 18.r,
+                  backgroundColor: AppColors.white.withValues(alpha: 0.08),
+                  child:
+                      Icon(Icons.link_off, color: AppColors.white, size: 18.sp),
+                ),
+                18.s,
+                Text('Revoke Link',
+                    style: AppTextStyles.medium(fontSize: 20.sp)),
+                14.s,
+                Text(
+                  'Are you sure you want to revoke this link? Once revoked, it can no longer be used to join.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.regular(
+                    fontSize: 15.sp,
+                    color: AppColors.white.withValues(alpha: 0.72),
+                  ),
+                ),
+                22.s,
+                Row(
+                  children: [
+                    Expanded(
+                      child: _inviteActionButton(
+                        text: 'Cancel',
+                        color: AppColors.white.withValues(alpha: 0.14),
+                        onPressed: () => Navigator.pop(dialogContext),
+                      ),
+                    ),
+                    12.s,
+                    Expanded(
+                      child: _inviteActionButton(
+                        text: 'Revoke',
+                        color: const Color(0xFF930C17),
+                        borderColor: const Color(0xFFDF3340),
+                        onPressed: () {
+                          Navigator.pop(dialogContext);
+                          homeCubit.revokeGroupInviteLink(
+                              context, widget.groupId);
+                        },
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _peopleTabs() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      child: Container(
+        height: 42.h,
+        padding: EdgeInsets.all(2.w),
+        decoration: BoxDecoration(
+          color: AppColors.darkInputFill.withValues(alpha: 0.58),
+          borderRadius: BorderRadius.circular(22.r),
+          border: Border.all(
+            color: AppColors.white.withValues(alpha: 0.36),
+          ),
+        ),
+        child: Row(
+          children: [
+            _tabButton(_GroupInfoTab.members, 'Members'),
+            _tabButton(_GroupInfoTab.admins, 'Admins'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _tabButton(_GroupInfoTab tab, String label) {
+    final isSelected = _selectedTab == tab;
+
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20.r),
+        onTap: () => setState(() => _selectedTab = tab),
+        child: Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF68283B) : Colors.transparent,
+            borderRadius: BorderRadius.circular(20.r),
+            border: isSelected
+                ? Border.all(
+                    color: const Color(0xFFC13C61).withValues(alpha: 0.8),
+                  )
+                : null,
+          ),
+          child: Text(
+            label,
+            style: AppTextStyles.regular(
+              fontSize: 13.sp,
+              color: AppColors.white,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget buildGroupPermission(
     BuildContext context, {
     required String text,
     required Function(bool)? onChanged,
     required bool defaultValue,
+    bool isLast = false,
   }) {
     return Column(
       children: [
@@ -505,10 +761,12 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              text,
-              style: AppTextStyles.regular(
-                fontSize: 14.sp,
+            Expanded(
+              child: Text(
+                text,
+                style: AppTextStyles.medium(
+                  fontSize: 16.sp,
+                ),
               ),
             ),
             Switch(
@@ -519,10 +777,11 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
           ],
         ),
         SizedBox(height: 8.h),
-        Divider(
-          height: 0.h,
-          color: AppColors.darkInputFill,
-        ),
+        if (!isLast)
+          Divider(
+            height: 0.h,
+            color: AppColors.white.withValues(alpha: 0.09),
+          ),
       ],
     );
   }
@@ -532,7 +791,11 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
       // required bool isAdmin,
       required bool currentUserIsAdmin,
       required String groupId,
-      required Participant participant}) {
+      required Participant participant,
+      bool forceAdminBadge = false}) {
+    final isParticipantAdmin =
+        forceAdminBadge || (participant.isAdmin ?? false);
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.0.w),
       decoration: BoxDecoration(
@@ -573,7 +836,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                           ),
                         ),
                         4.s,
-                        if (participant.isAdmin ?? false)
+                        if (isParticipantAdmin)
                           Container(
                             padding: EdgeInsets.symmetric(
                                 horizontal: 4, vertical: 2),
@@ -604,7 +867,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                   currentUserIsAdmin)
                 buildOptionMenuForGroup(
                     context: context,
-                    isAdmin: participant.isAdmin ?? false,
+                    isAdmin: isParticipantAdmin,
                     isGroup: true,
                     name: participant.name ?? "",
                     onSelected: handleGroupAction,

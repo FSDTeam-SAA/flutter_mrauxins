@@ -79,8 +79,13 @@ class SendOtpCubit extends Cubit<SendOtpState> {
     }
   }
 
-  Future<void> sendPhoneOtp(String phoneNumber, BuildContext context,
-      {Function(String verificationId)? callback}) async {
+  Future<void> sendPhoneOtp(
+    String phoneNumber,
+    BuildContext context, {
+    Function(String verificationId)? callback,
+    Future<void> Function(PhoneAuthCredential credential)?
+        verificationCompletedCallback,
+  }) async {
     emit(state.copyWith(sendOtpLoadingState: LoadingState.loading));
     profileCubit.emitSendOtpLoadingState(isLoadEmail: false, isLoadPhone: true);
     try {
@@ -95,6 +100,7 @@ class SendOtpCubit extends Cubit<SendOtpState> {
           profileCubit.emitProfileSucessState();
           profileCubit.emitSendOtpSucessState();
           emit(state.copyWith(sendOtpLoadingState: LoadingState.success));
+          await verificationCompletedCallback?.call(credential);
           // callback?.call('');
           // emit(SendOtpEmpty());
         },

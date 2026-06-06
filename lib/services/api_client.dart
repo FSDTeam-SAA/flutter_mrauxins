@@ -1082,6 +1082,25 @@ class ApiClient {
     }
   }
 
+  Future<CommonResponseModel> revokeGroupInviteLink({
+    required String groupId,
+  }) async {
+    try {
+      final response = await post(
+        "${APIS.revokeGroupInviteLink}$groupId",
+        {},
+        requiresToken: true,
+      );
+      CommonResponseModel res = CommonResponseModel.fromJson(response.data);
+      return res;
+    } on DioException catch (e) {
+      String errorMessage =
+          e.response?.data['message'] ?? 'Something went wrong';
+      AppLogger.logs('Error: $errorMessage');
+      throw Exception(errorMessage);
+    }
+  }
+
   Future<CommonResponseModel> removeMemberToGroup({
     required Map<String, dynamic> data,
   }) async {

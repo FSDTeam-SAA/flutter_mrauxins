@@ -651,7 +651,7 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   bool addToGroup(UserData user, bool isSelected, int initialLength) {
-    if (state.selectedUserForGroup.length + initialLength >= 200000) {
+    if (state.selectedUserForGroup.length + initialLength >= 20000) {
       return false;
     }
     Set<Participant> updatedUsers = Set.from(state.selectedUserForGroup);
@@ -662,14 +662,25 @@ class HomeCubit extends Cubit<HomeState> {
     } else {
       updatedUsers.add(Participant(
           id: user.sId,
+          name: user.name,
           userName: user.userName,
           profilePicture: user.profilePicture,
           lastSeen: user.lastSeen == null
               ? null
-              : DateTime.parse(user.lastSeen!).toLocal()));
+              : DateTime.tryParse(user.lastSeen!)?.toLocal()));
     }
     emit(state.copyWith(selectedUserForGroup: updatedUsers));
     return true;
+  }
+
+  void removeSelectedGroupUser(String userId) {
+    final updatedUsers = Set<Participant>.from(state.selectedUserForGroup)
+      ..removeWhere((element) => element.id == userId);
+    emit(state.copyWith(selectedUserForGroup: updatedUsers));
+  }
+
+  void clearSelectedGroupUsers() {
+    emit(state.copyWith(selectedUserForGroup: {}));
   }
 
   void toggleSendMessage(
@@ -1023,6 +1034,32 @@ class HomeCubit extends Cubit<HomeState> {
     } catch (e, st) {
       showMessage("Error in assignAdminToGroup==> $e, $st");
       // emit(state.copyWith(groupLoadingState: LoadingState.error));
+    } finally {
+      Utils.hideLoader();
+    }
+  }
+
+  Future<void> revokeGroupInviteLink(
+      BuildContext context, String groupId) async {
+    try {
+      Utils.showLoader();
+      CommonResponseModel response =
+          await apiClient.revokeGroupInviteLink(groupId: groupId);
+      if (!context.mounted) return;
+      if (response.status == Utils.APISUCCESS) {
+        Utils.showSnackBar(context, response.message ?? "");
+        await getGroupInfobyId(context, groupId, isLoaderVisible: false);
+        if (!context.mounted) return;
+        getConversation(context: context);
+      } else {
+        Utils.showSnackBar(context, response.message ?? "", seconds: 3);
+      }
+    } catch (e, st) {
+      showMessage("Error in revokeGroupInviteLink==> $e, $st");
+      if (context.mounted) {
+        Utils.showSnackBar(context, S.current.somethingWentWrongPleaseTryAgain,
+            seconds: 3);
+      }
     } finally {
       Utils.hideLoader();
     }

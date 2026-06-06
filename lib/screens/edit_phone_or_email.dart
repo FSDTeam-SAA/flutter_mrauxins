@@ -136,6 +136,7 @@ class _EditPhoneOrEmailScreenState extends State<EditPhoneOrEmailScreen> {
                             // context.showLoader();
                             profileCubit.emitSendOtpLoadingState(
                                 isLoadEmail: false, isLoadPhone: true);
+                            var isPhoneSaveHandled = false;
                             await context.read<SendOtpCubit>().sendPhoneOtp(
                               "$countryCode$phoneNumber",
                               context,
@@ -144,15 +145,17 @@ class _EditPhoneOrEmailScreenState extends State<EditPhoneOrEmailScreen> {
                                   auth.PhoneAuthCredential? result =
                                       await NavigationService()
                                           .navigateTo(OtpVerifyScreen(
-                                    phoneNumber: phoneNumber ?? '',
-                                    countryISOCode: countryISOCode ?? '',
-                                    countryCode: countryCode ?? '',
+                                    phoneNumber: phoneNumber,
+                                    countryISOCode: countryISOCode,
+                                    countryCode: countryCode,
                                     verificationId: verificationId,
                                     isEditProfile: true,
                                   ));
 
                                   context.dismissKeyboard();
                                   if (result != null) {
+                                    if (isPhoneSaveHandled) return;
+                                    isPhoneSaveHandled = true;
                                     Utils.showSnackBar(
                                         context, S.current.otpVerifySuccess,
                                         seconds: 2);
@@ -180,6 +183,26 @@ class _EditPhoneOrEmailScreenState extends State<EditPhoneOrEmailScreen> {
                                     //     seconds: 2);
                                   }
                                 }
+                              },
+                              verificationCompletedCallback:
+                                  (credential) async {
+                                if (isPhoneSaveHandled) return;
+                                isPhoneSaveHandled = true;
+                                Utils.showSnackBar(
+                                    context, S.current.otpVerifySuccess,
+                                    seconds: 2);
+                                context
+                                    .read<ProfileCubit>()
+                                    .setData(credential);
+                                await profileCubit.updatePhoneNumberProfile(
+                                  phone: phoneNumber,
+                                  countryISOCode: countryISOCode,
+                                  countryCode: countryCode,
+                                  context: context,
+                                  callback: (response) async {
+                                    NavigationService().goBack();
+                                  },
+                                );
                               },
                             );
                           }
@@ -343,7 +366,9 @@ class _EditPhoneOrEmailScreenState extends State<EditPhoneOrEmailScreen> {
                           style: AppTextStyles.medium(),
                         ),
                         10.s,
-                        AppIntlPhoneField( dropdownTextStyle: TextStyle(fontSize: 16.sp, color: AppColors.white),
+                        AppIntlPhoneField(
+                          dropdownTextStyle: TextStyle(
+                              fontSize: 16.sp, color: AppColors.white),
                           onChanged: (value) {
                             contextProfile
                                 .read<ProfileCubit>()

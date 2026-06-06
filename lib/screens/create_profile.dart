@@ -187,6 +187,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                               profileState.userData?.phone !=
                                   profileState.phoneNumber?.number) {
                             profileCubit.emitProfileLoadingState();
+                            var isPhoneSaveHandled = false;
                             await context.read<SendOtpCubit>().sendPhoneOtp(
                               "${profileState.phoneNumber?.countryCode}${profileState.phoneNumber?.number}",
                               context,
@@ -209,6 +210,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                                   ));
 
                                   if (result != null) {
+                                    if (isPhoneSaveHandled) return;
+                                    isPhoneSaveHandled = true;
                                     Utils.showSnackBar(
                                         context, S.current.otpVerifySuccess,
                                         seconds: 2);
@@ -239,6 +242,49 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                                   }
                                 }
                                 profileCubit.emitProfileSucessState();
+                              },
+                              verificationCompletedCallback:
+                                  (credential) async {
+                                if (isPhoneSaveHandled) return;
+                                isPhoneSaveHandled = true;
+                                Utils.showSnackBar(
+                                    context, S.current.otpVerifySuccess,
+                                    seconds: 2);
+                                profileCubit.setData(credential);
+                                await profileCubit.createProfile(
+                                  phone: profileState.phoneNumber?.number ?? '',
+                                  countryISOCode: profileState
+                                          .phoneNumber?.countryISOCode ??
+                                      '',
+                                  countryCode:
+                                      profileState.phoneNumber?.countryCode ??
+                                          '',
+                                  context: context,
+                                  file: profileState.selectedFile,
+                                  callback: (response) async {
+                                    await homeCubit.resetState();
+                                    NavigationService()
+                                        .clearAndNavigateTo(HomeScreen());
+                                  },
+                                );
+                              },
+                            );
+                          } else if (profileState.phoneNumber != null &&
+                              (profileState.phoneNumber?.number ?? "")
+                                  .isNotEmpty) {
+                            await profileCubit.createProfile(
+                              phone: profileState.phoneNumber?.number ?? '',
+                              countryISOCode:
+                                  profileState.phoneNumber?.countryISOCode ??
+                                      '',
+                              countryCode:
+                                  profileState.phoneNumber?.countryCode ?? '',
+                              context: context,
+                              file: profileState.selectedFile,
+                              callback: (response) async {
+                                await homeCubit.resetState();
+                                NavigationService()
+                                    .clearAndNavigateTo(HomeScreen());
                               },
                             );
                           }
@@ -509,7 +555,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                   IgnorePointer(
                     ignoring: profileState.userData?.isPhoneVerify ?? false,
                     child: AppIntlPhoneField(
-                      
                       key: ValueKey(phoneFieldKey),
                       readOnly: profileState.userData?.isPhoneVerify ?? false,
                       controller: profileState.phoneController,
@@ -536,7 +581,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       initialValue:
                           profileState.phoneNumber?.completeNumber ?? "",
                       style: TextStyle(fontSize: 16.sp, color: AppColors.white),
-                      dropdownTextStyle: TextStyle(fontSize: 16.sp, color: AppColors.white),
+                      dropdownTextStyle:
+                          TextStyle(fontSize: 16.sp, color: AppColors.white),
                       decoration: InputDecoration(
                         hintText: S.of(context).phonePlaceholder,
                         hintStyle: TextStyle(

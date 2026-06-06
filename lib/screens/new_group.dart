@@ -64,6 +64,7 @@ class _NewGroupScreenState extends State<NewGroupScreen> {
                         title: widget.isGroup
                             ? S.of(context).newGroup
                             : S.of(context).newChannel,
+                        isGroup: widget.isGroup,
                         onSubmit: () => homeCubit.createGroup(context,
                             widget.isGroup ? ChatType.group : ChatType.channel),
                       ));
