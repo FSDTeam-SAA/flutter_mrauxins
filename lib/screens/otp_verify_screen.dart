@@ -249,7 +249,9 @@ class OtpVerifyFormState extends State<OtpVerifyScreen> {
                         ),
                       );
                     } else if (otpVerifyState is OtpVerifyError) {
-                      _pinController.clear();
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _pinController.clear();
+                      });
                       return Text(
                         S.of(context).loginButtonTextRe,
                         style: AppTextStyles.medium(

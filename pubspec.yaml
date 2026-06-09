@@ -126,8 +126,10 @@ dev_dependencies:
   
 dependency_overrides:
   flutter_callkit_incoming: ^2.5.0
-  # video_player: 
-  giphy_get: 
+  flutter_contacts:
+     path: ./packages/flutter_contacts
+  # video_player:
+  giphy_get:
      path: ./packages/giphy_get-main
   record_platform_interface: 1.2.0
   syncfusion_flutter_sliders: ^33.2.7

@@ -298,9 +298,16 @@ class Utils {
 
   static Future<String?> fetchToken() async {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
-    String? token = await messaging.getToken();
-    // showMessage("FcmToken: $token");
-    return token;
+    try {
+      // iOS simulator has no APNs — getToken() hangs without a timeout
+      String? token = await messaging.getToken().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => null,
+      );
+      return token;
+    } catch (e) {
+      return null;
+    }
   }
 
   static String getDisappearingMessageLabel(int duration) {

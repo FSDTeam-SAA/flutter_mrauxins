@@ -53,7 +53,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  await NotificationHandler.handleNotification();
+  NotificationHandler.handleNotification(); // Do NOT await — permission dialog blocks main() before runApp() on iOS
   final apiClient = ApiClient();
   await AppPreference.initMySharedPreferences();
 
@@ -68,7 +68,7 @@ void main() async {
 
   Utils.initEasyLoading();
   CallKitEventHandler.getActiveCall();
-  await InAppPurchaseService().initialize();
+  InAppPurchaseService().initialize(); // Do NOT await — queryProductDetails contacts App Store and can hang on iOS
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
