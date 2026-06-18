@@ -48,6 +48,7 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
   final searchController = TextEditingController();
   Timer? _searchDebounce;
   _AddPeopleTab _selectedTab = _AddPeopleTab.contacts;
+  String? _currentUserId;
 
   @override
   void initState() {
@@ -55,11 +56,17 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
     homeCubit.clearSelectedGroupUsers();
     scrollController.addListener(_onScroll);
     fetchAllUsers();
+    _loadCurrentUserId();
     Future.microtask(() {
       if (mounted && (homeCubit.state.conversationModel?.data ?? []).isEmpty) {
         homeCubit.getConversation(context: context);
       }
     });
+  }
+
+  Future<void> _loadCurrentUserId() async {
+    final user = await homeCubit.dbHelper.getLoginData();
+    if (mounted) setState(() => _currentUserId = user?.sId);
   }
 
   Future<void> fetchAllUsers({String name = ""}) async {
@@ -501,7 +508,10 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
 
     return people.where((user) {
       final id = user.sId ?? '';
-      if (id.isEmpty || existingIds.contains(id) || seen.contains(id)) {
+      if (id.isEmpty ||
+          id == _currentUserId ||
+          existingIds.contains(id) ||
+          seen.contains(id)) {
         return false;
       }
       seen.add(id);
@@ -532,6 +542,7 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
     return conversations
         .where((chat) => chat.type == ChatType.one_to_one)
         .expand((chat) => chat.participantDetails ?? <ParticipantDetail>[])
+        .where((p) => p.id != _currentUserId)
         .map(
           (participant) => UserData(
             sId: participant.id,

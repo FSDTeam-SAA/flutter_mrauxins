@@ -69,6 +69,7 @@ class AppConstants {
   static const muteConvesation = "muteConvesation";
 
   static const markMessageAsUnread = "mark_message_as_unread";
+  static const groupSendPermissionUpdated = "group_send_permission_updated";
   
 
 // static const markAsReadEmit  = "mark_message_as_read";

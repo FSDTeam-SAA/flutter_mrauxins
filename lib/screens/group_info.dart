@@ -369,12 +369,24 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             ),
             buildGroupPermission(
               context,
-              text: S.of(context).lblShowProfilePhoto,
+              text: 'Show Members Profile Photo',
               defaultValue: state.showProfilePhotoForGroup,
               onChanged: isAdmin
                   ? (value) {
                       homeCubit.toggleShowProfilePhotoForUpdate(
                           context, widget.groupId, value, ChatType.group);
+                    }
+                  : null,
+            ),
+            buildGroupPermission(
+              context,
+              text: 'Show Group Profile Photo',
+              defaultValue: state.showGroupProfilePhoto,
+              onChanged: isAdmin
+                  ? (value) {
+                      homeCubit.toggleShowGroupProfilePhoto(value);
+                      homeCubit.updateGroupSetting(
+                          context, widget.groupId, ChatType.group);
                     }
                   : null,
             ),

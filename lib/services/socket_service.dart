@@ -478,6 +478,9 @@ class SocketService {
     on(AppConstants.muteConvesation, callback);
   }
 
+  void onGroupSendPermissionUpdated(Function(dynamic) callback) =>
+      on(AppConstants.groupSendPermissionUpdated, callback);
+
   void receiveMessage(Function(dynamic) callback) =>
       on(AppConstants.socketReceiveMessage, callback);
   void receiveSystemMessage(Function(dynamic) callback) =>

@@ -113,7 +113,7 @@ dependencies:
   qr_flutter: ^4.1.0
   # cached_video_player_plus:
   # firebase_crashlytics: ^4.3.5
-  
+  flutter_windowmanager: ^0.2.0
 
 
 

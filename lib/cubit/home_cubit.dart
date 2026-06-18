@@ -367,13 +367,20 @@ class HomeCubit extends Cubit<HomeState> {
     emit(state.copyWith(contactsLoadingState: LoadingState.loading));
     if (searchQuery.isEmpty) {
       emit(state.copyWith(searchContacts: false));
-      // await fetchContactsForSync(context);
-      await contactService
-          .fetchAndStoreLocalContacts(); // Fetch latest local contacts
+      await contactService.fetchAndStoreLocalContacts();
+
+      // Collect device contact phone numbers from SQLite to send to the backend.
+      // The backend uses these to find only users whose phone matches a saved contact.
+      final List<ContactUser> deviceContacts = await dbHelper.getAllContacts();
+      final List<String> contactNumbers = deviceContacts
+          .map((c) => c.phone ?? "")
+          .where((p) => p.isNotEmpty)
+          .toList();
+
       await contactService.syncApiUsersWithContacts(
         context: context,
         searchQuery: "",
-        contactNumbers: [],
+        contactNumbers: contactNumbers,
         page: 1,
         limit: 10000,
         removedUsers: [],
@@ -738,6 +745,10 @@ class HomeCubit extends Cubit<HomeState> {
     emit(state.copyWith(restrictContentSharing: value));
   }
 
+  void toggleShowGroupProfilePhoto(bool value) {
+    emit(state.copyWith(showGroupProfilePhoto: value));
+  }
+
   void updateGroupSetting(
       BuildContext context, String groupId, ChatType chatType) {
     if (debounceTimerShowProfilePhoto != null) {
@@ -795,6 +806,7 @@ class HomeCubit extends Cubit<HomeState> {
         "hideMembersInfo": state.hideMembersInfo,
         "hideNewMembersMessage": state.hideNewMembersMessage,
         "restrictContentSharing": state.restrictContentSharing,
+        "isGroupProfilePhoto": state.showGroupProfilePhoto,
         "chatType": chatType.name,
       };
 
@@ -933,6 +945,7 @@ class HomeCubit extends Cubit<HomeState> {
         "hideMembersInfo": state.hideMembersInfo,
         "hideNewMembersMessage": state.hideNewMembersMessage,
         "restrictContentSharing": state.restrictContentSharing,
+        "isGroupProfilePhoto": state.showGroupProfilePhoto,
         "chatType": chatType.name
       };
 
@@ -992,6 +1005,7 @@ class HomeCubit extends Cubit<HomeState> {
             hideMembersInfo: response.groupData?.hideMembersInfo,
             hideNewMembersMessage: response.groupData?.hideNewMembersMessage,
             restrictContentSharing: response.groupData?.restrictContentSharing,
+            showGroupProfilePhoto: response.groupData?.isGroupProfilePhoto ?? true,
             groupData: response.groupData,
             selectedUserForGroup:
                 Set.from((response.groupData?.participants ?? []).map(

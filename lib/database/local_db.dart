@@ -688,24 +688,24 @@ class DatabaseHelper {
     final result = await db.query(
       'contacts',
       where: '''
-      (name IS NOT NULL AND name LIKE ?) OR
-      (userName IS NOT NULL AND userName LIKE ?) OR
-      (email IS NOT NULL AND email LIKE ?) OR
-      (phone IS NOT NULL AND phone LIKE ?)
+      isRegistered = 1 AND (
+        (name IS NOT NULL AND name LIKE ?) OR
+        (userName IS NOT NULL AND userName LIKE ?) OR
+        (email IS NOT NULL AND email LIKE ?) OR
+        (phone IS NOT NULL AND phone LIKE ?)
+      )
     ''',
       whereArgs: [
         '%$searchQuery%',
         '%$searchQuery%',
         '%$searchQuery%',
-        '%$searchQuery%'
+        '%$searchQuery%',
       ],
       orderBy: '''
       (CASE WHEN lastSeen IS NULL OR lastSeen = '' THEN 1 ELSE 0 END),
       lastSeen DESC,
       name ASC
     ''',
-      // limit: limit,
-      // offset: offset,
     );
     return result.map((c) => ContactUser.fromDbJson(c)).toList();
   }

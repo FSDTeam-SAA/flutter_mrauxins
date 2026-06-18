@@ -37,6 +37,7 @@ class HomeState extends Equatable {
   final bool hideMembersInfo;
   final bool hideNewMembersMessage;
   final bool restrictContentSharing;
+  final bool showGroupProfilePhoto;
   final bool searchContacts;
   final bool searchNotifications;
   final bool getCallsHistoryLoadMore;
@@ -78,6 +79,7 @@ class HomeState extends Equatable {
     this.hideMembersInfo = false,
     this.hideNewMembersMessage = false,
     this.restrictContentSharing = false,
+    this.showGroupProfilePhoto = true,
     this.searchContacts = false,
     this.searchNotifications = false,
     this.userHaveStory = false,
@@ -122,6 +124,7 @@ class HomeState extends Equatable {
     bool? hideMembersInfo,
     bool? hideNewMembersMessage,
     bool? restrictContentSharing,
+    bool? showGroupProfilePhoto,
     bool? searchContacts,
     bool? searchNotifications,
     bool? userHaveStory,
@@ -174,6 +177,8 @@ class HomeState extends Equatable {
           hideNewMembersMessage ?? this.hideNewMembersMessage,
       restrictContentSharing:
           restrictContentSharing ?? this.restrictContentSharing,
+      showGroupProfilePhoto:
+          showGroupProfilePhoto ?? this.showGroupProfilePhoto,
       searchContacts: searchContacts ?? this.searchContacts,
       searchNotifications: searchNotifications ?? this.searchNotifications,
       currentContactPage: currentContactPage ?? this.currentContactPage,
@@ -221,6 +226,7 @@ class HomeState extends Equatable {
         hideMembersInfo,
         hideNewMembersMessage,
         restrictContentSharing,
+        showGroupProfilePhoto,
         searchContacts,
         searchNotifications,
         homeErrorMessage,

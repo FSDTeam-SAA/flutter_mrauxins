@@ -23,6 +23,8 @@ import 'package:two_one_two_messenger/screens/group_info.dart';
 import 'package:two_one_two_messenger/screens/report_user_screen.dart';
 import 'package:two_one_two_messenger/screens/user_profile.dart';
 import 'package:two_one_two_messenger/screens/voice_call_page.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
 import 'package:two_one_two_messenger/utils/app_dialoge.dart';
 import 'package:two_one_two_messenger/utils/app_pop_up.dart';
@@ -244,6 +246,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    _disableScreenProtection();
     disposeAllEvents();
     messageCon.dispose();
     _focusNode.removeListener(_handleFocusChange);
@@ -253,9 +256,31 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
+  static const _iosScreenChannel =
+      MethodChannel('com.212messenger/screen_protection');
+
+  Future<void> _enableScreenProtection() async {
+    if (!widget.restrictContentSharing) return;
+    if (Platform.isAndroid) {
+      await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+    } else if (Platform.isIOS) {
+      await _iosScreenChannel.invokeMethod('enable');
+    }
+  }
+
+  Future<void> _disableScreenProtection() async {
+    if (!widget.restrictContentSharing) return;
+    if (Platform.isAndroid) {
+      await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+    } else if (Platform.isIOS) {
+      await _iosScreenChannel.invokeMethod('disable');
+    }
+  }
+
   Future<void> init() async {
     try {
       _focusNode.addListener(_handleFocusChange);
+      await _enableScreenProtection();
       userData ??= await chatCubit.dbHelper.getLoginData();
       chatId = widget.chatId;
       // showMessage(":: USER Is Typing ${widget.chatId} ");
@@ -382,6 +407,15 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }
     });
+    _socketService.onGroupSendPermissionUpdated((data) {
+      if (widget.chatType != ChatType.one_to_one &&
+          mounted &&
+          chatCubit.chatId == data["chatId"]) {
+        setState(() {
+          widget.isSendMessage = data["isSendMessage"] ?? true;
+        });
+      }
+    });
     _socketService.onPinnedMessage((data) {
       showMessage(
           ":: onPinnedMessage==> $data ${widget.userId} ${mounted && chatCubit.chatId == data["chatId"]}");
@@ -416,6 +450,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _socketService.off(AppConstants.removeFromGroup);
     _socketService.off(AppConstants.addtoGroupGroup);
     _socketService.off(AppConstants.onAssignOrRemoveFromAdminToGroup);
+    _socketService.off(AppConstants.groupSendPermissionUpdated);
     _socketService.off(AppConstants.onPinedMessage);
     _socketService.off(AppConstants.onUnPinedMessage);
     _socketService.off(AppConstants.receivedTypingStatus);
@@ -634,12 +669,14 @@ class _ChatScreenState extends State<ChatScreen> {
                           if (state.groupData?.participants == null) {
                             return SizedBox();
                           }
+                          final int count =
+                              state.groupData?.participantCount ??
+                                  state.groupData?.participants?.length ??
+                                  0;
                           return Text(
                             (widget.chatType == ChatType.group)
-                                ? S.of(context).noOfMember(
-                                    state.groupData?.participants?.length ?? 0)
-                                : S.of(context).noOfSubscriber(
-                                    state.groupData?.participants?.length ?? 0),
+                                ? S.of(context).noOfMember(count)
+                                : S.of(context).noOfSubscriber(count),
                             // "",
                             style: AppTextStyles.regular(
                                 fontSize: 10.sp,

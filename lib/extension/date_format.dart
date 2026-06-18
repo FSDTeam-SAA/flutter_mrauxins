@@ -98,7 +98,7 @@ extension DateFormatExtension on DateTime {
   String get formattedDateWithDayMonthAtTime {
     try {
       String formattedDate = DateFormat("MMM dd").format(this); // Sep 15
-      String formattedTime = DateFormat("HH : mm").format(this); // 22 : 53
+      String formattedTime = DateFormat("HH:mm").format(this); // 22 : 53
       return "$formattedDate at $formattedTime";
     } catch (e) {
       showMessage('Error formatting date: $e');
@@ -109,7 +109,7 @@ extension DateFormatExtension on DateTime {
   String get formattedDateWithDayMonthYearAtTime {
     try {
       String formattedDate = DateFormat("MMM dd, yyyy").format(this); // Sep 15
-      String formattedTime = DateFormat("HH : mm").format(this); // 22 : 53
+      String formattedTime = DateFormat("HH:mm").format(this); // 22 : 53
       return "$formattedDate at $formattedTime";
     } catch (e) {
       showMessage('Error formatting date: $e');

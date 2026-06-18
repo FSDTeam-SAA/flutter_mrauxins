@@ -1,9 +1,13 @@
+import 'dart:io';
+
 class Urls {
   static const String url = 'http://45.248.67.90:8029/sfa/app_login_en/';
   static const String swaggerDoc =
       'https://telegram-clone-4gd7.onrender.com/api-docs';
 
-  static String get baseURL => 'http://13.50.23.139:3001';
+  // static String get baseURL => 'http://13.50.23.139:3001'; // AWS live backend
+  static String get baseURL =>
+      Platform.isIOS ? 'http://127.0.0.1:3001' : 'http://10.0.2.2:3001';
   static const String mediaUrl =
       'https://telegrameclone.s3.eu-west-2.amazonaws.com/';
 }

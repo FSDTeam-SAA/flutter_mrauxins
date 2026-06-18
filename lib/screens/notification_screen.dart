@@ -403,6 +403,83 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             style: AppTextStyles.regular(
                                 color: AppColors.white.withAlpha(50)),
                           ),
+                        if (notification.type ==
+                            NotificationType.group_invite)
+                          Padding(
+                            padding: EdgeInsets.only(top: 10.h),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 32.h,
+                                    child: OutlinedButton(
+                                      onPressed: () async {
+                                        final groupId =
+                                            notification.groupInfo?.id ?? "";
+                                        if (groupId.isNotEmpty) {
+                                          homeCubit.leaveGroup(
+                                              context, groupId);
+                                        }
+                                      },
+                                      style: OutlinedButton.styleFrom(
+                                        side: BorderSide(
+                                            color: AppColors.redColor),
+                                        padding: EdgeInsets.zero,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8.r),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        S.of(context).reject,
+                                        style: AppTextStyles.medium(
+                                          fontSize: 12.sp,
+                                          color: AppColors.redColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                8.w.s,
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 32.h,
+                                    child: ElevatedButton(
+                                      onPressed: () async {
+                                        UserData? user = await homeCubit
+                                            .dbHelper
+                                            .getLoginData();
+                                        if (user == null) return;
+                                        NavigationService()
+                                            .navigateTo(GroupInfoScreen(
+                                          currentUser: user,
+                                          groupId:
+                                              notification.groupInfo?.id ??
+                                                  "",
+                                        ));
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            AppColors.primaryColor,
+                                        padding: EdgeInsets.zero,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8.r),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        S.of(context).accept,
+                                        style: AppTextStyles.medium(
+                                          fontSize: 12.sp,
+                                          color: AppColors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
                   ),

@@ -62,10 +62,12 @@ class GroupData extends Equatable {
   final bool? hideMembersInfo;
   final bool? hideNewMembersMessage;
   final bool? restrictContentSharing;
+  final bool? isGroupProfilePhoto;
   final bool? isCreatedBy;
 //  final String? createdBy;
   final String? privacy;
   final String? inviteLink;
+  final int? participantCount;
   GroupData({
     this.groupId,
     this.groupName,
@@ -79,9 +81,11 @@ class GroupData extends Equatable {
     this.hideMembersInfo,
     this.hideNewMembersMessage,
     this.restrictContentSharing,
+    this.isGroupProfilePhoto,
     this.isCreatedBy,
     this.inviteLink,
     this.privacy,
+    this.participantCount,
   });
 
   GroupData copyWith({
@@ -97,9 +101,11 @@ class GroupData extends Equatable {
     bool? hideMembersInfo,
     bool? hideNewMembersMessage,
     bool? restrictContentSharing,
+    bool? isGroupProfilePhoto,
     bool? isCreatedBy,
     String? privacy,
     String? inviteLink,
+    int? participantCount,
   }) =>
       GroupData(
           groupId: groupId ?? this.groupId,
@@ -116,9 +122,12 @@ class GroupData extends Equatable {
               hideNewMembersMessage ?? this.hideNewMembersMessage,
           restrictContentSharing:
               restrictContentSharing ?? this.restrictContentSharing,
+          isGroupProfilePhoto:
+              isGroupProfilePhoto ?? this.isGroupProfilePhoto,
           isCreatedBy: isCreatedBy ?? this.isCreatedBy,
           privacy: privacy ?? this.privacy,
-          inviteLink: inviteLink ?? this.inviteLink);
+          inviteLink: inviteLink ?? this.inviteLink,
+          participantCount: participantCount ?? this.participantCount);
 
   factory GroupData.fromJson(Map<String, dynamic> json) => GroupData(
         groupId: json["groupId"],
@@ -141,9 +150,11 @@ class GroupData extends Equatable {
         hideMembersInfo: json["hideMembersInfo"],
         hideNewMembersMessage: json["hideNewMembersMessage"],
         restrictContentSharing: json["restrictContentSharing"],
+        isGroupProfilePhoto: json["isGroupProfilePhoto"],
         isCreatedBy: json["isCreatedBy"],
         privacy: json["privacy"],
         inviteLink: json["inviteLink"],
+        participantCount: json["participantCount"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -163,6 +174,7 @@ class GroupData extends Equatable {
         "hideMembersInfo": hideMembersInfo,
         "hideNewMembersMessage": hideNewMembersMessage,
         "restrictContentSharing": restrictContentSharing,
+        "isGroupProfilePhoto": isGroupProfilePhoto,
         "isCreatedBy": isCreatedBy,
         "privacy": privacy,
         "inviteLink": inviteLink
@@ -181,8 +193,10 @@ class GroupData extends Equatable {
         hideMembersInfo,
         hideNewMembersMessage,
         restrictContentSharing,
+        isGroupProfilePhoto,
         privacy,
-        inviteLink
+        inviteLink,
+        participantCount,
       ];
 }
 
