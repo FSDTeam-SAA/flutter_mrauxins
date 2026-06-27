@@ -24,7 +24,6 @@ import 'package:two_one_two_messenger/screens/report_user_screen.dart';
 import 'package:two_one_two_messenger/screens/user_profile.dart';
 import 'package:two_one_two_messenger/screens/voice_call_page.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
 import 'package:two_one_two_messenger/utils/app_dialoge.dart';
 import 'package:two_one_two_messenger/utils/app_pop_up.dart';
@@ -256,25 +255,21 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  static const _iosScreenChannel =
+  static const _screenProtectionChannel =
       MethodChannel('com.212messenger/screen_protection');
 
   Future<void> _enableScreenProtection() async {
     if (!widget.restrictContentSharing) return;
-    if (Platform.isAndroid) {
-      await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
-    } else if (Platform.isIOS) {
-      await _iosScreenChannel.invokeMethod('enable');
-    }
+    try {
+      await _screenProtectionChannel.invokeMethod('enable');
+    } catch (_) {}
   }
 
   Future<void> _disableScreenProtection() async {
     if (!widget.restrictContentSharing) return;
-    if (Platform.isAndroid) {
-      await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
-    } else if (Platform.isIOS) {
-      await _iosScreenChannel.invokeMethod('disable');
-    }
+    try {
+      await _screenProtectionChannel.invokeMethod('disable');
+    } catch (_) {}
   }
 
   Future<void> init() async {
