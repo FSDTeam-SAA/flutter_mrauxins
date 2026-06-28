@@ -3,7 +3,7 @@ class Urls {
   static const String swaggerDoc =
       'https://telegram-clone-4gd7.onrender.com/api-docs';
 
-  static String get baseURL => 'http://13.50.23.139:3001'; // AWS live backend
+  static String get baseURL => 'http://18.130.137.253:3001'; // AWS live backend
   // static String get baseURL =>
   //     Platform.isIOS ? 'http://127.0.0.1:3001' : 'http://10.0.2.2:3001';
   static const String mediaUrl =
