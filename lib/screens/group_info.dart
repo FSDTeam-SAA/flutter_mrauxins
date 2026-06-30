@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:two_one_two_messenger/cubit/home_cubit.dart';
 import 'package:two_one_two_messenger/cubit/home_state.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
@@ -125,7 +126,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                   backgroundColor: Colors
                                       .transparent, // Set background to transparent if needed
                                 )
-                              : (state.groupData?.groupImage ?? "").isNotEmpty
+                              : ((state.groupData?.groupImage ?? "").isNotEmpty &&
+                                      (state.groupData?.isGroupProfilePhoto ?? true))
                                   ? AvatarWidgets(
                                       userPic:
                                           state.groupData?.groupImage ?? "",
@@ -341,6 +343,19 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     );
   }
 
+  bool _settingsDirty = false;
+
+  void _markSettingsDirty() {
+    if (!_settingsDirty) setState(() => _settingsDirty = true);
+  }
+
+  Future<void> _saveSettings(BuildContext context) async {
+    await homeCubit.updateGroup(
+        context, widget.groupId, ChatType.group,
+        showSuccessMessage: true);
+    if (mounted) setState(() => _settingsDirty = false);
+  }
+
   Widget _settingsPanel(BuildContext context, HomeState state, bool isAdmin) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w).copyWith(top: 10.h),
@@ -362,8 +377,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               onChanged: isAdmin
                   ? (value) {
                       homeCubit.togglePrivateGroup(value);
-                      homeCubit.updateGroupSetting(
-                          context, widget.groupId, ChatType.group);
+                      _markSettingsDirty();
                     }
                   : null,
             ),
@@ -373,8 +387,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               defaultValue: state.showProfilePhotoForGroup,
               onChanged: isAdmin
                   ? (value) {
-                      homeCubit.toggleShowProfilePhotoForUpdate(
-                          context, widget.groupId, value, ChatType.group);
+                      homeCubit.toggleShowProfilePhoto(value);
+                      _markSettingsDirty();
                     }
                   : null,
             ),
@@ -385,8 +399,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               onChanged: isAdmin
                   ? (value) {
                       homeCubit.toggleShowGroupProfilePhoto(value);
-                      homeCubit.updateGroupSetting(
-                          context, widget.groupId, ChatType.group);
+                      _markSettingsDirty();
                     }
                   : null,
             ),
@@ -396,8 +409,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               defaultValue: state.sendMessageForGroup,
               onChanged: isAdmin
                   ? (value) {
-                      homeCubit.toggleSendMessageForUpdateGroup(
-                          context, widget.groupId, value, ChatType.group);
+                      homeCubit.toggleSendMessage(value);
+                      _markSettingsDirty();
                     }
                   : null,
             ),
@@ -408,8 +421,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               onChanged: isAdmin
                   ? (value) {
                       homeCubit.toggleHideMembersInfo(value);
-                      homeCubit.updateGroupSetting(
-                          context, widget.groupId, ChatType.group);
+                      _markSettingsDirty();
                     }
                   : null,
             ),
@@ -420,8 +432,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               onChanged: isAdmin
                   ? (value) {
                       homeCubit.toggleHideNewMembersMessage(value);
-                      homeCubit.updateGroupSetting(
-                          context, widget.groupId, ChatType.group);
+                      _markSettingsDirty();
                     }
                   : null,
             ),
@@ -432,25 +443,77 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               onChanged: isAdmin
                   ? (value) {
                       homeCubit.toggleRestrictContentSharing(value);
-                      homeCubit.updateGroupSetting(
-                          context, widget.groupId, ChatType.group);
+                      _markSettingsDirty();
                     }
                   : null,
               isLast: true,
             ),
+            if (_settingsDirty) ...[
+              16.s,
+              SizedBox(
+                width: double.infinity,
+                height: 44.h,
+                child: ElevatedButton(
+                  onPressed: () => _saveSettings(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: AppColors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                  ),
+                  child: Text('Save Changes',
+                      style: AppTextStyles.medium(fontSize: 15.sp)),
+                ),
+              ),
+            ],
           ],
         ),
       ),
     );
   }
 
+  final TextEditingController _customLinkController = TextEditingController();
+  String? _customLinkStatus;
+  bool _customLinkValid = false;
+
+  void _validateCustomLink(String value) {
+    final cleaned = value.trim().toLowerCase();
+    if (cleaned.isEmpty) {
+      setState(() {
+        _customLinkStatus = null;
+        _customLinkValid = false;
+      });
+      return;
+    }
+    final valid = RegExp(r'^[a-z0-9_]{5,}$').hasMatch(cleaned);
+    setState(() {
+      _customLinkValid = valid;
+      _customLinkStatus = valid
+          ? '$cleaned is available.'
+          : 'Use a-z, 0-9 and underscores. Minimum 5 characters.';
+    });
+  }
+
+  void _saveCustomLink(BuildContext context, String chatId) {
+    if (!_customLinkValid) return;
+    final customName = _customLinkController.text.trim().toLowerCase();
+    final newLink = 'messenger212://join/$chatId/$customName';
+    homeCubit.apiClient.updateGroup(
+      context,
+      groupId: chatId,
+      inputData: {"inviteLink": newLink, "chatType": "group"},
+      files: null,
+    ).then((_) {
+      if (!mounted) return;
+      homeCubit.getGroupInfobyId(context, chatId);
+      Utils.showSnackBar(context, 'Share link updated.');
+    });
+  }
+
   Widget _invitePanel(BuildContext context, HomeState state) {
     final link = state.groupData?.inviteLink ?? '';
     final isPrivate = state.privateGroup;
-    final groupName = state.groupData?.groupName ?? '';
-    final publicName = Utils.removeSpaceAndSpecialCharectorsFromString(
-      groupName.isEmpty ? 'Group' : groupName,
-    );
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w).copyWith(top: 10.h),
@@ -471,7 +534,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             Text(
               isPrivate
                   ? 'This group is set to private, so people can only join using an invite link.'
-                  : 'This group is public and has no custom privacy settings, so anyone can view and join it.',
+                  : 'This group is public, so anyone with this link can view and join it.',
               style: AppTextStyles.regular(
                 fontSize: 14.sp,
                 color: AppColors.white.withValues(alpha: 0.6),
@@ -481,13 +544,68 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             Text(
               isPrivate
                   ? 'Your unique invite link is below, and you can revoke it or create a new one at any time.'
-                  : 'Create a share link to give people quick access.',
+                  : 'Customise your share link or use the one generated below.',
               style: AppTextStyles.regular(
                 fontSize: 14.sp,
                 color: AppColors.white.withValues(alpha: 0.6),
               ),
             ),
             14.s,
+            if (!isPrivate) ...[
+              Container(
+                height: 45.h,
+                padding: EdgeInsets.only(left: 14.w),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(
+                    color: AppColors.white.withValues(alpha: 0.12),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Text('messenger212://join/.../',
+                        style: AppTextStyles.regular(
+                            fontSize: 12.sp,
+                            color: AppColors.white.withValues(alpha: 0.4))),
+                    Expanded(
+                      child: TextField(
+                        controller: _customLinkController,
+                        onChanged: _validateCustomLink,
+                        style: AppTextStyles.regular(fontSize: 14.sp),
+                        decoration: InputDecoration(
+                          hintText: 'custom-name',
+                          hintStyle: AppTextStyles.regular(
+                              fontSize: 14.sp,
+                              color: AppColors.white.withValues(alpha: 0.3)),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.symmetric(vertical: 10.h),
+                        ),
+                      ),
+                    ),
+                    if (_customLinkValid)
+                      IconButton(
+                        onPressed: () =>
+                            _saveCustomLink(context, widget.groupId),
+                        icon: Icon(Icons.check_circle,
+                            color: Colors.green, size: 22.sp),
+                      ),
+                  ],
+                ),
+              ),
+              if (_customLinkStatus != null) ...[
+                8.s,
+                Text(
+                  _customLinkStatus!,
+                  style: AppTextStyles.regular(
+                    fontSize: 13.sp,
+                    color: _customLinkValid ? Colors.green : Colors.orange,
+                  ),
+                ),
+              ],
+              14.s,
+            ],
             Container(
               height: 45.h,
               padding: EdgeInsets.only(left: 14.w),
@@ -507,51 +625,42 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                       style: AppTextStyles.regular(fontSize: 14.sp),
                     ),
                   ),
-                  IconButton(
-                    onPressed: isPrivate
-                        ? () => _showRevokeDialog(context)
-                        : () => Utils.copyToClipboard(context, link),
-                    icon: Icon(
-                      Icons.more_vert,
-                      color: AppColors.white,
-                      size: 20.sp,
+                  if (isPrivate)
+                    IconButton(
+                      onPressed: () => _showRevokeDialog(context),
+                      icon: Icon(
+                        Icons.refresh,
+                        color: AppColors.white,
+                        size: 20.sp,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
-            if (!isPrivate) ...[
-              16.s,
-              Text(
-                '$publicName is available.',
-                style: AppTextStyles.regular(
-                  fontSize: 14.sp,
-                  color: Colors.green,
-                ),
-              ),
-              16.s,
-              Text(
-                'You can use a-z, 0-9 and underscores.\nMinimum length is 20 Characters.',
-                style: AppTextStyles.regular(
-                  fontSize: 14.sp,
-                  color: AppColors.white.withValues(alpha: 0.55),
-                ),
-              ),
-            ],
             22.s,
             Row(
               children: [
                 Expanded(
                   child: _inviteActionButton(
-                    text: 'Copy Link',
+                    text: 'Copy',
                     color: AppColors.white.withValues(alpha: 0.12),
                     onPressed: () => Utils.copyToClipboard(context, link),
                   ),
                 ),
-                12.s,
+                8.s,
                 Expanded(
                   child: _inviteActionButton(
-                    text: 'Get QR Code',
+                    text: 'Share',
+                    color: AppColors.primaryColor,
+                    onPressed: () => Share.share(
+                      'Join "${state.groupData?.groupName ?? "group"}" on 212 Messenger:\n$link',
+                    ),
+                  ),
+                ),
+                8.s,
+                Expanded(
+                  child: _inviteActionButton(
+                    text: 'QR Code',
                     color: const Color(0xFF930C17),
                     borderColor: const Color(0xFFDF3340),
                     onPressed: () => _showQrDialog(context, link),

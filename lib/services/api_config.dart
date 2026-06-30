@@ -51,6 +51,9 @@ class APIS {
   static const String deleteGroup = "/api/v1/group/delete/";
   static const String deleteChat = "/api/v1/delete-chat";
   static const String leaveGroup = "/api/v1/group/leaveGroup/";
+  static const String joinGroupByInvite = "/api/v1/group/join/";
+  static const String searchPublicGroups = "/api/v1/group/search-public";
+  static const String searchDatabase = "/api/v1/group/search-database";
   static const String revokeGroupInviteLink =
       "/api/v1/group/revoke-invite-link/";
   static const String getCallsHistory = "/api/v1/get-callhistory";

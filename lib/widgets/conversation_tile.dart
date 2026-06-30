@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
-import 'package:two_one_two_messenger/extension/date_format.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/models/conversation_model.dart';
@@ -186,11 +185,11 @@ class ConversationTile extends StatelessWidget {
                         color: AppColors.darkInputFill,
                         shape: BoxShape.circle,
                       ),
-                      child: ((conversationData.groupImage ?? "").isNotEmpty)
+                      child: ((conversationData.groupImage ?? "").isNotEmpty &&
+                              (conversationData.isGroupProfilePhoto ?? true))
                           ? AppNetworkImage(
                               imageUrl:
-                                  '${Urls.mediaUrl}${conversationData.groupImage ?? ""}' ??
-                                      '',
+                                  '${Urls.mediaUrl}${conversationData.groupImage ?? ""}',
                               borderRadius: BorderRadius.all(
                                 Radius.circular(50.r),
                               ),
@@ -522,24 +521,7 @@ class ConversationTile extends StatelessWidget {
                                   maxLines: 1,
                                   style: AppTextStyles.medium(fontSize: 16.sp),
                                 ),
-                                SizedBox(height: 3.h),
-                                if (participantDetails != null)
-                                  Text(
-                                    (participantDetails!.isOnline ?? false)
-                                        ? S.of(context).online
-                                        : (participantDetails!.lastSeen != null)
-                                            ? "${S.of(context).sLastSeen}${DateTime.parse(participantDetails!.lastSeen!).toLocal().formattedDateWithDayMonthAtTime}"
-                                            : "",
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                    style: AppTextStyles.regular(
-                                      fontSize: 11.sp,
-                                      color: (participantDetails!.isOnline ?? false)
-                                          ? AppColors.greenColor
-                                          : AppColors.white.withValues(alpha: 0.5),
-                                    ),
-                                  ),
-                                SizedBox(height: 3.h),
+                                SizedBox(height: 5.h),
                                 Text(
                                   conversationData.lastMessage?.content ??
                                       conversationData.lastMessage

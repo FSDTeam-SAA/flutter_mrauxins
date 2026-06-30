@@ -428,8 +428,10 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
 
             final letter = letters[index];
             final group = grouped[letter] ?? [];
+            _sectionKeys.putIfAbsent(letter, () => GlobalKey());
 
             return Column(
+              key: _sectionKeys[letter],
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
@@ -473,31 +475,65 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
           right: 6.w,
           top: 4.h,
           bottom: 8.h,
-          child: _alphabetRail(),
+          child: _alphabetRail(letters),
         ),
       ],
     );
   }
 
-  Widget _alphabetRail() {
+  String _activeRailLetter = 'A';
+  final _railKey = GlobalKey();
+  final Map<String, GlobalKey> _sectionKeys = {};
+
+  void _onRailInteraction(Offset globalPosition) {
+    final railBox =
+        _railKey.currentContext?.findRenderObject() as RenderBox?;
+    if (railBox == null) return;
+    final localY = railBox.globalToLocal(globalPosition).dy;
+    final railHeight = railBox.size.height;
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#';
+    final index =
+        (localY / railHeight * letters.length).clamp(0, letters.length - 1).toInt();
+    final letter = letters[index];
+    if (letter != _activeRailLetter) {
+      setState(() => _activeRailLetter = letter);
+    }
+    final key = _sectionKeys[letter];
+    if (key?.currentContext != null) {
+      Scrollable.ensureVisible(key!.currentContext!,
+          duration: const Duration(milliseconds: 100));
+    }
+  }
+
+  Widget _alphabetRail(List<String> availableLetters) {
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#';
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: letters
-          .split('')
-          .map(
-            (letter) => Text(
-              letter,
-              style: AppTextStyles.medium(
-                fontSize: 10.sp,
-                color: letter == 'A'
-                    ? Colors.red
-                    : AppColors.white.withValues(alpha: 0.5),
+    return GestureDetector(
+      key: _railKey,
+      onVerticalDragUpdate: (d) => _onRailInteraction(d.globalPosition),
+      onTapDown: (d) => _onRailInteraction(d.globalPosition),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: letters
+            .split('')
+            .map(
+              (letter) => Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4.w),
+                child: Text(
+                  letter,
+                  style: AppTextStyles.medium(
+                    fontSize: 10.sp,
+                    color: letter == _activeRailLetter
+                        ? Colors.red
+                        : availableLetters.contains(letter)
+                            ? AppColors.white.withValues(alpha: 0.8)
+                            : AppColors.white.withValues(alpha: 0.25),
+                  ),
+                ),
               ),
-            ),
-          )
-          .toList(),
+            )
+            .toList(),
+      ),
     );
   }
 
@@ -518,7 +554,7 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
       if (query.isEmpty || _selectedTab == _AddPeopleTab.contacts) {
         return true;
       }
-      return _displayName(user).toLowerCase().contains(query);
+      return _displayName(user).toLowerCase().startsWith(query);
     }).toList();
   }
 

@@ -559,6 +559,7 @@ class _ChatScreenState extends State<ChatScreen> {
         top: false,
         bottom: false,
         child: Scaffold(
+          backgroundColor: AppColors.scaffoldBgDark,
           resizeToAvoidBottomInset: true,
           appBar: AppBar(
             backgroundColor: AppColors.dark,
@@ -613,11 +614,16 @@ class _ChatScreenState extends State<ChatScreen> {
                     },
                     child: BlocBuilder<HomeCubit, HomeState>(
                         builder: (contextChat, state) {
+                      final hideGroupPhoto = (widget.chatType == ChatType.channel ||
+                              widget.chatType == ChatType.group) &&
+                          !(state.groupData?.isGroupProfilePhoto ?? true);
                       return AvatarWidgets(
-                        userPic: (widget.chatType == ChatType.channel ||
-                                widget.chatType == ChatType.group)
-                            ? (state.groupData?.groupImage ?? widget.userPic)
-                            : widget.userPic,
+                        userPic: hideGroupPhoto
+                            ? ''
+                            : (widget.chatType == ChatType.channel ||
+                                    widget.chatType == ChatType.group)
+                                ? (state.groupData?.groupImage ?? widget.userPic)
+                                : widget.userPic,
                         svgAvatar: (widget.chatType == ChatType.channel)
                             ? SvgAssets.megaphone
                             : (widget.chatType == ChatType.group)

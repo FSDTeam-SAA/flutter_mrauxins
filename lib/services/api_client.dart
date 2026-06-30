@@ -316,7 +316,7 @@ class ApiClient {
         {
           'contacts': await Utils.getLocalContacts(),
         },
-        requiresToken: false,
+        requiresToken: true,
       );
 
       final otpResponse = CommonResponseModel.fromJson(response.data);
@@ -1194,6 +1194,69 @@ class ApiClient {
       String errorMessage =
           e.response?.data['message'] ?? 'Something went wrong';
       // Utils.showSnackBar(context, errorMessage);
+      AppLogger.logs('Error: $errorMessage');
+      throw Exception(errorMessage);
+    }
+  }
+
+  Future<List<dynamic>> searchDatabase({
+    required String search,
+    int page = 1,
+    int limit = 50,
+  }) async {
+    try {
+      final response = await get(
+        APIS.searchDatabase,
+        requiresToken: true,
+        params: {"search": search, "page": page, "limit": limit},
+      );
+      final body = response.data;
+      if (body['status'] == 1 && body['data'] is List) {
+        return body['data'] as List<dynamic>;
+      }
+      return [];
+    } on DioException catch (e) {
+      AppLogger.logs('Error: ${e.response?.data['message']}');
+      return [];
+    }
+  }
+
+  Future<List<dynamic>> searchPublicGroups({
+    required String search,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    try {
+      final response = await get(
+        APIS.searchPublicGroups,
+        requiresToken: true,
+        params: {"search": search, "page": page, "limit": limit},
+      );
+      final body = response.data;
+      if (body['status'] == 1 && body['data'] is List) {
+        return body['data'] as List<dynamic>;
+      }
+      return [];
+    } on DioException catch (e) {
+      AppLogger.logs('Error: ${e.response?.data['message']}');
+      return [];
+    }
+  }
+
+  Future<CommonResponseModel> joinGroupByInvite({
+    required String chatId,
+    required String inviteLink,
+  }) async {
+    try {
+      final response = await post(
+        "${APIS.joinGroupByInvite}$chatId",
+        {"inviteLink": inviteLink},
+        requiresToken: true,
+      );
+      return CommonResponseModel.fromJson(response.data);
+    } on DioException catch (e) {
+      String errorMessage =
+          e.response?.data['message'] ?? 'Something went wrong';
       AppLogger.logs('Error: $errorMessage');
       throw Exception(errorMessage);
     }

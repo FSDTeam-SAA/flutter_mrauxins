@@ -608,8 +608,15 @@ class HomeCubit extends Cubit<HomeState> {
       if (isLoadMore) {
         emit(state.copyWith(getAllUsersLoadMore: isLoadMore));
       }
+
+      final List<ContactUser> deviceContacts = await dbHelper.getAllContacts();
+      final List<String> contactNumbers = deviceContacts
+          .map((c) => c.phone ?? "")
+          .where((p) => p.isNotEmpty)
+          .toList();
+
       AllUserResponse response = await apiClient.getAllUser(
-          name, isLoadMore ? getAllUserCurrentPage + 1 : 1, limit, context, []);
+          name, isLoadMore ? getAllUserCurrentPage + 1 : 1, limit, context, contactNumbers);
       if (response.status == Utils.APISUCCESS) {
         AllUserData allUserData = AllUserData.fromJson(response.data!.toJson());
         // ✅ Extract user IDs from removedUsers

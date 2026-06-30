@@ -39,6 +39,7 @@ import 'cubit/view_stories_cubit.dart';
 import 'database/local_db.dart';
 import 'screens/splash_screen.dart';
 import 'services/api_client.dart';
+import 'services/deep_link_handler.dart';
 import 'services/push_notifications.dart';
 import 'utils/constants.dart';
 import 'utils/navigation.dart';
@@ -62,6 +63,7 @@ void main() async {
   FireBaseNotification().setUpLocalNotification();
 
   SocketService().connect();
+  DeepLinkHandler().initialize();
   CallKitEventHandler.initialize();
   MobileAds.instance.initialize();
   final dbHelper = DatabaseHelper();

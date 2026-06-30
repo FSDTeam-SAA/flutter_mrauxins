@@ -76,15 +76,33 @@ class FireBaseNotification {
           badge: true,
           sound: true,
         );
-        await firebaseMessaging.getAPNSToken();
+        // Wait for APNS token — iOS requires it before FCM can generate a token
+        String? apnsToken;
+        for (int i = 0; i < 10; i++) {
+          apnsToken = await firebaseMessaging.getAPNSToken();
+          if (apnsToken != null) break;
+          await Future.delayed(const Duration(seconds: 1));
+        }
+        showMessage('APNS Token: $apnsToken');
       }
 
-      await firebaseMessaging.getToken().then((token) async {
-        await AppPreference.setString(
-            LocalDbConstants.firebaseToken, token ?? "");
-
+      final token = await firebaseMessaging.getToken();
+      if (token != null && token.isNotEmpty) {
+        await AppPreference.setString(LocalDbConstants.firebaseToken, token);
         showMessage('FCM TOKEN to be Registered: $token');
-      });
+
+        // Send token to backend immediately if user is logged in
+        final userId = AppPreference.getCurrentUserId();
+        if (userId.isNotEmpty) {
+          updateFcmToken(apiClient, {
+            "userId": userId,
+            "deviceToken": token,
+            "deviceType": Platform.isAndroid ? 'Android' : 'ios',
+          });
+        }
+      } else {
+        showMessage('FCM TOKEN is null — APNS may not be configured');
+      }
     } catch (e, st) {
       showMessage('Error :::: FCM TOKEN $e St ::: $st');
     }
@@ -162,6 +180,16 @@ class FireBaseNotification {
   }
 
   Future<String> getToken() async {
+    if (Platform.isIOS) {
+      String? apns = await firebaseMessaging.getAPNSToken();
+      if (apns == null) {
+        for (int i = 0; i < 5; i++) {
+          await Future.delayed(const Duration(seconds: 1));
+          apns = await firebaseMessaging.getAPNSToken();
+          if (apns != null) break;
+        }
+      }
+    }
     String token = await firebaseMessaging.getToken() ?? "";
     await AppPreference.setString(LocalDbConstants.firebaseToken, token);
     log('TOKEN to be Registered: $token');

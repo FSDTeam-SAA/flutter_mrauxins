@@ -76,6 +76,7 @@ class ConversationData extends Equatable {
   final bool? hideMembersInfo;
   final bool? hideNewMembersMessage;
   final bool? restrictContentSharing;
+  final bool? isGroupProfilePhoto;
   final String? groupName;
   final String? groupImage;
   final String? privacy;
@@ -99,6 +100,7 @@ class ConversationData extends Equatable {
     this.hideMembersInfo,
     this.hideNewMembersMessage,
     this.restrictContentSharing,
+    this.isGroupProfilePhoto,
     this.groupName,
     this.groupImage,
     this.inviteLink,
@@ -124,6 +126,7 @@ class ConversationData extends Equatable {
     bool? hideMembersInfo,
     bool? hideNewMembersMessage,
     bool? restrictContentSharing,
+    bool? isGroupProfilePhoto,
     String? groupName,
     String? groupImage,
     String? privacy,
@@ -149,6 +152,8 @@ class ConversationData extends Equatable {
             hideNewMembersMessage ?? this.hideNewMembersMessage,
         restrictContentSharing:
             restrictContentSharing ?? this.restrictContentSharing,
+        isGroupProfilePhoto:
+            isGroupProfilePhoto ?? this.isGroupProfilePhoto,
         groupName: groupName ?? this.groupName,
         groupImage: groupImage ?? this.groupImage,
         privacy: privacy ?? this.privacy,
@@ -188,6 +193,7 @@ class ConversationData extends Equatable {
       hideMembersInfo: json["hideMembersInfo"],
       hideNewMembersMessage: json["hideNewMembersMessage"],
       restrictContentSharing: json["restrictContentSharing"],
+      isGroupProfilePhoto: json["isGroupProfilePhoto"],
       groupName: json["groupName"],
       groupImage: json["groupImage"],
       privacy: json["privacy"],
@@ -218,6 +224,7 @@ class ConversationData extends Equatable {
         "hideMembersInfo": hideMembersInfo,
         "hideNewMembersMessage": hideNewMembersMessage,
         "restrictContentSharing": restrictContentSharing,
+        "isGroupProfilePhoto": isGroupProfilePhoto,
         "groupName": groupName,
         "groupImage": groupImage,
         "privacy": privacy,
@@ -244,6 +251,7 @@ class ConversationData extends Equatable {
         hideMembersInfo,
         hideNewMembersMessage,
         restrictContentSharing,
+        isGroupProfilePhoto,
         inviteLink,
         encryptedAESKey,
         privacy,
