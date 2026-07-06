@@ -334,7 +334,7 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
                               ),
                             ),
                             12.s,
-                            if (!state.privateGroup) ...[
+                            ...[
                               Container(
                                 height: 45.h,
                                 padding: EdgeInsets.only(left: 14.w),
@@ -347,9 +347,9 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
                                 ),
                                 child: Row(
                                   children: [
-                                    Text('messenger212://join/.../',
+                                    Text('the212.me/',
                                         style: AppTextStyles.regular(
-                                            fontSize: 12.sp,
+                                            fontSize: 13.sp,
                                             color: AppColors.white
                                                 .withValues(alpha: 0.4))),
                                     Expanded(
@@ -395,21 +395,6 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
                               ],
                               12.s,
                             ],
-                            Container(
-                              width: double.infinity,
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 12.w, vertical: 12.h),
-                              decoration: BoxDecoration(
-                                color: AppColors.darkInputFill,
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                              child: Text(
-                                state.groupData?.inviteLink ?? '',
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTextStyles.regular(fontSize: 13.sp),
-                              ),
-                            ),
-                            12.s,
                             Row(
                               children: [
                                 Expanded(

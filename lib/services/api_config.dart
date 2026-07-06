@@ -1,11 +1,13 @@
+import 'dart:io';
+
 class Urls {
   static const String url = 'http://45.248.67.90:8029/sfa/app_login_en/';
   static const String swaggerDoc =
       'https://telegram-clone-4gd7.onrender.com/api-docs';
 
-  static String get baseURL => 'http://18.130.137.253:3001'; // AWS live backend
-  // static String get baseURL =>
-  //     Platform.isIOS ? 'http://127.0.0.1:3001' : 'http://10.0.2.2:3001';
+  // static String get baseURL => 'http://18.130.137.253:3001'; // AWS live backend
+  static String get baseURL =>
+      Platform.isIOS ? 'http://10.10.26.112:3001' : 'http://10.0.2.2:3001';
   static const String mediaUrl =
       'https://telegrameclone.s3.eu-west-2.amazonaws.com/';
 }
@@ -56,6 +58,7 @@ class APIS {
   static const String searchDatabase = "/api/v1/group/search-database";
   static const String revokeGroupInviteLink =
       "/api/v1/group/revoke-invite-link/";
+  static const String checkGroupInviteName = "/api/v1/group/check-invite-name";
   static const String getCallsHistory = "/api/v1/get-callhistory";
   static const String getAllNotifications = "/api/v1/get-notifications";
   static const String getProfile = "/api/v1/find-one-user";

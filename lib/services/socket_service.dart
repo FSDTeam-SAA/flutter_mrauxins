@@ -308,9 +308,12 @@ class SocketService {
 
     _socket.onConnectError((err) {
       if (kDebugMode) {
-        print('Socket connection error');
+        print('Socket connection error: $err');
       }
-      _socket.connect();
+      // socket.io-client already retries automatically via the configured
+      // reconnection delay/attempts above — calling _socket.connect() here
+      // creates a duplicate attempt that fights the built-in state machine
+      // and causes a connect/disconnect flapping loop.
     });
     _socket.onclose((reason) {
       showMessage('Socket closed $reason');

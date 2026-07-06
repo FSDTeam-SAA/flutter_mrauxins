@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:two_one_two_messenger/cubit/chat_cubit.dart';
 import 'package:two_one_two_messenger/cubit/home_cubit.dart';
 import 'package:two_one_two_messenger/models/conversation_model.dart';
@@ -22,7 +21,17 @@ import '../utils/navigation.dart';
 
 class NotificationHandler {
   static Future<void> handleNotification() async {
-    await Permission.notification.request();
+    // Do NOT request notification permission here via permission_handler.
+    // FirebaseMessaging.instance.requestPermission() (called from
+    // push_notifications.dart's firebaseCloudMessagingLSetup) must be the
+    // only thing that requests iOS notification authorization. Once iOS's
+    // authorization decision is made by one plugin, a second independent
+    // requestAuthorization call from another plugin resolves immediately
+    // without completing Firebase's own registration handshake, leaving
+    // registerForRemoteNotifications()/the APNs token permanently unset —
+    // this was the root cause of [firebase_messaging/apns-token-not-set]
+    // and the resulting [firebase_auth/notification-not-forwarded] error
+    // during phone sign-in.
 
     // AwesomeNotifications().initialize(null, [
 

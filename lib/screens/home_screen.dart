@@ -26,6 +26,7 @@ import 'package:two_one_two_messenger/screens/search_screen.dart';
 import 'package:two_one_two_messenger/screens/view_stories_screen.dart';
 import 'package:two_one_two_messenger/screens/voice_call_page.dart';
 import 'package:two_one_two_messenger/services/api_config.dart';
+import 'package:two_one_two_messenger/services/deep_link_handler.dart';
 import 'package:two_one_two_messenger/services/notification_handler.dart';
 import 'package:two_one_two_messenger/services/push_notifications.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
@@ -106,6 +107,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> onInit() async {
     user ??= await homeCubit.dbHelper.getLoginData();
     homeCubit.fetchContactsForSync(context);
+    // Resume a group/channel join that was deferred while the user
+    // was logged out and got routed to login from an invite link.
+    DeepLinkHandler().resumePendingJoinIfAny();
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {

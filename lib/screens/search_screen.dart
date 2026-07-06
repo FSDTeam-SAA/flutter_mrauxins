@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -38,14 +39,16 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final scrollController = ScrollController();
   final searchController = TextEditingController();
+  final scrollController = ScrollController();
   _SearchTab _selectedTab = _SearchTab.database;
-  List<dynamic> _databaseResults = [];
-  bool _databaseLoading = false;
   Timer? _searchDebounce;
 
-  // A-Z rail state
+  // Database tab state
+  List<Map<String, dynamic>> _databaseResults = [];
+  bool _databaseLoading = false;
+
+  // A-Z rail state (shared by both tabs)
   String _activeRailLetter = 'A';
   final _railKey = GlobalKey();
   final Map<String, GlobalKey> _sectionKeys = {};
@@ -53,24 +56,16 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void initState() {
     super.initState();
-    scrollController.addListener(_onScroll);
+    scrollController.addListener(_updateActiveLetter);
     _searchDatabase("");
   }
 
   @override
   void dispose() {
     _searchDebounce?.cancel();
-    scrollController.dispose();
     searchController.dispose();
+    scrollController.dispose();
     super.dispose();
-  }
-
-  Future<void> _onScroll() async {
-    if (_selectedTab == _SearchTab.contacts &&
-        scrollController.position.pixels >=
-            scrollController.position.maxScrollExtent) {
-      homeCubit.loadMoreContacts(context, searchController.text.trim());
-    }
   }
 
   void _onSearchChanged(String query) {
@@ -89,8 +84,18 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() => _databaseLoading = true);
     homeCubit.apiClient.searchDatabase(search: query).then((results) {
       if (mounted) {
+        final q = query.toLowerCase();
+        final all = results.cast<Map<String, dynamic>>();
+        final filtered = q.isEmpty
+            ? all
+            : all.where((item) {
+                final name = (item['name'] ?? '').toString().toLowerCase();
+                final userName =
+                    (item['userName'] ?? '').toString().toLowerCase();
+                return name.startsWith(q) || userName.startsWith(q);
+              }).toList();
         setState(() {
-          _databaseResults = results;
+          _databaseResults = filtered;
           _databaseLoading = false;
         });
       }
@@ -104,11 +109,16 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {
       _selectedTab = tab;
       searchController.clear();
-      _databaseResults = [];
+      _activeRailLetter = 'A';
+      _sectionKeys.clear();
     });
-    if (tab == _SearchTab.database) {
-      _searchDatabase("");
-    } else {
+    if (scrollController.hasClients) {
+      scrollController.jumpTo(0);
+    }
+    if (tab == _SearchTab.contacts) {
+      // Loads every device contact (registered + unregistered) — the
+      // shared SQLite-backed path also used by the standalone Contacts
+      // and Invite Friends screens.
       homeCubit.fetchContacts(context, "");
     }
   }
@@ -162,8 +172,8 @@ class _SearchScreenState extends State<SearchScreen> {
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
         borderRadius: BorderRadius.circular(24.r),
-        border: Border.all(
-            color: const Color(0xFF86334D).withValues(alpha: 0.55)),
+        border:
+            Border.all(color: const Color(0xFF86334D).withValues(alpha: 0.55)),
       ),
       child: Row(
         children: [
@@ -182,9 +192,7 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Container(
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isSelected
-                ? const Color(0xFF86334D)
-                : Colors.transparent,
+            color: isSelected ? const Color(0xFF86334D) : Colors.transparent,
             borderRadius: BorderRadius.circular(24.r),
           ),
           child: Text(
@@ -201,35 +209,62 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  // ─── Database Tab ───
-  Widget _databaseBody() {
-    if (_databaseLoading && _databaseResults.isEmpty) {
-      return const Center(child: CustomLoadingWidget());
+  void _updateActiveLetter() {
+    if (_sectionKeys.isEmpty) return;
+    String? active;
+    for (final entry in _sectionKeys.entries) {
+      final ctx = entry.value.currentContext;
+      if (ctx == null) continue;
+      final box = ctx.findRenderObject() as RenderBox?;
+      if (box == null) continue;
+      final topY = box.localToGlobal(Offset.zero).dy;
+      if (topY <= 260) active = entry.key;
     }
-    if (_databaseResults.isEmpty) {
-      return Center(
-        child: Text(
-          searchController.text.isEmpty
-              ? 'Search for public users, groups & channels'
-              : S.of(context).noContactsFound,
-          style: AppTextStyles.regular(
-              fontSize: 14.sp,
-              color: AppColors.white.withValues(alpha: 0.5)),
-        ),
-      );
+    if (active != null && active != _activeRailLetter) {
+      setState(() => _activeRailLetter = active!);
     }
+  }
 
-    final grouped = _groupDatabaseResults(_databaseResults);
+  // ─── Shared A-Z grouping ───
+  Map<String, List<T>> _groupByName<T>(
+      List<T> items, String Function(T) nameOf) {
+    final sorted = [...items]
+      ..sort((a, b) => nameOf(a).toLowerCase().compareTo(nameOf(b).toLowerCase()));
+    final grouped = <String, List<T>>{};
+    for (final item in sorted) {
+      final name = nameOf(item);
+      final first = name.isEmpty ? '#' : name[0].toUpperCase();
+      final key = RegExp(r'[A-Z]').hasMatch(first) ? first : '#';
+      grouped.putIfAbsent(key, () => []).add(item);
+    }
+    return grouped;
+  }
+
+  Widget _groupedListWithRail<T>({
+    required List<T> items,
+    required String Function(T) nameOf,
+    required Widget Function(T) tileBuilder,
+    required Widget emptyState,
+    ScrollController? controller,
+  }) {
+    if (items.isEmpty) return emptyState;
+
+    final grouped = _groupByName(items, nameOf);
     final letters = grouped.keys.toList()..sort();
+
+    for (final letter in letters) {
+      _sectionKeys.putIfAbsent(letter, () => GlobalKey());
+    }
 
     return Stack(
       children: [
         ListView.builder(
+          controller: controller,
           padding: EdgeInsets.only(right: 24.w),
           itemCount: letters.length,
           itemBuilder: (context, index) {
             final letter = letters[index];
-            final items = grouped[letter]!;
+            final sectionItems = grouped[letter]!;
             _sectionKeys.putIfAbsent(letter, () => GlobalKey());
 
             return Column(
@@ -238,28 +273,25 @@ class _SearchScreenState extends State<SearchScreen> {
               children: [
                 Padding(
                   padding: EdgeInsets.only(top: 6.h, bottom: 8.h),
-                  child: Text(letter,
-                      style: AppTextStyles.medium(fontSize: 13.sp)),
+                  child:
+                      Text(letter, style: AppTextStyles.medium(fontSize: 13.sp)),
                 ),
                 Container(
                   decoration: BoxDecoration(
                     color: AppColors.dialogBg.withValues(alpha: 0.78),
                     borderRadius: BorderRadius.circular(16.r),
                     border: Border.all(
-                      color:
-                          const Color(0xFF86334D).withValues(alpha: 0.35)),
+                        color: const Color(0xFF86334D).withValues(alpha: 0.35)),
                   ),
                   child: ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: items.length,
-                    itemBuilder: (context, i) =>
-                        _databaseResultTile(items[i]),
+                    itemCount: sectionItems.length,
+                    itemBuilder: (context, i) => tileBuilder(sectionItems[i]),
                     separatorBuilder: (_, __) => Padding(
                       padding: EdgeInsets.only(left: 58.w),
                       child: Divider(
-                          height: 1,
-                          color: AppColors.white.withValues(alpha: 0.06)),
+                          height: 1, color: AppColors.white.withValues(alpha: 0.06)),
                     ),
                   ),
                 ),
@@ -278,6 +310,28 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  // ─── Database Tab ───
+  Widget _databaseBody() {
+    if (_databaseLoading && _databaseResults.isEmpty) {
+      return const Center(child: CustomLoadingWidget());
+    }
+    return _groupedListWithRail<Map<String, dynamic>>(
+      items: _databaseResults,
+      nameOf: (item) => (item['name'] ?? '') as String,
+      tileBuilder: _databaseResultTile,
+      controller: scrollController,
+      emptyState: Center(
+        child: Text(
+          searchController.text.isEmpty
+              ? 'Search for public users, groups & channels'
+              : S.of(context).noContactsFound,
+          style: AppTextStyles.regular(
+              fontSize: 14.sp, color: AppColors.white.withValues(alpha: 0.5)),
+        ),
+      ),
+    );
+  }
+
   Widget _databaseResultTile(Map<String, dynamic> item) {
     final resultType = item['resultType'] ?? 'user';
     final name = item['name'] ?? '';
@@ -291,9 +345,7 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Row(
           children: [
             AvatarWidgets(
-              userPic: resultType == 'user'
-                  ? image
-                  : '${Urls.mediaUrl}$image',
+              userPic: resultType == 'user' ? image : '${Urls.mediaUrl}$image',
               svgAvatar: resultType == 'channel'
                   ? SvgAssets.megaphone
                   : resultType == 'group'
@@ -322,8 +374,8 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             if (resultType != 'user' && (item['isMember'] ?? false))
               Text('Joined',
-                  style: AppTextStyles.regular(
-                      fontSize: 12.sp, color: Colors.green)),
+                  style:
+                      AppTextStyles.regular(fontSize: 12.sp, color: Colors.green)),
           ],
         ),
       ),
@@ -385,112 +437,106 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  Map<String, List<Map<String, dynamic>>> _groupDatabaseResults(
-      List<dynamic> results) {
-    final grouped = <String, List<Map<String, dynamic>>>{};
-    for (final item in results) {
-      final map = item as Map<String, dynamic>;
-      final name = (map['name'] ?? '') as String;
-      final first =
-          name.isEmpty ? '#' : name[0].toUpperCase();
-      final key = RegExp(r'[A-Z]').hasMatch(first) ? first : '#';
-      grouped.putIfAbsent(key, () => []).add(map);
-    }
-    return grouped;
-  }
-
   // ─── Contacts Tab ───
+  // Shows every contact stored on the device (matched via saved phone
+  // number or email), regardless of whether they have a registered 212
+  // account. Registered contacts open a chat on tap; unregistered ones
+  // show an "Invite Friend" action instead, matching the standalone
+  // Contacts/Invite Friends screens.
   Widget _contactsBody() {
     return BlocBuilder<HomeCubit, HomeState>(builder: (context, state) {
       if (state.contactsLoadingState == LoadingState.loading) {
         return const Center(child: CustomLoadingWidget());
       }
-      if ((state.displayedContacts).isEmpty) {
-        return Center(
+      return _groupedListWithRail<ContactUser>(
+        items: state.displayedContacts,
+        nameOf: (u) => u.name ?? '',
+        tileBuilder: _contactTile,
+        controller: scrollController,
+        emptyState: Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(S.of(context).noContactsFound),
           ),
-        );
-      }
-
-      return ListView.builder(
-        controller: scrollController,
-        shrinkWrap: true,
-        padding: EdgeInsets.zero,
-        itemCount: state.displayedContacts.length,
-        itemBuilder: (context, i) {
-          ContactUser user = state.displayedContacts[i];
-          return _contactTile(
-            onTap: () async {
-              if (user.isRegistered ?? false) {
-                ParticipantDetail sender =
-                    ParticipantDetail.fromJson(user.toJson());
-                await chatCubit.resetChatScreenState();
-                NavigationService().replaceWith(ChatScreen(
-                  chatType: ChatType.one_to_one,
-                  sender: sender,
-                  unreadMessageCount: 0,
-                  userName: user.name ?? "",
-                  userId: user.sId ?? "",
-                  userPic: user.profilePicture ?? "",
-                  chatId: '',
-                  aesKey: '',
-                  isSendMessage: true,
-                  isShowProfileImage: true,
-                ));
-              }
-            },
-            profilePic: user.profilePicture ?? "",
-            name: user.name ?? "Unknown",
-            isOnline: user.isOnline ?? false,
-            lastSeen: user.lastSeen != null
-                ? DateTime.parse(user.lastSeen!).toLocal()
-                : null,
-          );
-        },
+        ),
       );
     });
   }
 
-  Widget _contactTile({
-    required void Function() onTap,
-    required String name,
-    required String profilePic,
-    required bool isOnline,
-    required DateTime? lastSeen,
-  }) {
+  Widget _contactTile(ContactUser user) {
+    final isRegistered = user.isRegistered ?? false;
+    final phone = (user.phone ?? "").isEmpty
+        ? ""
+        : "${user.countryCode ?? ""}${user.phone ?? ""}";
+
     return GestureDetector(
-      onTap: onTap,
       behavior: HitTestBehavior.translucent,
+      onTap: isRegistered
+          ? () async {
+              ParticipantDetail sender =
+                  ParticipantDetail.fromJson(user.toJson());
+              await chatCubit.resetChatScreenState();
+              NavigationService().replaceWith(ChatScreen(
+                chatType: ChatType.one_to_one,
+                sender: sender,
+                unreadMessageCount: 0,
+                userName: user.name ?? "",
+                userId: user.sId ?? "",
+                userPic: user.profilePicture ?? "",
+                chatId: '',
+                aesKey: '',
+                isSendMessage: true,
+                isShowProfileImage: true,
+              ));
+            }
+          : null,
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 8.h),
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 11.h),
         child: Row(
           children: [
-            AvatarWidgets(userPic: profilePic, height: 50, width: 50),
-            16.s,
+            AvatarWidgets(
+                userPic: user.profilePicture ?? "", height: 42, width: 42),
+            12.s,
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name,
+                  Text(user.name ?? "Unknown",
                       overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.medium(fontSize: 18.sp)),
-                  6.s,
+                      style: AppTextStyles.medium(fontSize: 15.sp)),
+                  4.s,
                   Text(
-                    isOnline
+                    (user.isOnline ?? false)
                         ? S.of(context).online
-                        : (lastSeen != null)
-                            ? "${S.of(context).sLastSeen}${lastSeen.formattedDateWithDayMonthAtTime}"
-                            : "",
+                        : (user.lastSeen != null)
+                            ? "${S.of(context).sLastSeen}${DateTime.parse(user.lastSeen!).toLocal().formattedDateWithDayMonthAtTime}"
+                            : (isRegistered ? "" : phone),
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.regular(
-                        fontSize: 13.sp,
+                        fontSize: 12.sp,
                         color: AppColors.white.withValues(alpha: 0.5)),
                   ),
                 ],
               ),
             ),
+            if (!isRegistered)
+              GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () {
+                  if (phone.isNotEmpty) {
+                    Utils.sendSMS(
+                        phone,
+                        Platform.isIOS
+                            ? AppConstants.inviteLinkForIos
+                            : AppConstants.inviteLinkForAndroid);
+                  }
+                },
+                child: Text(
+                  S.of(context).inviteFriend,
+                  style: AppTextStyles.regular(
+                      fontSize: 12.sp, color: AppColors.purpleText),
+                ),
+              ),
           ],
         ),
       ),
@@ -499,8 +545,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   // ─── A-Z Rail ───
   void _onRailInteraction(Offset globalPosition) {
-    final railBox =
-        _railKey.currentContext?.findRenderObject() as RenderBox?;
+    final railBox = _railKey.currentContext?.findRenderObject() as RenderBox?;
     if (railBox == null) return;
     final localY = railBox.globalToLocal(globalPosition).dy;
     final railHeight = railBox.size.height;
@@ -512,11 +557,58 @@ class _SearchScreenState extends State<SearchScreen> {
     if (letter != _activeRailLetter) {
       setState(() => _activeRailLetter = letter);
     }
-    final key = _sectionKeys[letter];
-    if (key?.currentContext != null) {
-      Scrollable.ensureVisible(key!.currentContext!,
-          duration: const Duration(milliseconds: 100));
+    _scrollToSection(letter);
+  }
+
+  String? _nearestSection(String letter) {
+    if (_sectionKeys.isEmpty) return null;
+    if (_sectionKeys.containsKey(letter)) return letter;
+    const all = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#';
+    final pos = all.indexOf(letter);
+    final sorted = _sectionKeys.keys.toList()..sort();
+    String? lastBefore;
+    for (final avail in sorted) {
+      if (all.indexOf(avail) < pos) {
+        lastBefore = avail;
+      } else {
+        break;
+      }
     }
+    return lastBefore ?? sorted.first;
+  }
+
+  void _scrollToSection(String letter) {
+    final target = _nearestSection(letter);
+    if (target == null) return;
+
+    final key = _sectionKeys[target];
+
+    if (key?.currentContext != null) {
+      Scrollable.ensureVisible(
+        key!.currentContext!,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
+      return;
+    }
+
+    if (!scrollController.hasClients) return;
+    final sorted = _sectionKeys.keys.toList()..sort();
+    final rank = sorted.indexOf(target);
+    if (rank < 0) return;
+
+    final maxExtent = scrollController.position.maxScrollExtent;
+    final estimated =
+        sorted.length <= 1 ? 0.0 : maxExtent * rank / (sorted.length - 1);
+    scrollController.jumpTo(estimated.clamp(0.0, maxExtent));
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final k = _sectionKeys[target];
+      if (k?.currentContext != null) {
+        Scrollable.ensureVisible(k!.currentContext!,
+            duration: const Duration(milliseconds: 100));
+      }
+    });
   }
 
   Widget _alphabetRail(List<String> availableLetters) {

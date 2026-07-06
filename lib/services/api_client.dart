@@ -496,6 +496,21 @@ class ApiClient {
     }
   }
 
+  Future<bool> checkGroupInviteName(String name, String chatId) async {
+    try {
+      final response = await get(
+        APIS.checkGroupInviteName,
+        requiresToken: true,
+        params: {'name': name, 'chatId': chatId},
+      );
+      return response.data['data']?['available'] != false;
+    } catch (_) {
+      // On any network/backend error, assume available so the UI is not
+      // incorrectly blocked. A truly taken name will be rejected on save.
+      return true;
+    }
+  }
+
   Future<GetProfileResponse> getUserProfile() async {
     try {
       final response = await get(

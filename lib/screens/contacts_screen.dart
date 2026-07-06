@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:two_one_two_messenger/GoogleAds/BannerAds/BannerAdManager.dart';
 import 'package:two_one_two_messenger/cubit/chat_cubit.dart';
 import 'package:two_one_two_messenger/cubit/home_cubit.dart';
@@ -25,6 +26,7 @@ import 'package:two_one_two_messenger/utils/constants.dart';
 import 'package:two_one_two_messenger/utils/navigation.dart';
 import 'package:two_one_two_messenger/utils/text_style.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
+import 'package:two_one_two_messenger/widgets/alert_dialog.dart';
 import 'package:two_one_two_messenger/widgets/avatar_widgets.dart';
 import 'package:two_one_two_messenger/widgets/buttons.dart';
 import 'package:two_one_two_messenger/widgets/custom_loading_widget.dart';
@@ -45,6 +47,10 @@ class _ContactsScreenState extends State<ContactsScreen> {
   TextEditingController searchController = TextEditingController();
   // final _socketService = SocketService();
 
+  String _activeRailLetter = 'A';
+  final GlobalKey _railKey = GlobalKey();
+  final Map<String, GlobalKey> _sectionKeys = {};
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +63,186 @@ class _ContactsScreenState extends State<ContactsScreen> {
     if (scrollController.position.pixels ==
         scrollController.position.maxScrollExtent) {
       homeCubit.loadMoreContacts(context, searchController.text.trim());
+    }
+    _updateActiveLetter();
+  }
+
+  void _updateActiveLetter() {
+    if (_sectionKeys.isEmpty) return;
+    String? active;
+    // Walk all section keys; the last one whose top has scrolled at or above
+    // a threshold near the top of the visible list area is the active letter.
+    for (final entry in _sectionKeys.entries) {
+      final ctx = entry.value.currentContext;
+      if (ctx == null) continue;
+      final box = ctx.findRenderObject() as RenderBox?;
+      if (box == null) continue;
+      final topY = box.localToGlobal(Offset.zero).dy;
+      if (topY <= 260) active = entry.key;
+    }
+    if (active != null && active != _activeRailLetter) {
+      setState(() => _activeRailLetter = active!);
+    }
+  }
+
+  // Groups contacts alphabetically, preserving each contact's original index
+  // in displayedContacts so that updateNickNameFromContact still works correctly.
+  Map<String, List<MapEntry<int, ContactUser>>> _groupContactsWithIndices(
+      List<ContactUser> contacts) {
+    final indexed = contacts.asMap().entries.toList()
+      ..sort((a, b) => (a.value.name ?? '')
+          .toLowerCase()
+          .compareTo((b.value.name ?? '').toLowerCase()));
+    final grouped = <String, List<MapEntry<int, ContactUser>>>{};
+    for (final entry in indexed) {
+      final name = entry.value.name ?? '';
+      final first = name.isEmpty ? '#' : name[0].toUpperCase();
+      final letter = RegExp(r'[A-Z]').hasMatch(first) ? first : '#';
+      grouped.putIfAbsent(letter, () => []).add(entry);
+    }
+    return grouped;
+  }
+
+  void _onRailInteraction(Offset globalPosition) {
+    final railBox =
+        _railKey.currentContext?.findRenderObject() as RenderBox?;
+    if (railBox == null) return;
+    final localY = railBox.globalToLocal(globalPosition).dy;
+    final railHeight = railBox.size.height;
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#';
+    final idx =
+        (localY / railHeight * letters.length).clamp(0, letters.length - 1).toInt();
+    final letter = letters[idx];
+    if (letter != _activeRailLetter) {
+      setState(() => _activeRailLetter = letter);
+    }
+    _scrollToSection(letter);
+  }
+
+  // Returns the last available section that comes at or before [letter]
+  // alphabetically, or the first section if none precede it.
+  String? _nearestSection(String letter) {
+    if (_sectionKeys.isEmpty) return null;
+    if (_sectionKeys.containsKey(letter)) return letter;
+    const all = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#';
+    final pos = all.indexOf(letter);
+    final sorted = _sectionKeys.keys.toList()..sort();
+    String? lastBefore;
+    for (final avail in sorted) {
+      if (all.indexOf(avail) < pos) {
+        lastBefore = avail;
+      } else {
+        break;
+      }
+    }
+    return lastBefore ?? sorted.first;
+  }
+
+  void _scrollToSection(String letter) {
+    final target = _nearestSection(letter);
+    if (target == null) return;
+
+    final key = _sectionKeys[target];
+
+    // Fast path: section widget already built in the viewport area
+    if (key?.currentContext != null) {
+      Scrollable.ensureVisible(
+        key!.currentContext!,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
+      return;
+    }
+
+    // Section not yet built — estimate position, jump, then fine-tune.
+    if (!scrollController.hasClients) return;
+    final sorted = _sectionKeys.keys.toList()..sort();
+    final rank = sorted.indexOf(target);
+    if (rank < 0) return;
+
+    final maxExtent = scrollController.position.maxScrollExtent;
+    final estimated =
+        sorted.length <= 1 ? 0.0 : maxExtent * rank / (sorted.length - 1);
+    scrollController.jumpTo(estimated.clamp(0.0, maxExtent));
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final k = _sectionKeys[target];
+      if (k?.currentContext != null) {
+        Scrollable.ensureVisible(k!.currentContext!,
+            duration: const Duration(milliseconds: 100));
+      }
+    });
+  }
+
+  Widget _alphabetRail(List<String> availableLetters) {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#';
+    return GestureDetector(
+      key: _railKey,
+      onVerticalDragUpdate: (d) => _onRailInteraction(d.globalPosition),
+      onTapDown: (d) => _onRailInteraction(d.globalPosition),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: letters
+            .split('')
+            .map(
+              (letter) => Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4.w),
+                child: Text(
+                  letter,
+                  style: AppTextStyles.medium(
+                    fontSize: 10.sp,
+                    color: letter == _activeRailLetter
+                        ? Colors.red
+                        : availableLetters.contains(letter)
+                            ? AppColors.white.withValues(alpha: 0.8)
+                            : AppColors.white.withValues(alpha: 0.25),
+                  ),
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  Future<void> _onNewContactsTap() async {
+    bool granted = false;
+    try {
+      granted = await FlutterContacts.requestPermission();
+    } catch (e) {
+      if (!mounted) return;
+      Utils.showSnackBar(context, S.of(context).somethingWentWrongPleaseTryAgain);
+      return;
+    }
+    if (!mounted) return;
+
+    if (!granted) {
+      await CustomAlertDialog(
+        context: context,
+        icon: SvgImage(
+          source: SvgAssets.icSettings,
+          color: AppColors.white,
+          height: 28.w,
+          width: 28.w,
+        ),
+        title: S.of(context).permissionRequired,
+        description: S.of(context).askContactPermission,
+        buttonText: S.of(context).openSetting,
+        onPressed: () => openAppSettings(),
+      );
+      return;
+    }
+
+    try {
+      await FlutterContacts.openExternalInsert();
+      if (!mounted) return;
+      await homeCubit.fetchContactsForSync(context);
+      if (!mounted) return;
+      await homeCubit.fetchContacts(context, searchController.text.trim());
+    } catch (e) {
+      if (!mounted) return;
+      Utils.showSnackBar(
+          context, S.of(context).somethingWentWrongPleaseTryAgain);
     }
   }
 
@@ -160,15 +346,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
             24.s,
             buildNewItem(
                 context: context,
-                onTap: () async {
-                  await FlutterContacts.openExternalInsert().then(
-                    (value) {
-                      homeCubit.fetchContactsForSync(context);
-                    },
-                  );
-                  homeCubit.fetchContacts(
-                      context, searchController.text.trim());
-                },
+                onTap: () => _onNewContactsTap(),
                 icon: SvgAssets.icInviteFriends,
                 title: S.of(context).newContacts),
             24.s,
@@ -199,49 +377,86 @@ class _ContactsScreenState extends State<ContactsScreen> {
   }
 
   Widget _contactsList() {
-    // if (_permissionDenied) return Center(child: Text('Permission denied'));
-    // if (_contacts == null) return Center(child: CustomLoadingWidget());
     return BlocBuilder<HomeCubit, HomeState>(builder: (context, state) {
       if (state.contactsLoadingState == LoadingState.loading) {
-        return Center(child: CustomLoadingWidget());
-      } else if (state.contactsLoadingState == LoadingState.success) {
-        if ((state.displayedContacts ?? []).isEmpty) {
-          return Center(
-              child: Padding(
+        return const Center(child: CustomLoadingWidget());
+      }
+      if (state.displayedContacts.isEmpty) {
+        return Center(
+          child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(S.of(context).noContactsFound),
-          ));
-        }
+          ),
+        );
       }
-      return ListView.builder(
-        controller: scrollController,
-        shrinkWrap: true,
-        padding: EdgeInsets.zero,
-        itemCount: state.displayedContacts.length,
-        itemBuilder: (context, i) {
-          ContactUser user = state.displayedContacts[i];
-          String phone = (user.phone ?? "").isEmpty
-              ? ""
-              : "${user.countryCode ?? ""}${user.phone ?? ""}";
-          return contactTile(
-              context: context,
-              onTap: () => gotoChatScreen(user),
-              isRegistered: user.isRegistered ?? false,
-              profilePic: user.profilePicture ?? "",
-              // name: user.name ?? "UNKNOWN",
-              // name: (user.isActiveNickname ?? false)
-              //           ? (user.nickName ?? "")
-              //           : (user.name ?? "UNKNOWN"),
-              // name: user.nickName ?? "",
-              name: user.name ?? "Unknown",
-              phone: phone,
-              isOnline: user.isOnline ?? false,
-              lastSeen: user.lastSeen != null
-                  ? DateTime.parse(user.lastSeen!).toLocal()
-                  : null,
-              contactUser: state.displayedContacts[i],
-              index: i);
-        },
+
+      final grouped = _groupContactsWithIndices(state.displayedContacts);
+      final letters = grouped.keys.toList()..sort();
+
+      // Pre-populate ALL section keys before the ListView renders them so
+      // _nearestSection can locate any letter even when it is off-screen.
+      for (final letter in letters) {
+        _sectionKeys.putIfAbsent(letter, () => GlobalKey());
+      }
+
+      return Stack(
+        children: [
+          ListView.builder(
+            controller: scrollController,
+            padding: EdgeInsets.only(right: 24.w, bottom: 20.h),
+            itemCount: letters.length,
+            itemBuilder: (context, i) {
+              final letter = letters[i];
+              final entries = grouped[letter] ?? [];
+              _sectionKeys.putIfAbsent(letter, () => GlobalKey());
+
+              return Column(
+                key: _sectionKeys[letter],
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(top: 8.h, bottom: 6.h),
+                    child: Text(
+                      letter,
+                      style: AppTextStyles.medium(
+                        fontSize: 13.sp,
+                        color: AppColors.purpleText,
+                      ),
+                    ),
+                  ),
+                  ...entries.map((entry) {
+                    final user = entry.value;
+                    final originalIndex = entry.key;
+                    final phone = (user.phone ?? "").isEmpty
+                        ? ""
+                        : "${user.countryCode ?? ""}${user.phone ?? ""}";
+                    return contactTile(
+                      context: context,
+                      onTap: () => gotoChatScreen(user),
+                      isRegistered: user.isRegistered ?? false,
+                      profilePic: user.profilePicture ?? "",
+                      name: user.name ?? "Unknown",
+                      phone: phone,
+                      isOnline: user.isOnline ?? false,
+                      lastSeen: user.lastSeen != null
+                          ? DateTime.parse(user.lastSeen!).toLocal()
+                          : null,
+                      contactUser: user,
+                      index: originalIndex,
+                    );
+                  }),
+                  8.s,
+                ],
+              );
+            },
+          ),
+          Positioned(
+            right: 0,
+            top: 0,
+            bottom: 0,
+            child: _alphabetRail(letters),
+          ),
+        ],
       );
     });
   }

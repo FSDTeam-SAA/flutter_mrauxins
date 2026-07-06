@@ -423,6 +423,31 @@ public class SwiftFlutterContactsPlugin: NSObject, FlutterPlugin, FlutterStreamH
     private let rootViewController: UIViewController
     private var externalResult: FlutterResult?
 
+    // Resolve the key window's root VC dynamically at call time — not at init
+    // time — because the window may not be set up yet when the plugin registers.
+    // Then walk presentedViewController to reach the topmost controller.
+    private var topmostViewController: UIViewController {
+        let base: UIViewController
+        if #available(iOS 15.0, *) {
+            base = UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .compactMap { $0.keyWindow?.rootViewController }
+                .first ?? rootViewController
+        } else if #available(iOS 13.0, *) {
+            base = UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .compactMap { $0.windows.first(where: { $0.isKeyWindow })?.rootViewController }
+                .first ?? rootViewController
+        } else {
+            base = UIApplication.shared.delegate?.window??.rootViewController ?? rootViewController
+        }
+        var top = base
+        while let presented = top.presentedViewController {
+            top = presented
+        }
+        return top
+    }
+
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(
             name: "github.com/QuisApp/flutter_contacts",
@@ -621,7 +646,7 @@ public class SwiftFlutterContactsPlugin: NSObject, FlutterPlugin, FlutterStreamH
                     contactView.delegate = self
                     // https://stackoverflow.com/a/39594589
                     let navigationController = UINavigationController(rootViewController: contactView)
-                    self.rootViewController.present(navigationController, animated: true, completion: nil)
+                    self.topmostViewController.present(navigationController, animated: true, completion: nil)
                     self.externalResult = result
                 }
             }
@@ -629,7 +654,7 @@ public class SwiftFlutterContactsPlugin: NSObject, FlutterPlugin, FlutterStreamH
             DispatchQueue.main.async {
                 let contactPicker = CNContactPickerViewController()
                 contactPicker.delegate = self
-                self.rootViewController.present(contactPicker, animated: true, completion: nil)
+                self.topmostViewController.present(contactPicker, animated: true, completion: nil)
                 self.externalResult = result
             }
         case "openExternalInsert":
@@ -653,7 +678,7 @@ public class SwiftFlutterContactsPlugin: NSObject, FlutterPlugin, FlutterStreamH
                 contactView.delegate = self
                 // https://stackoverflow.com/a/39594589
                 let navigationController = UINavigationController(rootViewController: contactView)
-                self.rootViewController.present(navigationController, animated: true, completion: nil)
+                self.topmostViewController.present(navigationController, animated: true, completion: nil)
                 self.externalResult = result
             }
         default:

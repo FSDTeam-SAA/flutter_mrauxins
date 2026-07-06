@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:app_links/app_links.dart';
+import 'package:two_one_two_messenger/database/local_db.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/main.dart';
 import 'package:two_one_two_messenger/screens/group_info.dart';
+import 'package:two_one_two_messenger/screens/login_screen.dart';
 import 'package:two_one_two_messenger/utils/navigation.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
 
@@ -35,8 +37,41 @@ class DeepLinkHandler {
     if (uri.host == 'join' && uri.pathSegments.length >= 2) {
       final chatId = uri.pathSegments[0];
       final inviteLink = uri.toString();
+
+      if (AppPreference.getCurrentUserId().isEmpty) {
+        // Not logged in — stash the invite and resume it after login
+        // instead of letting the join call fail with an auth error.
+        await AppPreference.setString(
+            LocalDbConstants.pendingInviteChatId, chatId);
+        await AppPreference.setString(
+            LocalDbConstants.pendingInviteLink, inviteLink);
+
+        final context = navigatorKey.currentContext;
+        if (context != null) {
+          Utils.showSnackBar(context, "Please log in to join this group.");
+          NavigationService().navigateTo(LoginScreen());
+        }
+        return;
+      }
+
       await _joinGroup(chatId, inviteLink);
     }
+  }
+
+  /// Call after the user lands on the home screen (fresh launch or right
+  /// after completing login) to resume a join that was deferred because
+  /// the user wasn't authenticated when they tapped the invite link.
+  Future<void> resumePendingJoinIfAny() async {
+    if (AppPreference.getCurrentUserId().isEmpty) return;
+
+    final chatId = AppPreference.getString(LocalDbConstants.pendingInviteChatId);
+    final inviteLink = AppPreference.getString(LocalDbConstants.pendingInviteLink);
+    if (chatId.isEmpty || inviteLink.isEmpty) return;
+
+    await AppPreference.setString(LocalDbConstants.pendingInviteChatId, "");
+    await AppPreference.setString(LocalDbConstants.pendingInviteLink, "");
+
+    await _joinGroup(chatId, inviteLink);
   }
 
   Future<void> _joinGroup(String chatId, String inviteLink) async {

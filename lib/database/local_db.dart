@@ -688,18 +688,16 @@ class DatabaseHelper {
     final result = await db.query(
       'contacts',
       where: '''
-      isRegistered = 1 AND (
-        (name IS NOT NULL AND name LIKE ?) OR
-        (userName IS NOT NULL AND userName LIKE ?) OR
-        (email IS NOT NULL AND email LIKE ?) OR
-        (phone IS NOT NULL AND phone LIKE ?)
-      )
+      (name IS NOT NULL AND name LIKE ?) OR
+      (userName IS NOT NULL AND userName LIKE ?) OR
+      (email IS NOT NULL AND email LIKE ?) OR
+      (phone IS NOT NULL AND phone LIKE ?)
     ''',
       whereArgs: [
-        '%$searchQuery%',
-        '%$searchQuery%',
-        '%$searchQuery%',
-        '%$searchQuery%',
+        '$searchQuery%',
+        '$searchQuery%',
+        '$searchQuery%',
+        '$searchQuery%',
       ],
       orderBy: '''
       (CASE WHEN lastSeen IS NULL OR lastSeen = '' THEN 1 ELSE 0 END),
@@ -1028,6 +1026,8 @@ final class LocalDbConstants {
   static final String contactPermission = 'contactPermission';
   static final String accessToken = 'accessToken';
   static final String refreshToken = 'refreshToken';
+  static final String pendingInviteChatId = 'pendingInviteChatId';
+  static final String pendingInviteLink = 'pendingInviteLink';
 }
 
 

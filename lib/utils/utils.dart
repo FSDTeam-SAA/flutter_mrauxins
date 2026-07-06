@@ -125,6 +125,10 @@ extension KeyboardDismissal on BuildContext {
 void showMessage(String message) {
   if (kDebugMode) {
     p.log(message);
+    // dart:developer's log() only shows up in DevTools' Logging panel, not
+    // in `flutter run`'s terminal output — print it too so it's visible
+    // wherever the app is being debugged from.
+    debugPrint(message);
   }
 }
 
@@ -299,9 +303,19 @@ class Utils {
   static Future<String?> fetchToken() async {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
     try {
+      if (Platform.isIOS) {
+        // iOS requires the APNS token before FCM can generate a token.
+        // Wait for it (with a bounded retry) instead of calling getToken()
+        // immediately, otherwise it silently returns null/empty.
+        String? apns = await messaging.getAPNSToken();
+        for (int i = 0; i < 5 && apns == null; i++) {
+          await Future.delayed(const Duration(seconds: 1));
+          apns = await messaging.getAPNSToken();
+        }
+      }
       // iOS simulator has no APNs — getToken() hangs without a timeout
       String? token = await messaging.getToken().timeout(
-        const Duration(seconds: 5),
+        const Duration(seconds: 8),
         onTimeout: () => null,
       );
       return token;

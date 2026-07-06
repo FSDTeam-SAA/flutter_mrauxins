@@ -79,6 +79,7 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
   }
 
   Future<void> _onScroll() async {
+    _updateActiveLetter();
     if (_selectedTab != _AddPeopleTab.contacts) return;
     if (!scrollController.hasClients) return;
     if (scrollController.position.pixels >=
@@ -89,6 +90,22 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
         name: searchController.text.trim(),
         removedUsers: widget.admins,
       );
+    }
+  }
+
+  void _updateActiveLetter() {
+    if (_sectionKeys.isEmpty) return;
+    String? active;
+    for (final entry in _sectionKeys.entries) {
+      final ctx = entry.value.currentContext;
+      if (ctx == null) continue;
+      final box = ctx.findRenderObject() as RenderBox?;
+      if (box == null) continue;
+      final topY = box.localToGlobal(Offset.zero).dy;
+      if (topY <= 260) active = entry.key;
+    }
+    if (active != null && active != _activeRailLetter) {
+      setState(() => _activeRailLetter = active!);
     }
   }
 
@@ -402,6 +419,10 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
     final grouped = _groupPeople(filtered);
     final letters = grouped.keys.toList()..sort();
 
+    for (final letter in letters) {
+      _sectionKeys.putIfAbsent(letter, () => GlobalKey());
+    }
+
     if (filtered.isEmpty) {
       return Center(
         child: Padding(
@@ -498,11 +519,58 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
     if (letter != _activeRailLetter) {
       setState(() => _activeRailLetter = letter);
     }
-    final key = _sectionKeys[letter];
-    if (key?.currentContext != null) {
-      Scrollable.ensureVisible(key!.currentContext!,
-          duration: const Duration(milliseconds: 100));
+    _scrollToSection(letter);
+  }
+
+  String? _nearestSection(String letter) {
+    if (_sectionKeys.isEmpty) return null;
+    if (_sectionKeys.containsKey(letter)) return letter;
+    const all = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#';
+    final pos = all.indexOf(letter);
+    final sorted = _sectionKeys.keys.toList()..sort();
+    String? lastBefore;
+    for (final avail in sorted) {
+      if (all.indexOf(avail) < pos) {
+        lastBefore = avail;
+      } else {
+        break;
+      }
     }
+    return lastBefore ?? sorted.first;
+  }
+
+  void _scrollToSection(String letter) {
+    final target = _nearestSection(letter);
+    if (target == null) return;
+
+    final key = _sectionKeys[target];
+
+    if (key?.currentContext != null) {
+      Scrollable.ensureVisible(
+        key!.currentContext!,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
+      return;
+    }
+
+    if (!scrollController.hasClients) return;
+    final sorted = _sectionKeys.keys.toList()..sort();
+    final rank = sorted.indexOf(target);
+    if (rank < 0) return;
+
+    final maxExtent = scrollController.position.maxScrollExtent;
+    final estimated =
+        sorted.length <= 1 ? 0.0 : maxExtent * rank / (sorted.length - 1);
+    scrollController.jumpTo(estimated.clamp(0.0, maxExtent));
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final k = _sectionKeys[target];
+      if (k?.currentContext != null) {
+        Scrollable.ensureVisible(k!.currentContext!,
+            duration: const Duration(milliseconds: 100));
+      }
+    });
   }
 
   Widget _alphabetRail(List<String> availableLetters) {
