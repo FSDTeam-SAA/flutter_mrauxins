@@ -249,6 +249,11 @@ class _ContactsScreenState extends State<ContactsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Search bar lives in the AppBar, not the body. Allowing the Scaffold
+      // to resize for the keyboard would shrink the body column, causing the
+      // fixed-height items and the A-Z rail to overflow. The keyboard should
+      // simply overlay the bottom of the list instead.
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: AppColors.dark,
         leading: IconButton(

@@ -256,11 +256,16 @@ class _SearchScreenState extends State<SearchScreen> {
       _sectionKeys.putIfAbsent(letter, () => GlobalKey());
     }
 
+    // Hide the A-Z rail while the keyboard is open. The keyboard shrinks the
+    // available height so much that the 27-letter Column overflows, and the
+    // user is actively typing anyway so A-Z browsing isn't needed.
+    final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+
     return Stack(
       children: [
         ListView.builder(
           controller: controller,
-          padding: EdgeInsets.only(right: 24.w),
+          padding: EdgeInsets.only(right: keyboardOpen ? 0 : 24.w),
           itemCount: letters.length,
           itemBuilder: (context, index) {
             final letter = letters[index];
@@ -300,12 +305,13 @@ class _SearchScreenState extends State<SearchScreen> {
             );
           },
         ),
-        Positioned(
-          right: 2.w,
-          top: 4.h,
-          bottom: 8.h,
-          child: _alphabetRail(letters),
-        ),
+        if (!keyboardOpen)
+          Positioned(
+            right: 2.w,
+            top: 4.h,
+            bottom: 8.h,
+            child: _alphabetRail(letters),
+          ),
       ],
     );
   }
