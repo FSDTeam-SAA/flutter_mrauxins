@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:two_one_two_messenger/models/conversation_model.dart';
-import 'package:two_one_two_messenger/models/all_user.dart';
+import 'package:two_one_two_messenger/models/group_info_model.dart';
+import 'package:two_one_two_messenger/models/otp_verify.dart';
 import 'package:two_one_two_messenger/extension/date_format.dart';
 
 import '../../extension/sizebox.dart';

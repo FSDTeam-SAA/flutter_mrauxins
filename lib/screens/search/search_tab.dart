@@ -19,13 +19,12 @@ class SearchTabSwitcher extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 42.h,
+      height: 40.h,
+      padding: EdgeInsets.all(2.w),
       decoration: BoxDecoration(
-        color: AppColors.dialogBg,
-        borderRadius: BorderRadius.circular(24.r),
-        border: Border.all(
-          color: const Color(0xFF86334D).withValues(alpha: 0.55),
-        ),
+        color: AppColors.darkInputFill.withValues(alpha: 0.58),
+        borderRadius: BorderRadius.circular(22.r),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.35)),
       ),
       child: Row(
         children: [
@@ -59,21 +58,25 @@ class _TabButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: GestureDetector(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20.r),
         onTap: onTap,
         child: Container(
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF86334D) : Colors.transparent,
-            borderRadius: BorderRadius.circular(24.r),
+            color: isSelected ? const Color(0xFF68283B) : Colors.transparent,
+            borderRadius: BorderRadius.circular(20.r),
+            border: isSelected
+                ? Border.all(
+                    color: const Color(0xFFC13C61).withValues(alpha: 0.8),
+                  )
+                : null,
           ),
           child: Text(
             label,
-            style: AppTextStyles.medium(
-              fontSize: 14.sp,
-              color: isSelected
-                  ? AppColors.white
-                  : AppColors.white.withValues(alpha: 0.5),
+            style: AppTextStyles.regular(
+              fontSize: 13.sp,
+              color: AppColors.white,
             ),
           ),
         ),

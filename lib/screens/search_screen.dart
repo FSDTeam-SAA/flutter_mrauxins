@@ -6,12 +6,10 @@ import 'package:two_one_two_messenger/GoogleAds/BannerAds/BannerAdManager.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
+import 'package:two_one_two_messenger/utils/text_style.dart';
 
 import '../utils/colors.dart';
-import '../utils/constants.dart';
 import '../widgets/appbar.dart';
-import '../widgets/svg_images.dart';
-import '../widgets/text_fields.dart';
 import 'search/contacts_body.dart';
 import 'search/database_body.dart';
 import 'search/search_tab.dart';
@@ -113,20 +111,61 @@ class _SearchScreenState extends State<SearchScreen> {
               onTabChanged: _switchTab,
             ),
             16.s,
-            CustomTextField(
-              controller: searchController,
-              onChanged: _onSearchChanged,
-              maxLines: 1,
-              textInputAction: TextInputAction.go,
-              label: _selectedTab == SearchTab.database
-                  ? 'Search the 212 Database...'
-                  : S.of(context).searchUsers,
-              prefixIcon: SvgImage(
-                source: SvgAssets.icSearch,
-                fit: BoxFit.scaleDown,
-                color: AppColors.white,
+            SizedBox(
+              height: 42.h,
+              child: TextField(
+                controller: searchController,
+                onChanged: _onSearchChanged,
+                textInputAction: TextInputAction.go,
+                style: AppTextStyles.regular(fontSize: 14.sp),
+                decoration: InputDecoration(
+                  hintText: _selectedTab == SearchTab.database
+                      ? 'Search the 212 Database...'
+                      : S.of(context).searchUsers,
+                  hintStyle: AppTextStyles.regular(
+                    fontSize: 14.sp,
+                    color: AppColors.white.withValues(alpha: 0.45),
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: AppColors.white,
+                    size: 20.sp,
+                  ),
+                  suffixIcon: searchController.text.isEmpty
+                      ? null
+                      : IconButton(
+                          onPressed: () {
+                            searchController.clear();
+                            _onSearchChanged('');
+                            setState(() {});
+                          },
+                          icon: Icon(Icons.close,
+                              color: AppColors.white.withValues(alpha: 0.65),
+                              size: 18.sp),
+                        ),
+                  filled: true,
+                  fillColor: const Color(0xFF2B1F25),
+                  contentPadding: EdgeInsets.zero,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18.r),
+                    borderSide: BorderSide(
+                      color: const Color(0xFF86334D).withValues(alpha: 0.45),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18.r),
+                    borderSide: BorderSide(
+                      color: const Color(0xFF86334D).withValues(alpha: 0.45),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18.r),
+                    borderSide: BorderSide(
+                      color: const Color(0xFFB94768).withValues(alpha: 0.75),
+                    ),
+                  ),
+                ),
               ),
-              validator: (_) => null,
             ),
             16.s,
             Expanded(
