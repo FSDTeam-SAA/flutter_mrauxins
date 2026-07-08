@@ -58,7 +58,6 @@
 //   }
 // }
 import 'package:flutter_linkify/flutter_linkify.dart';
-import 'package:flutter_linkify/flutter_linkify.dart';
 
 class CustomLinkifier extends Linkifier {
   const CustomLinkifier();

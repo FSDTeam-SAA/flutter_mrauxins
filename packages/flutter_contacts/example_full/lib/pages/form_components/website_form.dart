@@ -70,7 +70,7 @@ class _WebsiteFormState extends State<WebsiteForm> {
                     .map((e) => DropdownMenuItem<WebsiteLabel>(
                         value: e, child: Text(e.toString())))
                     .toList(),
-                value: _label,
+                initialValue: _label,
                 onChanged: (WebsiteLabel? label) {
                   setState(() {
                     if (label != null) _label = label;
