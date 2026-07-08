@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../extension/sizebox.dart';
 import '../../utils/colors.dart';
 import '../../utils/text_style.dart';
+import '../../widgets/custom_loading_widget.dart';
 
 /// Groups [items] alphabetically by the first letter of [nameOf].
 /// Items starting with non-letter characters are grouped under '#'.
@@ -30,6 +31,9 @@ class GroupedListWithRail<T> extends StatefulWidget {
   final String Function(T) nameOf;
   final Widget Function(T) tileBuilder;
   final Widget emptyState;
+  final ScrollController? scrollController;
+  final VoidCallback? onScrollNearEnd;
+  final bool isLoadingMore;
 
   const GroupedListWithRail({
     super.key,
@@ -37,6 +41,9 @@ class GroupedListWithRail<T> extends StatefulWidget {
     required this.nameOf,
     required this.tileBuilder,
     required this.emptyState,
+    this.scrollController,
+    this.onScrollNearEnd,
+    this.isLoadingMore = false,
   });
 
   @override
@@ -44,7 +51,7 @@ class GroupedListWithRail<T> extends StatefulWidget {
 }
 
 class _GroupedListWithRailState<T> extends State<GroupedListWithRail<T>> {
-  final _scrollController = ScrollController();
+  late final ScrollController _scrollController;
   final _railKey = GlobalKey();
   final _sectionKeys = <String, GlobalKey>{};
   String _activeRailLetter = 'A';
@@ -52,12 +59,26 @@ class _GroupedListWithRailState<T> extends State<GroupedListWithRail<T>> {
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_updateActiveLetter);
+    _scrollController = widget.scrollController ?? ScrollController();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    _updateActiveLetter();
+    if (widget.onScrollNearEnd != null) {
+      if (_scrollController.hasClients &&
+          _scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 80.h) {
+        widget.onScrollNearEnd!();
+      }
+    }
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scrollController.removeListener(_onScroll);
+    if (widget.scrollController == null) {
+      _scrollController.dispose();
+    }
     super.dispose();
   }
 
@@ -164,9 +185,16 @@ class _GroupedListWithRailState<T> extends State<GroupedListWithRail<T>> {
       children: [
         ListView.builder(
           controller: _scrollController,
-          padding: EdgeInsets.only(right: keyboardOpen ? 0 : 24.w),
-          itemCount: letters.length,
+          padding: EdgeInsets.only(right: keyboardOpen ? 0 : 24.w, bottom: 20.h),
+          itemCount: letters.length + (widget.isLoadingMore ? 1 : 0),
           itemBuilder: (context, index) {
+            if (index >= letters.length) {
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: 12.h),
+                child: const Center(child: CustomLoadingWidget()),
+              );
+            }
+
             final letter = letters[index];
             final sectionItems = grouped[letter]!;
             _sectionKeys.putIfAbsent(letter, () => GlobalKey());
