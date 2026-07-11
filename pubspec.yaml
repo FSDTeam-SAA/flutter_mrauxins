@@ -92,8 +92,7 @@ dependencies:
   flutter_local_notifications: ^18.0.1
   in_app_purchase: ^3.2.1
   provider: ^6.1.2
-  flutter_chat_reactions: 
-     path: ./packages/flutter_chat_reactions
+  flutter_chat_reactions: ^0.2.7
   emoji_picker_flutter: 4.3.0
   # image_cropper: ^9.0.0
   # image_editor_plus: ^1.0.6
