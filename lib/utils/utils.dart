@@ -21,7 +21,8 @@ import 'package:intl_phone_field/phone_number.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:mime/mime.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:permission_handler/permission_handler.dart'
+    hide PermissionStatus;
 import 'package:two_one_two_messenger/database/local_db.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
@@ -315,9 +316,9 @@ class Utils {
       }
       // iOS simulator has no APNs — getToken() hangs without a timeout
       String? token = await messaging.getToken().timeout(
-        const Duration(seconds: 8),
-        onTimeout: () => null,
-      );
+            const Duration(seconds: 8),
+            onTimeout: () => null,
+          );
       return token;
     } catch (e) {
       return null;
