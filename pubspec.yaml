@@ -62,8 +62,7 @@ dependencies:
   voice_message_package: ^2.2.1
   easy_url_launcher: ^0.0.7
 
-  page_transition:
-    path: ./packages/page_transition
+  page_transition: ^2.2.2
 
   chewie: ^1.9.2
   flick_video_player: ^0.9.0
