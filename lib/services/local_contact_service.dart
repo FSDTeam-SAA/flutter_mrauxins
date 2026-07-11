@@ -59,7 +59,7 @@ class ContactService {
   // }
 
   Future<void> fetchAndStoreLocalContacts() async {
-    if (!await FlutterContacts.requestPermission()) {
+    if (!await Utils.hasContactsPermission()) {
       await CustomAlertDialog(
         context: navigatorKey.currentContext!,
         icon: SvgImage(
@@ -83,8 +83,8 @@ class ContactService {
     }
 
     // Fetch local contacts from device
-    List<Contact> localContacts =
-        await FlutterContacts.getContacts(withProperties: true);
+    List<Contact> localContacts = await FlutterContacts.getAll(
+        properties: {ContactProperty.name, ContactProperty.phone});
 
     // showMessage("D localContacts $localContacts");
 
@@ -94,8 +94,8 @@ class ContactService {
         Utils.removeSpaceAndSpecialCharectorsFromString(
                 contact.phones.isNotEmpty ? contact.phones.first.number : ""):
             (contact.displayName ?? "").isEmpty
-                ? contact.displayName
-                : "${contact.name.first} ${contact.name.last}"
+                ? (contact.displayName ?? "")
+                : "${contact.name?.first ?? ''} ${contact.name?.last ?? ''}"
     };
 
     // showMessage("D localContactsMap $localContactsMap");

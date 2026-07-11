@@ -449,7 +449,7 @@ class Utils {
   }
 
   static Future<List<String>> getLocalContacts() async {
-    if (await FlutterContacts.requestPermission()) {
+    if (await Utils.hasContactsPermission()) {
       // Step 2: Ask for additional in-app user consent before uploading
       bool? userConsent = AppPreference.isContactPermissionGrant();
       if (!userConsent) {
@@ -516,8 +516,8 @@ class Utils {
             value: userConsent ?? false);
       }
       if (userConsent ?? false) {
-        List<Contact> contacts =
-            await FlutterContacts.getContacts(withProperties: true);
+        List<Contact> contacts = await FlutterContacts.getAll(
+            properties: {ContactProperty.name, ContactProperty.phone});
         showMessage("getLocalContacts==> $userConsent  ${contacts.length}");
         return contacts
             .map((c) => c.phones.isNotEmpty ? c.phones.first.number : "")
@@ -545,6 +545,13 @@ class Utils {
       );
     }
     return [];
+  }
+
+  static Future<bool> hasContactsPermission() async {
+    final status =
+        await FlutterContacts.permissions.request(PermissionType.readWrite);
+    return status == PermissionStatus.granted ||
+        status == PermissionStatus.limited;
   }
 
   static Future<bool> askContactPermission() async {
