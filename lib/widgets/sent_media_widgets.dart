@@ -64,7 +64,6 @@ void buildBottomSheet({
                         : AppConstants.androidGiphyApiKey, //Required.
                     // lang: selectedLanguage, //Optional - Language for query.
                     showEmojis: false,
-                    bgColor: AppColors.dialogBg,
                     tabColor:
                         AppColors.white, // Optional- default accent color.
                     debounceTimeInMilliseconds:

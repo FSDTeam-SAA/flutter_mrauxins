@@ -772,12 +772,13 @@ packages:
     source: hosted
     version: "0.7.3"
   giphy_get:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
-      path: "packages/giphy_get-main"
-      relative: true
-    source: path
-    version: "3.6.0"
+      name: giphy_get
+      sha256: "2762b2343b78da19248b6aa3302097a51eecd65584c495b5184a8e4ae0a1efc7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.6.1+1"
   google_mobile_ads:
     dependency: "direct main"
     description:

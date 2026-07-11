@@ -63,6 +63,7 @@ dependencies:
   easy_url_launcher: ^0.0.7
 
   page_transition: ^2.2.2
+  giphy_get: ^3.6.1+1
 
   chewie: ^1.9.2
   flick_video_player: ^0.9.0
@@ -129,8 +130,6 @@ dependency_overrides:
   flutter_contacts:
      path: ./packages/flutter_contacts
   # video_player:
-  giphy_get:
-     path: ./packages/giphy_get-main
   record_platform_interface: 1.2.0
   syncfusion_flutter_sliders: ^33.2.7
 
