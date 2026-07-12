@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:two_one_two_messenger/cubit/send_otp_cubit.dart';
-import 'package:two_one_two_messenger/extension/bloc.dart';
 import '../utils/constants.dart';
 
 class SplashScreen extends StatefulWidget {

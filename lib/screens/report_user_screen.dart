@@ -24,7 +24,7 @@ class _ReportUserPageState extends State<ReportUserPage> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> REPORT_REASONS = [
+    final List<Map<String, String>> reportReasons = [
       {"key": "Spam", "label": S.of(context).reportReasonSpam},
       {"key": "Harassment", "label": S.of(context).reportReasonHarassment},
       {
@@ -55,7 +55,7 @@ class _ReportUserPageState extends State<ReportUserPage> {
           ),
           16.h.s, Divider(height: 1.h, color: AppColors.darkInputFill),
           16.h.s,
-          ...REPORT_REASONS.map((reason) => RadioListTile<String>(
+          ...reportReasons.map((reason) => RadioListTile<String>(
                 enableFeedback: true,
                 title: Text(
                   reason["label"]!,

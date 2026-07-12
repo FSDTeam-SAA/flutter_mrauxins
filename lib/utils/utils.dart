@@ -233,8 +233,8 @@ class Utils {
 
   static Future<void> launchUrlHelper(String url, BuildContext context) async {
     try {
-      final Uri _url = Uri.parse(url);
-      if (!await launchUrl(_url)) {
+      final Uri url0 = Uri.parse(url);
+      if (!await launchUrl(url0)) {
         AppLogger.logs('Could not launch : Exception : $url');
         throw Exception('Could not launch $url');
       }
@@ -410,9 +410,7 @@ class Utils {
 
   static Future<Sender> currentUserToSender() async {
     UserData? user = userDataCubit.state;
-    if (user == null) {
-      user = await DatabaseHelper().getLoginData();
-    }
+    user ??= await DatabaseHelper().getLoginData();
     return Sender(
         id: user?.sId,
         profilePicture: user?.profilePicture,

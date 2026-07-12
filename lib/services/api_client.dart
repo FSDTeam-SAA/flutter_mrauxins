@@ -765,7 +765,7 @@ class ApiClient {
 
       final conversationResponse =
           CreateConversionModel.fromJson(response.data);
-      showMessage("REsponse::::::::::${conversationResponse}");
+      showMessage("REsponse::::::::::$conversationResponse");
       return conversationResponse; // Return the parsed response
     } on DioException catch (e) {
       String errorMessage =
@@ -925,7 +925,7 @@ class ApiClient {
           });
           showMessage("sent Message = data ${{
             // "chatId": chatId,
-            if (content != null && content.isNotEmpty) "content": content,
+            if (content.isNotEmpty) "content": content,
             "type": type,
             "messageId": messageId,
             if ((gifUrl ?? "").isNotEmpty && (sizeForGIF != null))
@@ -1751,7 +1751,7 @@ class ApiClient {
           ToggleNickNameResponse.fromJson(response.data);
       return toggleNickNameResponse; // Return the parsed response
     } on DioException catch (e) {
-      debugPrint("Error Message >> ${e}");
+      debugPrint("Error Message >> $e");
       String errorMessage =
           e.response?.data?['message']['message'] ?? 'Something went wrong';
       // Utils.showSnackBar(context, errorMessage);

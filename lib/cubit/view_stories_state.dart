@@ -46,7 +46,7 @@ class ViewStoriesState extends Equatable {
   final bool isVideoPlaying;
   final bool isVideoCompleted;
 
-  ViewStoriesState({
+  const ViewStoriesState({
     this.loadingState = LoadingState.success,
     this.currentUserStoriesResponse,
     this.currentUserStoriesList = const [],

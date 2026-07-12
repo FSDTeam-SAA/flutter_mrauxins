@@ -68,6 +68,8 @@ import 'package:two_one_two_messenger/widgets/buttons.dart';
 // }
 
 class PremiumScreen extends StatefulWidget {
+  const PremiumScreen({super.key});
+
   @override
   _PremiumScreenState createState() => _PremiumScreenState();
 }

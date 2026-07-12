@@ -239,7 +239,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
       final appId = AppPreference.getAgoraAppId();
       // AppPreference.getAgoraAppId();
       showMessage("Agora App ID is $appId");
-      if (appId == null || appId.isEmpty) {
+      if (appId.isEmpty) {
         showMessage("Agora App ID is missing or invalid!");
         // throw Exception('Agora App ID is missing or invalid!');
 
@@ -406,7 +406,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
             });
           },
           onUserStateChanged: (connection, remoteUid, state) {
-            showMessage('onUserStateChanged: ${state}');
+            showMessage('onUserStateChanged: $state');
           },
         ),
       );

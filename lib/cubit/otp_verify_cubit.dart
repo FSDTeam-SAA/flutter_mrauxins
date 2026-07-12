@@ -151,7 +151,7 @@ class OtpVerifyCubit extends Cubit<OtpVerifyState> {
         await profileCubit.handleUpdateEmail(response);
         // callback?.call(response);
         AppPreference.setEmailVerify();
-        log("sdhkahskfhcjksdhfjkdjkshjk==== 6 ${response?.data?.isEmailVerify ?? false}");
+        log("sdhkahskfhcjksdhfjkdjkshjk==== 6 ${response.data?.isEmailVerify ?? false}");
         callback?.call();
       }
 

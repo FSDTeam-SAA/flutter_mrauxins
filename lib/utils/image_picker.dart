@@ -232,7 +232,6 @@ Future<void> customVideoWithCameraPicker(BuildContext context,
   } else {
     final pickedFile =
         await ImagePicker().pickVideo(source: ImageSource.camera);
-    ;
     if (pickedFile != null) {
       MimeType mimeType = Utils.getMimeType(pickedFile.path);
       onImagePicked(

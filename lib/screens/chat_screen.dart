@@ -113,6 +113,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (renderBox != null) {
       return renderBox.localToGlobal(Offset.zero) + Offset(0, 50.h);
     }
+    return null;
   }
 
   Map<String, GlobalKey> messageKeys = {};
@@ -196,12 +197,13 @@ class _ChatScreenState extends State<ChatScreen> {
         await Future.delayed(const Duration(milliseconds: 200));
         await WidgetsBinding.instance.endOfFrame;
 
-        final updatedList = (chatCubit.state.chatList ?? Set.of([])).toList();
+        final updatedList = (chatCubit.state.chatList ?? <dynamic>{}).toList();
         return onHighlightMessage(
           message,
-          updatedList,
+          updatedList as List<MessageModel>,
           retryCount: retryCount + 1,
         );
+
       }
 
       if (index != -1) {
@@ -486,7 +488,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     if (widget.chatId.isEmpty && (widget.chatType == ChatType.one_to_one)) {
-      await chatCubit.createConversation(widget.userId!, context).then(
+      await chatCubit.createConversation(widget.userId, context).then(
             (value) {},
           );
       chatId = chatCubit.state.currentConversationId;
@@ -527,7 +529,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if ((widget.lastMessage?.messageId ?? "").isNotEmpty) {
       showMessage("chatid lastmessage==> ${widget.lastMessage?.messageId}");
       emitMessageReadStatus(true, widget.lastMessage!.messageId ?? "");
-    } else if ((chatCubit.state.chatList ?? Set.of([])).isNotEmpty) {
+    } else if ((chatCubit.state.chatList ?? <dynamic>{}).isNotEmpty) {
       log("chatid lastmessage==> ${chatCubit.state.chatList!.first.toJson()}");
       // emitMessageReadStatus(true, chatCubit.state.chatMessageModel!.messages!.last.messageId ?? "");
     }
@@ -898,7 +900,9 @@ class _ChatScreenState extends State<ChatScreen> {
                     if ((widget.chatType != ChatType.one_to_one)) {
                       if ((state.chatMessageModel?.removeFromChat ?? false) ||
                           (state.chatMessageModel?.otherUserRemoveFromChat ??
-                              false)) return;
+                              false)) {
+                        return;
+                      }
                       showDraggableBottomSheet(context);
                     } else {
                       List<ChatOption> chatOption = [
@@ -1224,7 +1228,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             PinnedMessagesWidget(
                               pinnedMessages:
                                   (state.chatMessageModel?.pinnedMessages ??
-                                              Set.of([]))
+                                              <dynamic>{})
                                           .isEmpty
                                       ? []
                                       : List.from(state
@@ -1435,7 +1439,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                               BorderRadius.circular(8.r),
                                         ),
                                         child: Text(
-                                          "${chatList[index].systemMessage?.message ?? ""}",
+                                          chatList[index].systemMessage?.message ?? "",
                                           style: AppTextStyles.regular(
                                                   color: AppColors.white)
                                               .copyWith(height: 1.5),
@@ -1571,8 +1575,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                                   null) {
                                                 showMessage(
                                                     "onTapScroll  ${chatList[index].replyTo!.messageId!}");
-                                                if (_isHighlightingMessage)
+                                                if (_isHighlightingMessage) {
                                                   return;
+                                                }
                                                 onHighlightMessage(
                                                     chatList[index].replyTo!,
                                                     chatList);

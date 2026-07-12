@@ -53,7 +53,7 @@ class _SavedMessagesState extends State<SavedMessages> {
     scrollController.addListener(_onScroll);
     _socketService.onSavedMessage(
       (message) {
-        showMessage("updateSavedMessageList==>outer===>${message}");
+        showMessage("updateSavedMessageList==>outer===>$message");
         if (message["messageId"] != null && message["message"] != null) {
           chatCubit.updateSavedMessageList(message);
         }
@@ -443,7 +443,9 @@ class _SavedMessagesState extends State<SavedMessages> {
                                   sort: false,
                                   groupBy: (element) {
                                     if (element.messageDetails?.createdAt ==
-                                        null) return "";
+                                        null) {
+                                      return "";
+                                    }
                                     return Utils.getFormattedDate(
                                         (element.messageDetails?.createdAt ??
                                                 DateTime.now())
@@ -1074,8 +1076,8 @@ class PinnedMessagesWidget extends StatefulWidget {
     required this.onViewMessage,
     required this.onUnpin,
     required this.currentUserId,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   _PinnedMessagesWidgetState createState() => _PinnedMessagesWidgetState();

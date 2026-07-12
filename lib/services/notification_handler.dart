@@ -374,7 +374,6 @@ class NotificationService {
       (event) async {
         log("_handleCallKit called==>$event ==>${DateTime.now}");
         debugPrint("_handleCallKit-->${event['type']} ${DateTime.now}");
-        if (event == null) return;
         final notificationId =
             NotificationDebouncer.generateNotificationId(event);
 

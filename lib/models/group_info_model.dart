@@ -68,7 +68,7 @@ class GroupData extends Equatable {
   final String? privacy;
   final String? inviteLink;
   final int? participantCount;
-  GroupData({
+  const GroupData({
     this.groupId,
     this.groupName,
     this.isAdmin,

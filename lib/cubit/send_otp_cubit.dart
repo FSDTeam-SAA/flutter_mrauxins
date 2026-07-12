@@ -116,7 +116,7 @@ class SendOtpCubit extends Cubit<SendOtpState> {
         },
         codeSent: (String verificationId, int? resendToken) {
           Utils.hideLoader();
-          showMessage("FirebaseAuthException>>> codeSent=== ${verificationId}");
+          showMessage("FirebaseAuthException>>> codeSent=== $verificationId");
           callback?.call(verificationId);
           profileCubit.emitProfileSucessState();
           profileCubit.emitSendOtpSucessState();

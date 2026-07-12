@@ -57,7 +57,7 @@ class SavedMessagesData extends Equatable {
   final List<SavedMessage>? pinnedSavedMessages;
   final Pagination? pagination;
 
-  SavedMessagesData({
+  const SavedMessagesData({
     this.savedMessages,
     this.pinnedSavedMessages,
     this.pagination,
@@ -110,7 +110,7 @@ class Pagination extends Equatable {
   final int? limit;
   final int? totalPages;
 
-  Pagination({
+  const Pagination({
     this.total,
     this.page,
     this.limit,
@@ -155,7 +155,7 @@ class SavedMessage extends Equatable {
   final MessageModel? messageDetails;
   final Sender? senderDetails;
 
-  SavedMessage({
+  const SavedMessage({
     this.id,
     this.messageId,
     this.messageDetails,
@@ -220,7 +220,7 @@ class SavedMessage extends Equatable {
 //         String? type,
 //         List<dynamic>? fileIds,
 //         DateTime? createdAt,
-//     }) => 
+//     }) =>
 //         MessageDetails(
 //             chatId: chatId ?? this.chatId,
 //             content: content ?? this.content,

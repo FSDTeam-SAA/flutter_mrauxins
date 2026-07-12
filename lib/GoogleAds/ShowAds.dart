@@ -1,13 +1,4 @@
-import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:two_one_two_messenger/GoogleAds/AppOpenAds/AppLifecycleReactor.dart';
-import 'package:two_one_two_messenger/GoogleAds/AppOpenAds/AppOpenManager.dart';
-import 'package:two_one_two_messenger/GoogleAds/Config.dart';
-import 'package:two_one_two_messenger/GoogleAds/InterstitialAdManager/InterstitialAdManager.dart';
-import 'package:two_one_two_messenger/GoogleAds/InterstitialRewardAdmanager/InterstitialRewardAdManager.dart';
-import 'package:two_one_two_messenger/GoogleAds/SpHelper.dart';
-import 'package:two_one_two_messenger/GoogleAds/rewardAds/RewardAdManager.dart';
 
 // class ShowAppOpenAds {
 //   int click = 0;

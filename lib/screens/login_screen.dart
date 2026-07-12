@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,13 +9,10 @@ import 'package:intl_phone_field/phone_number.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
-import 'package:two_one_two_messenger/utils/app_dialoge.dart';
 import 'package:two_one_two_messenger/utils/extensions.dart';
-import 'package:two_one_two_messenger/widgets/app_check_box.dart';
 import 'package:two_one_two_messenger/widgets/custom_loading_widget.dart';
 import 'package:two_one_two_messenger/widgets/intl_widget.dart';
 
-import '../cubit/otp_verify_cubit.dart';
 import '../cubit/send_otp_cubit.dart';
 import '../cubit/send_otp_state.dart';
 import '../database/local_db.dart';
@@ -28,7 +24,6 @@ import '../utils/text_style.dart';
 import '../widgets/svg_images.dart';
 import '../widgets/text_fields.dart';
 import '../utils/utils.dart';
-import 'home_screen.dart';
 import 'otp_verify_screen.dart';
 
 class LoginScreen extends StatefulWidget {

@@ -42,7 +42,6 @@ import 'services/api_client.dart';
 import 'services/deep_link_handler.dart';
 import 'services/push_notifications.dart';
 import 'utils/constants.dart';
-import 'utils/navigation.dart';
 import 'utils/theme.dart';
 import 'widgets/loader.dart';
 

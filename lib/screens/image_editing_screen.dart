@@ -10,10 +10,10 @@ class ImageEditorScreen extends StatelessWidget {
   final Function(File) onImageEdited;
 
   const ImageEditorScreen({
-    Key? key,
+    super.key,
     required this.selectedFile,
     required this.onImageEdited,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,15 +24,13 @@ class ImageEditorScreen extends StatelessWidget {
         configs: ProImageEditorConfigs(theme: AppTheme.darkTheme),
         callbacks: ProImageEditorCallbacks(
           onImageEditingComplete: (editedImage) async {
-            if (editedImage != null) {
-              File file = await Utils.uint8ListToFile(editedImage,
-                  DateTime.now().millisecondsSinceEpoch.toString());
-              Navigator.pop(context);
-              // Pass edited image back
-              onImageEdited(file);
+            File file = await Utils.uint8ListToFile(editedImage,
+                DateTime.now().millisecondsSinceEpoch.toString());
+            Navigator.pop(context);
+            // Pass edited image back
+            onImageEdited(file);
 
-              // Close the editor screen
-            }
+            // Close the editor screen
           },
           // onCloseEditor: () {
           //   debugPrint("close Editor");

@@ -88,7 +88,6 @@ class _ArchiveChatsState extends State<ArchiveChats> {
                       participant = null;
                     }
                   }
-                  if (widget.user == null) return SizedBox();
 
                   return ConversationTile(
                       user: widget.user,

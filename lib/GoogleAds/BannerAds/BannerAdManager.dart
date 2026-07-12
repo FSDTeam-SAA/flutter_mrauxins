@@ -21,7 +21,7 @@ class _BannerAdManagerState extends State<BannerAdManager> {
   bool isLoaded = false;
   bool showBanner = false;
   bool isAdmob = false;
-  
+
 
   @override
   void initState() {
@@ -76,6 +76,7 @@ class _BannerAdManagerState extends State<BannerAdManager> {
     }
   }
 
+  @override
   Widget build(BuildContext context) {
     return showBanner && isLoaded
         ? BlocBuilder<AdsConfigCubit, AdsConfigState>(

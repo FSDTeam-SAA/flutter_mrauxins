@@ -47,7 +47,6 @@ class InAppPurchaseService {
       final product = _products.firstWhere(
         (p) => p.id == productId,
       );
-      if (product == null) return;
 
       final purchaseParam = PurchaseParam(productDetails: product);
       _iap.buyNonConsumable(purchaseParam: purchaseParam);
