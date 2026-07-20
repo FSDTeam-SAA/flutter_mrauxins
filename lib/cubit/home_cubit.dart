@@ -936,8 +936,6 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> updateGroup(
       BuildContext context, String groupId, ChatType chatType,
       {bool showSuccessMessage = true}) async {
-      BuildContext context, String groupId, ChatType chatType,
-      {bool showSuccessMessage = true}) async {
     Utils.showLoader();
 
     try {
