@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -59,6 +60,7 @@ class ChatScreen extends StatefulWidget {
   bool isSendMessage;
   final bool isDeletedUser;
   final bool restrictContentSharing;
+  final bool restrictContentSharing;
   final ParticipantDetail? createdBy;
   String aesKey;
 
@@ -71,6 +73,7 @@ class ChatScreen extends StatefulWidget {
     this.chatId = '',
     this.lastMessage,
     this.isDeletedUser = false,
+    this.restrictContentSharing = false,
     this.restrictContentSharing = false,
     required this.chatType,
     required this.isShowProfileImage,
@@ -563,6 +566,7 @@ class _ChatScreenState extends State<ChatScreen> {
       },
       child: SafeArea(
         top: false,
+        bottom: false,
         bottom: false,
         child: Scaffold(
           backgroundColor: AppColors.scaffoldBgDark,
@@ -1458,6 +1462,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                     //     chatList[index].key;
                                     child = ChatBubble(
                                         aesKey: widget.aesKey,
+                                        isShowProfileImage: widget
+                                            .isShowProfileImage,
                                         isShowProfileImage: widget
                                             .isShowProfileImage,
                                         message: chatList[index],

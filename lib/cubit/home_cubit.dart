@@ -778,6 +778,10 @@ class HomeCubit extends Cubit<HomeState> {
         hideMembersInfo: false,
         hideNewMembersMessage: false,
         restrictContentSharing: false,
+        privateGroup: false,
+        hideMembersInfo: false,
+        hideNewMembersMessage: false,
+        restrictContentSharing: false,
         groupNameController: TextEditingController(),
         clearSelectedGroupPic: true,
         isUpdateGroupData: true,
@@ -936,6 +940,8 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> updateGroup(
       BuildContext context, String groupId, ChatType chatType,
       {bool showSuccessMessage = true}) async {
+      BuildContext context, String groupId, ChatType chatType,
+      {bool showSuccessMessage = true}) async {
     Utils.showLoader();
 
     try {
@@ -975,6 +981,10 @@ class HomeCubit extends Cubit<HomeState> {
           clearSelectedGroupPic();
         }
         // NavigationService().popUntil();
+        if (showSuccessMessage) {
+          Utils.showSnackBar(context,
+              S.current.groupOrChannelUpdateSuccessfully(chatType.name));
+        }
         if (showSuccessMessage) {
           Utils.showSnackBar(context,
               S.current.groupOrChannelUpdateSuccessfully(chatType.name));

@@ -367,6 +367,11 @@ class FireBaseNotification {
         payloadData["body"] ??
         payloadData["content"] ??
         "";
+    final title = notification?.title ?? payloadData["title"] ?? "The 212";
+    final body = notification?.body ??
+        payloadData["body"] ??
+        payloadData["content"] ??
+        "";
     showMessage(
         'LocalNotification showNotification Offline payload==> ${message.data}');
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
@@ -392,6 +397,10 @@ class FireBaseNotification {
       ),
     );
     await flutterLocalNotificationsPlugin.show(
+        DateTime.now().millisecondsSinceEpoch.remainder(100000),
+        title,
+        body,
+        platformChannelSpecifics,
         DateTime.now().millisecondsSinceEpoch.remainder(100000),
         title,
         body,

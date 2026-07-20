@@ -17,7 +17,6 @@
 .idea/
 
 # Visual Studio Code related
-.vscode/
 
 # Flutter/Dart-specific
 .dart_tool/
@@ -44,3 +43,7 @@
 **/.dart_tool/
 **/local.properties
 **/.flutter-plugins-dependencies
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore

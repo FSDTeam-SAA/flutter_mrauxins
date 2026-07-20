@@ -335,6 +335,7 @@ class HomeState extends Equatable {
 //     AllUserData? allUserData,
 //     bool? getAllUsersLoadMore,   bool? showProfilePhotoForGroup,
 // bool? getCallsHistoryLoadMore, bool? getAllNotificationLoadMore,
+// bool? getCallsHistoryLoadMore, bool? getAllNotificationLoadMore,
 
 //     bool? sendMessageForGroup,
 //     bool? isUpdateGroupData,
