@@ -60,7 +60,6 @@ class ChatScreen extends StatefulWidget {
   bool isSendMessage;
   final bool isDeletedUser;
   final bool restrictContentSharing;
-  final bool restrictContentSharing;
   final ParticipantDetail? createdBy;
   String aesKey;
 
@@ -73,7 +72,6 @@ class ChatScreen extends StatefulWidget {
     this.chatId = '',
     this.lastMessage,
     this.isDeletedUser = false,
-    this.restrictContentSharing = false,
     this.restrictContentSharing = false,
     required this.chatType,
     required this.isShowProfileImage,
