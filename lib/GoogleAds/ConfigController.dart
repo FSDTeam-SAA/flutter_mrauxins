@@ -100,6 +100,7 @@ class ConfigCubit extends Cubit<ConfigState> {
 
   Future<void> getConfigFromSharedPreferences() async {
     final String configJson = AppPreference.getString("configKey");
+    if (configJson.isEmpty) return;
 
     final configModel = configModelFromJson(configJson);
     emit(state.copyWith(configModel: configModel, isCall: true));

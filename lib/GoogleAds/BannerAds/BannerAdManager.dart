@@ -1,12 +1,14 @@
 import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:two_one_two_messenger/GoogleAds/Config.dart';
 import 'package:two_one_two_messenger/GoogleAds/adsConfigController.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
+import 'package:two_one_two_messenger/main.dart';
 
 class BannerAdManager extends StatefulWidget {
   const BannerAdManager({super.key});
@@ -15,18 +17,48 @@ class BannerAdManager extends StatefulWidget {
   State<BannerAdManager> createState() => _BannerAdManagerState();
 }
 
-class _BannerAdManagerState extends State<BannerAdManager> {
+class _BannerAdManagerState extends State<BannerAdManager> with RouteAware {
   BannerAd? _bannerAd;
   AdManagerBannerAd? bannerAdAdx;
   bool isLoaded = false;
   bool showBanner = false;
   bool isAdmob = false;
 
+  // The ad is a native platform view (white WebView). Routes are pushed as
+  // non-opaque fade transitions, so a covered screen keeps compositing its
+  // banner — and the white native view flashes through during keyboard
+  // animations on the screen above. Unmount the AdWidget while covered.
+  bool _coveredByRoute = false;
 
   @override
   void initState() {
     super.initState();
     showBannerCheck();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != null) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPushNext() {
+    setState(() => _coveredByRoute = true);
+  }
+
+  @override
+  void didPopNext() {
+    setState(() => _coveredByRoute = false);
   }
 
   Future<void> showBannerCheck() async {
@@ -78,7 +110,7 @@ class _BannerAdManagerState extends State<BannerAdManager> {
 
   @override
   Widget build(BuildContext context) {
-    return showBanner && isLoaded
+    return showBanner && isLoaded && !_coveredByRoute
         ? BlocBuilder<AdsConfigCubit, AdsConfigState>(
             builder: (context, state) {
               if (!state.isLoading) {

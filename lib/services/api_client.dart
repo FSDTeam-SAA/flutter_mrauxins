@@ -47,8 +47,9 @@ class ApiClient {
   ApiClient()
       : dio = Dio(BaseOptions(
           baseUrl: Urls.baseURL,
-          connectTimeout: const Duration(seconds: 5000),
-          receiveTimeout: const Duration(seconds: 3000),
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 30),
+          sendTimeout: const Duration(seconds: 60),
         )) {
     dio.interceptors.add(LogInterceptor(
       responseBody: true,
@@ -279,9 +280,10 @@ class ApiClient {
       // Return the parsed response
       return null;
     } on DioException catch (e, st) {
-      String errorMessage = e.response?.data['message'] ?? 'Send Otp failed';
-      AppLogger.logs('Send Otp Error: $errorMessage');
-      showMessage("Error sendOtp $e $st");
+      String errorMessage =
+          e.response?.data['message'] ?? 'Session refresh failed';
+      AppLogger.logs('Refresh Token Error: $errorMessage');
+      showMessage("Error refreshToken $e $st");
       manageLogout();
       throw Exception(errorMessage);
     }
@@ -663,21 +665,21 @@ class ApiClient {
       required BuildContext context,
       File? file}) async {
     try {
-      String fileName = '';
-
-      if (file != null) {
-        fileName = file.path.split('/').last;
-        data['files'] = [
-          await MultipartFile.fromFile(file.path,
-              filename: fileName, contentType: MediaType('image', '*'))
-        ];
-      }
-
       showMessage("Map ==? $data");
 
       final response = await putWithFormData(
         APIS.user,
-        () async => FormData.fromMap(data),
+        () async {
+          final requestData = Map<String, dynamic>.from(data);
+          if (file != null) {
+            requestData['files'] = [
+              await MultipartFile.fromFile(file.path,
+                  filename: file.path.split('/').last,
+                  contentType: MediaType('image', '*'))
+            ];
+          }
+          return FormData.fromMap(requestData);
+        },
         requiresToken: true,
       );
 

@@ -163,8 +163,8 @@ Future<void> customImagePickerwithoutMimeType(BuildContext context,
   //     onPressed: () => openAppSettings(),
   //   );
   // } else {
-  final pickedFile =
-      await ImagePicker().pickImage(source: source, imageQuality: 100);
+  final pickedFile = await ImagePicker().pickImage(
+      source: source, imageQuality: 80, maxWidth: 1280, maxHeight: 1280);
   if (pickedFile != null) {
     onImagePicked(XFile(pickedFile.path,
         name: pickedFile.name, mimeType: pickedFile.mimeType));

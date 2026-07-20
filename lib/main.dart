@@ -47,6 +47,14 @@ import 'widgets/loader.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+// Lets widgets (e.g. BannerAdManager) react when another route covers or
+// uncovers their screen. Needed because NavigationService pushes non-opaque
+// fade PageTransitions, so covered screens keep painting — including native
+// ad platform views, whose white surface can flash through during keyboard
+// animations.
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -218,7 +226,10 @@ class MyApp extends StatelessWidget {
                       locale: Provider.of<LanguageChangeProvider>(context)
                           .currentLocal,
                       home: SplashScreen(),
-                      navigatorObservers: [connectionRouteObserver],
+                      navigatorObservers: [
+                        connectionRouteObserver,
+                        routeObserver,
+                      ],
                       // onUnknownRoute: (settings) => MaterialPageRoute(
                       //   builder: (_) => SplashScreen(),
                       // ),

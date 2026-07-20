@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,7 +22,7 @@ import 'package:two_one_two_messenger/screens/group_info.dart';
 import 'package:two_one_two_messenger/screens/report_user_screen.dart';
 import 'package:two_one_two_messenger/screens/user_profile.dart';
 import 'package:two_one_two_messenger/screens/voice_call_page.dart';
-import 'package:flutter/services.dart';
+import 'package:two_one_two_messenger/services/screen_protection_service.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
 import 'package:two_one_two_messenger/utils/app_dialoge.dart';
 import 'package:two_one_two_messenger/utils/app_pop_up.dart';
@@ -96,6 +95,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   List<MessageModel> messageList = [];
   bool _isHighlightingMessage = false;
+
+  // Live copy of widget.restrictContentSharing: admins can change the group
+  // setting from the info screen while this chat is open beneath it.
+  bool _restrictContentSharing = false;
 
   final scrollController = ScrollController();
   final _scrollController = AutoScrollController(
@@ -241,13 +244,16 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     userData = context.read<UserDataCubit>().state;
+    _restrictContentSharing = widget.restrictContentSharing;
     showMessage("initState called${DateTime.now()} ${widget.chatId} ");
     init();
   }
 
   @override
   void dispose() {
-    _disableScreenProtection();
+    if (_restrictContentSharing) {
+      ScreenProtectionService.instance.disable();
+    }
     disposeAllEvents();
     messageCon.dispose();
     _focusNode.removeListener(_handleFocusChange);
@@ -257,27 +263,25 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  static const _screenProtectionChannel =
-      MethodChannel('com.212messenger/screen_protection');
-
-  Future<void> _enableScreenProtection() async {
-    if (!widget.restrictContentSharing) return;
-    try {
-      await _screenProtectionChannel.invokeMethod('enable');
-    } catch (_) {}
-  }
-
-  Future<void> _disableScreenProtection() async {
-    if (!widget.restrictContentSharing) return;
-    try {
-      await _screenProtectionChannel.invokeMethod('disable');
-    } catch (_) {}
+  // Called when returning from the group/channel info screen, where an admin
+  // may have changed Restrict Content Sharing (HomeCubit holds the value the
+  // info screen loaded/edited).
+  void _syncRestrictContentSharing(bool latest) {
+    if (!mounted || latest == _restrictContentSharing) return;
+    setState(() => _restrictContentSharing = latest);
+    if (latest) {
+      ScreenProtectionService.instance.enable();
+    } else {
+      ScreenProtectionService.instance.disable();
+    }
   }
 
   Future<void> init() async {
     try {
       _focusNode.addListener(_handleFocusChange);
-      await _enableScreenProtection();
+      if (_restrictContentSharing) {
+        ScreenProtectionService.instance.enable();
+      }
       userData ??= await chatCubit.dbHelper.getLoginData();
       chatId = widget.chatId;
       // showMessage(":: USER Is Typing ${widget.chatId} ");
@@ -1485,7 +1489,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         },
                                         onSwipe: () {},
                                         restrictContentSharing:
-                                            widget.restrictContentSharing,
+                                            _restrictContentSharing,
                                         isGroup: widget.chatType !=
                                             ChatType.one_to_one,
                                         mainContext: context);
@@ -1585,7 +1589,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                             },
                                             onSwipe: () {},
                                             restrictContentSharing:
-                                                widget.restrictContentSharing,
+                                                _restrictContentSharing,
                                             isGroup: widget.chatType !=
                                                 ChatType.one_to_one,
                                             mainContext: context),
@@ -1639,12 +1643,11 @@ class _ChatScreenState extends State<ChatScreen> {
                         false) &&
                     !(state.chatMessageModel?.isBlocked ?? false)) {
                   return Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w).copyWith(
-                      bottom: 16.h +
-                          (Platform.isIOS
-                              ? MediaQuery.of(context).viewPadding.bottom
-                              : 0),
-                    ),
+                    // The global SafeArea in main.dart already reserves the
+                    // home-indicator inset — don't add viewPadding.bottom
+                    // again here or the input bar floats above a dead gap.
+                    padding: EdgeInsets.symmetric(horizontal: 16.w)
+                        .copyWith(bottom: 16.h),
                     child: Column(
                       children: [
                         if (state.replyingToMessage != null)
@@ -1706,6 +1709,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   child: TextField(
                                     controller: messageCon,
                                     focusNode: _focusNode,
+                                    keyboardAppearance: Brightness.dark,
                                     keyboardType: TextInputType.multiline,
                                     textInputAction: TextInputAction.newline,
                                     maxLines: 5,
@@ -1987,21 +1991,27 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   GestureDetector(
                     behavior: HitTestBehavior.translucent,
-                    onTap: () {
+                    onTap: () async {
                       if (widget.chatType != ChatType.one_to_one &&
                           userData != null) {
+                        // Read before pop — the sheet's context dies with it.
+                        final homeCubit = context.read<HomeCubit>();
                         if (widget.chatType == ChatType.group) {
                           Navigator.pop(context);
-                          NavigationService().navigateTo(GroupInfoScreen(
+                          await NavigationService().navigateTo(GroupInfoScreen(
                             groupId: widget.chatId,
                             currentUser: userData!,
                           ));
+                          _syncRestrictContentSharing(
+                              homeCubit.state.restrictContentSharing);
                         } else if (widget.chatType == ChatType.channel) {
                           Navigator.pop(context);
-                          NavigationService().navigateTo(ChannelInfoScreen(
+                          await NavigationService().navigateTo(ChannelInfoScreen(
                             groupId: widget.chatId,
                             currentUser: userData!,
                           ));
+                          _syncRestrictContentSharing(
+                              homeCubit.state.restrictContentSharing);
                         }
                       }
                     },

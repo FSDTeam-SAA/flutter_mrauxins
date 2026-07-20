@@ -151,6 +151,11 @@ public final class GeneratedPluginRegistrant {
       Log.e(TAG, "Error registering plugin record_android, com.llfbandit.record.RecordPlugin", e);
     }
     try {
+      flutterEngine.getPlugins().add(new com.prongbang.screen_protector.ScreenProtectorPlugin());
+    } catch (Exception e) {
+      Log.e(TAG, "Error registering plugin screen_protector, com.prongbang.screen_protector.ScreenProtectorPlugin", e);
+    }
+    try {
       flutterEngine.getPlugins().add(new dev.fluttercommunity.plus.share.SharePlusPlugin());
     } catch (Exception e) {
       Log.e(TAG, "Error registering plugin share_plus, dev.fluttercommunity.plus.share.SharePlusPlugin", e);
