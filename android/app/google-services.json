@@ -30,6 +30,30 @@
           }
         },
         {
+          "client_id": "36500912954-acg2h6fioqatcl4ngeqv7r2rqlqaeekv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.freshcodes.twoonetwomessenger",
+            "certificate_hash": "65552b12c0799bf971e7f1837304754b27d4243a"
+          }
+        },
+        {
+          "client_id": "36500912954-bsc5qc68ef2rsv9jgjraeljk698918go.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.freshcodes.twoonetwomessenger",
+            "certificate_hash": "ea79104beb133d66e23fc0f47e20725cbc23b1b9"
+          }
+        },
+        {
+          "client_id": "36500912954-l27kgl00nt7kabc0uk9k1l3mn0gq1067.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.freshcodes.twoonetwomessenger",
+            "certificate_hash": "f993a2e1bf5464dac8abc943f2d62d8832e73087"
+          }
+        },
+        {
           "client_id": "36500912954-tbsg3r5h032m58k7fkoqjab82o9hqlc9.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
