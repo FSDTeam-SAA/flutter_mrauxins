@@ -6,9 +6,9 @@ import 'package:two_one_two_messenger/cubit/home_state.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
-import 'package:two_one_two_messenger/models/otp_verify.dart';
 import 'package:two_one_two_messenger/screens/channel_info.dart';
 import 'package:two_one_two_messenger/screens/chat/chat_dialogs.dart';
+import 'package:two_one_two_messenger/screens/chat/chat_screen_data.dart';
 import 'package:two_one_two_messenger/screens/group_info.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
 import 'package:two_one_two_messenger/utils/app_dialoge.dart';
@@ -22,11 +22,7 @@ import 'package:two_one_two_messenger/widgets/svg_images.dart';
 
 void showDraggableBottomSheet({
   required BuildContext context,
-  required ChatType chatType,
-  required String chatId,
-  required String? currentChatId,
-  required UserData? userData,
-  required int disAppearingMessagesTime,
+  required ChatScreenData data,
   required void Function(bool restrictContentSharing)
       onRestrictContentSharingChanged,
 }) {
@@ -54,20 +50,21 @@ void showDraggableBottomSheet({
                 GestureDetector(
                   behavior: HitTestBehavior.translucent,
                   onTap: () async {
-                    if (chatType != ChatType.one_to_one && userData != null) {
-                      if (chatType == ChatType.group) {
+                    if (data.chatType != ChatType.one_to_one &&
+                        data.userData != null) {
+                      if (data.chatType == ChatType.group) {
                         Navigator.pop(context);
                         await NavigationService().navigateTo(GroupInfoScreen(
-                          groupId: chatId,
-                          currentUser: userData,
+                          groupId: data.chatId,
+                          currentUser: data.userData!,
                         ));
                         onRestrictContentSharingChanged(
                             homeCubit.state.restrictContentSharing);
-                      } else if (chatType == ChatType.channel) {
+                      } else if (data.chatType == ChatType.channel) {
                         Navigator.pop(context);
                         await NavigationService().navigateTo(ChannelInfoScreen(
-                          groupId: chatId,
-                          currentUser: userData,
+                          groupId: data.chatId,
+                          currentUser: data.userData!,
                         ));
                         onRestrictContentSharingChanged(
                             homeCubit.state.restrictContentSharing);
@@ -86,7 +83,7 @@ void showDraggableBottomSheet({
                           ),
                           10.s,
                           Text(
-                            chatType == ChatType.group
+                            data.chatType == ChatType.group
                                 ? S.of(context).lblGroupInfo
                                 : S.of(context).lblChannelInfo,
                             style: AppTextStyles.regular(
@@ -107,7 +104,7 @@ void showDraggableBottomSheet({
                   behavior: HitTestBehavior.translucent,
                   onTap: () async {
                     await showClearChatDialog(
-                        context: context, chatId: currentChatId);
+                        context: context, chatId: data.currentChatId);
                     Navigator.pop(context);
                   },
                   child: Column(
@@ -141,7 +138,7 @@ void showDraggableBottomSheet({
                 //     (state.groupLoadingState != LoadingState.loading))
 
                 // for group dissapper
-                if (chatType == ChatType.group)
+                if (data.chatType == ChatType.group)
                   GestureDetector(
                     behavior: HitTestBehavior.translucent,
                     onTap: () {
@@ -151,7 +148,7 @@ void showDraggableBottomSheet({
                       Navigator.pop(context);
                       showDisappearingMessageTimerSheet(
                         context,
-                        disAppearingMessagesTime,
+                        data.disAppearingMessagesTime,
                         (p0) async {
                           // ChatMessageModel
                           // debugPrint(chatCubit.state.createConversationModel.d)
@@ -161,7 +158,7 @@ void showDraggableBottomSheet({
                                   ?.sId ??
                               "";
                           showMessage("updateMessageAutoDeleteTime call => ${{
-                            "chatId": currentChatId,
+                            "chatId": data.currentChatId,
                             "messageAutoDeleteTime": p0,
                             "messageId": DateTime.now()
                                 .millisecondsSinceEpoch
@@ -171,7 +168,7 @@ void showDraggableBottomSheet({
 
                           SocketService().sendEvent(
                               AppConstants.updateMessageAutoDeleteTime, {
-                            "chatId": currentChatId,
+                            "chatId": data.currentChatId,
                             "messageAutoDeleteTime": p0,
                             "messageId": DateTime.now()
                                 .millisecondsSinceEpoch
@@ -209,21 +206,22 @@ void showDraggableBottomSheet({
                     ),
                   ),
 
-                if (chatType == ChatType.group)
+                if (data.chatType == ChatType.group)
                   GestureDetector(
                     behavior: HitTestBehavior.translucent,
                     onTap: () {
                       Navigator.pop(context);
                       showCommonAlertDialog(
                         context: context,
-                        title: chatType == ChatType.group
+                        title: data.chatType == ChatType.group
                             ? S.of(context).leaveGroup
                             : S.of(context).leaveChannel,
-                        subTitle: chatType == ChatType.group
+                        subTitle: data.chatType == ChatType.group
                             ? S.of(context).lblLeaveGroupSubTitle
                             : S.of(context).lblLeaveChannelSubTitle,
                         submitBtnText: S.of(context).yes,
-                        onSubmit: () => homeCubit.leaveGroup(context, chatId),
+                        onSubmit: () =>
+                            homeCubit.leaveGroup(context, data.chatId),
                       );
                     },
                     child: Column(
@@ -238,7 +236,7 @@ void showDraggableBottomSheet({
                             ),
                             10.s,
                             Text(
-                              chatType == ChatType.group
+                              data.chatType == ChatType.group
                                   ? S.of(context).leaveGroup
                                   : S.of(context).leaveChannel,
                               style: AppTextStyles.regular(
@@ -257,21 +255,22 @@ void showDraggableBottomSheet({
                   ),
                 if ((state.groupData?.isCreatedBy ?? false) &&
                     (state.groupLoadingState != LoadingState.loading) &&
-                    chatType == ChatType.channel)
+                    data.chatType == ChatType.channel)
                   GestureDetector(
                     behavior: HitTestBehavior.translucent,
                     onTap: () {
                       Navigator.pop(context);
                       showCommonAlertDialog(
                         context: context,
-                        title: chatType == ChatType.group
+                        title: data.chatType == ChatType.group
                             ? S.of(context).deleteGroup
                             : S.of(context).deleteChannel,
-                        subTitle: chatType == ChatType.group
+                        subTitle: data.chatType == ChatType.group
                             ? S.of(context).lblDeleteGroupSubTitle
                             : S.of(context).lblDeleteChannelSubTitle,
                         submitBtnText: S.of(context).delete,
-                        onSubmit: () => homeCubit.deleteGroup(context, chatId),
+                        onSubmit: () =>
+                            homeCubit.deleteGroup(context, data.chatId),
                       );
                     },
                     child: Column(
@@ -286,7 +285,7 @@ void showDraggableBottomSheet({
                             ),
                             10.s,
                             Text(
-                              chatType == ChatType.group
+                              data.chatType == ChatType.group
                                   ? S.of(context).deleteGroup
                                   : S.of(context).deleteChannel,
                               style: AppTextStyles.regular(
@@ -302,25 +301,26 @@ void showDraggableBottomSheet({
 
                 if ((state.groupData?.isCreatedBy ?? false) &&
                     (state.groupLoadingState != LoadingState.loading) &&
-                    chatType == ChatType.group &&
+                    data.chatType == ChatType.group &&
                     ((state.groupData?.participants ?? []).isNotEmpty &&
                         (state.groupData?.participants ?? []).length == 1 &&
                         ((state.groupData?.participants ?? []).first.id ==
-                            (userData?.sId ?? ""))))
+                            (data.userData?.sId ?? ""))))
                   GestureDetector(
                     behavior: HitTestBehavior.translucent,
                     onTap: () {
                       Navigator.pop(context);
                       showCommonAlertDialog(
                         context: context,
-                        title: chatType == ChatType.group
+                        title: data.chatType == ChatType.group
                             ? S.of(context).deleteGroup
                             : S.of(context).deleteChannel,
-                        subTitle: chatType == ChatType.group
+                        subTitle: data.chatType == ChatType.group
                             ? S.of(context).lblDeleteGroupSubTitle
                             : S.of(context).lblDeleteChannelSubTitle,
                         submitBtnText: S.of(context).delete,
-                        onSubmit: () => homeCubit.deleteGroup(context, chatId),
+                        onSubmit: () =>
+                            homeCubit.deleteGroup(context, data.chatId),
                       );
                     },
                     child: Column(
@@ -335,7 +335,7 @@ void showDraggableBottomSheet({
                             ),
                             10.s,
                             Text(
-                              chatType == ChatType.group
+                              data.chatType == ChatType.group
                                   ? S.of(context).deleteGroup
                                   : S.of(context).deleteChannel,
                               style: AppTextStyles.regular(

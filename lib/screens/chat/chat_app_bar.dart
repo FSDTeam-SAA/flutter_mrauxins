@@ -8,10 +8,10 @@ import 'package:two_one_two_messenger/cubit/home_state.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/date_format.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
-import 'package:two_one_two_messenger/models/conversation_model.dart';
 import 'package:two_one_two_messenger/models/otp_verify.dart';
 import 'package:two_one_two_messenger/screens/chat/chat_bottom_sheets.dart';
 import 'package:two_one_two_messenger/screens/chat/chat_dialogs.dart';
+import 'package:two_one_two_messenger/screens/chat/chat_screen_data.dart';
 import 'package:two_one_two_messenger/screens/groupCall.dart';
 import 'package:two_one_two_messenger/screens/report_user_screen.dart';
 import 'package:two_one_two_messenger/screens/user_profile.dart';
@@ -29,17 +29,7 @@ import 'package:two_one_two_messenger/widgets/sent_media_widgets.dart';
 import 'package:two_one_two_messenger/widgets/svg_images.dart';
 
 class ChatAppBar extends StatefulWidget implements PreferredSizeWidget {
-  final ChatType chatType;
-  final String chatId;
-  final String? currentChatId;
-  final String userId;
-  final String userName;
-  final String userPic;
-  final ParticipantDetail? sender;
-  final bool isSendMessage;
-  final bool isDeletedUser;
-  final UserData? userData;
-  final int disAppearingMessagesTime;
+  final ChatScreenData data;
   final void Function(bool newStatus) onNickNameStatusChanged;
   final void Function({required String? newNickName, required bool? newStatus})
       onNickNameChanged;
@@ -48,17 +38,7 @@ class ChatAppBar extends StatefulWidget implements PreferredSizeWidget {
 
   const ChatAppBar({
     super.key,
-    required this.chatType,
-    required this.chatId,
-    required this.currentChatId,
-    required this.userId,
-    required this.userName,
-    required this.userPic,
-    required this.sender,
-    required this.isSendMessage,
-    required this.isDeletedUser,
-    required this.userData,
-    required this.disAppearingMessagesTime,
+    required this.data,
     required this.onNickNameStatusChanged,
     required this.onNickNameChanged,
     required this.onRestrictContentSharingChanged,
@@ -85,13 +65,14 @@ class _ChatAppBarState extends State<ChatAppBar> {
 
   @override
   Widget build(BuildContext context) {
+    final data = widget.data;
     return AppBar(
       backgroundColor: AppColors.dark,
       leading: IconButton(
         onPressed: () async {
           context
               .read<ChatCubit>()
-              .changeChatPageStatus('', false, widget.userData?.sId ?? "");
+              .changeChatPageStatus('', false, data.userData?.sId ?? "");
           await NavigationService().goBack();
         },
         icon: SvgImage(
@@ -105,13 +86,13 @@ class _ChatAppBarState extends State<ChatAppBar> {
           GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: () {
-                if (widget.chatType == ChatType.one_to_one &&
-                    widget.sender != null &&
-                    widget.sender?.isOnline != null) {
+                if (data.chatType == ChatType.one_to_one &&
+                    data.sender != null &&
+                    data.sender?.isOnline != null) {
                   NavigationService().navigateTo(
                     UserProfileScreen(
                       user: UserData.fromJson(
-                        widget.sender!.toJson(),
+                        data.sender!.toJson(),
                       ),
                       onNickNameStatusChangge: (newStatus) {
                         widget.onNickNameStatusChanged(newStatus);
@@ -127,19 +108,19 @@ class _ChatAppBarState extends State<ChatAppBar> {
               },
               child: BlocBuilder<HomeCubit, HomeState>(
                   builder: (contextChat, state) {
-                final hideGroupPhoto = (widget.chatType == ChatType.channel ||
-                        widget.chatType == ChatType.group) &&
+                final hideGroupPhoto = (data.chatType == ChatType.channel ||
+                        data.chatType == ChatType.group) &&
                     !(state.groupData?.isGroupProfilePhoto ?? true);
                 return AvatarWidgets(
                   userPic: hideGroupPhoto
                       ? ''
-                      : (widget.chatType == ChatType.channel ||
-                              widget.chatType == ChatType.group)
-                          ? (state.groupData?.groupImage ?? widget.userPic)
-                          : widget.userPic,
-                  svgAvatar: (widget.chatType == ChatType.channel)
+                      : (data.chatType == ChatType.channel ||
+                              data.chatType == ChatType.group)
+                          ? (state.groupData?.groupImage ?? data.userPic)
+                          : data.userPic,
+                  svgAvatar: (data.chatType == ChatType.channel)
                       ? SvgAssets.megaphone
-                      : (widget.chatType == ChatType.group)
+                      : (data.chatType == ChatType.group)
                           ? SvgAssets.person2
                           : SvgAssets.icPerson,
                 );
@@ -152,12 +133,12 @@ class _ChatAppBarState extends State<ChatAppBar> {
                 BlocBuilder<HomeCubit, HomeState>(
                     builder: (contextChat, state) {
                   return Text(
-                    (widget.chatType == ChatType.channel ||
-                            widget.chatType == ChatType.group)
-                        ? (state.groupData?.groupName ?? widget.userName)
-                        : ((widget.sender?.isActiveNickname ?? false)
-                            ? (widget.sender?.nickName ?? widget.userName)
-                            : widget.sender?.name ?? widget.userName),
+                    (data.chatType == ChatType.channel ||
+                            data.chatType == ChatType.group)
+                        ? (state.groupData?.groupName ?? data.userName)
+                        : ((data.sender?.isActiveNickname ?? false)
+                            ? (data.sender?.nickName ?? data.userName)
+                            : data.sender?.name ?? data.userName),
                     style: AppTextStyles.medium(fontSize: 16.sp),
                   );
                 }),
@@ -166,7 +147,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
                 ),
                 BlocBuilder<ChatCubit, ChatState>(
                     builder: (contextChat, state) {
-                  if (widget.chatType == ChatType.one_to_one) {
+                  if (data.chatType == ChatType.one_to_one) {
                     return Text(
                       (state.chatMessageModel?.isOnline ?? false)
                           ? S.of(context).online
@@ -187,7 +168,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
                         state.groupData?.participants?.length ??
                         0;
                     return Text(
-                      (widget.chatType == ChatType.group)
+                      (data.chatType == ChatType.group)
                           ? S.of(context).noOfMember(count)
                           : S.of(context).noOfSubscriber(count),
                       // "",
@@ -211,9 +192,9 @@ class _ChatAppBarState extends State<ChatAppBar> {
         ),
       ),
       actions: [
-        if (widget.chatType != ChatType.channel)
+        if (data.chatType != ChatType.channel)
           BlocBuilder<HomeCubit, HomeState>(builder: (contextHome, homeState) {
-            final bool isGroup = widget.chatType == ChatType.group;
+            final bool isGroup = data.chatType == ChatType.group;
             final int memberCount =
                 homeState.groupData?.participants?.length ?? 0;
 
@@ -222,8 +203,8 @@ class _ChatAppBarState extends State<ChatAppBar> {
 
             return BlocBuilder<ChatCubit, ChatState>(
                 builder: (contextChat, state) {
-              if (!(widget.isSendMessage) ||
-                  (widget.isDeletedUser) ||
+              if (!(data.isSendMessage) ||
+                  (data.isDeletedUser) ||
                   (state.chatMessageModel?.youBlocked ?? false) ||
                   (state.chatMessageModel?.removeFromChat ?? false) ||
                   (state.chatMessageModel?.otherUserRemoveFromChat ??
@@ -234,19 +215,19 @@ class _ChatAppBarState extends State<ChatAppBar> {
               }
               return GestureDetector(
                 onTap: () {
-                  if ((widget.chatType == ChatType.one_to_one)) {
+                  if ((data.chatType == ChatType.one_to_one)) {
                     NavigationService().navigateTo(CallingPage(
                       callType: CallType.video,
-                      currentConversationId: widget.chatId.isEmpty
+                      currentConversationId: data.chatId.isEmpty
                           ? (chatCubit.state.currentConversationId ??
-                              widget.currentChatId ??
+                              data.currentChatId ??
                               "")
-                          : widget.chatId,
-                      image: widget.userPic ?? "",
-                      receiverId: widget.userId,
-                      // name: widget.userName ?? '',
+                          : data.chatId,
+                      image: data.userPic ?? "",
+                      receiverId: data.userId,
+                      // name: data.userName ?? '',
                       name: AppMethods.getNickNameForParticipateDetails(
-                          widget.sender),
+                          data.sender),
                       isActive: false,
                       from: "chatPage",
                     ));
@@ -257,14 +238,14 @@ class _ChatAppBarState extends State<ChatAppBar> {
 
                     NavigationService().navigateTo(GroupCallingPage(
                       callType: CallType.video_group_call,
-                      currentConversationId: widget.chatId.isEmpty
+                      currentConversationId: data.chatId.isEmpty
                           ? (chatCubit.state.currentConversationId ??
-                              widget.currentChatId ??
+                              data.currentChatId ??
                               "")
-                          : widget.chatId,
-                      image: widget.userPic ?? "",
-                      receiverId: widget.userId,
-                      name: widget.userName ?? '',
+                          : data.chatId,
+                      image: data.userPic ?? "",
+                      receiverId: data.userId,
+                      name: data.userName ?? '',
                       isActive: false,
                       from: "chatPage",
                     ));
@@ -283,9 +264,9 @@ class _ChatAppBarState extends State<ChatAppBar> {
               );
             });
           }),
-        if (widget.chatType != ChatType.channel)
+        if (data.chatType != ChatType.channel)
           BlocBuilder<HomeCubit, HomeState>(builder: (contextHome, homeState) {
-            final bool isGroup = widget.chatType == ChatType.group;
+            final bool isGroup = data.chatType == ChatType.group;
             final int memberCount =
                 homeState.groupData?.participants?.length ?? 0;
 
@@ -294,8 +275,8 @@ class _ChatAppBarState extends State<ChatAppBar> {
 
             return BlocBuilder<ChatCubit, ChatState>(
                 builder: (contextChat, state) {
-              if (!(widget.isSendMessage) ||
-                  (widget.isDeletedUser) ||
+              if (!(data.isSendMessage) ||
+                  (data.isDeletedUser) ||
                   (state.chatMessageModel?.youBlocked ?? false) ||
                   (state.chatMessageModel?.removeFromChat ?? false) ||
                   (state.chatMessageModel?.otherUserRemoveFromChat ??
@@ -306,33 +287,33 @@ class _ChatAppBarState extends State<ChatAppBar> {
               }
               return GestureDetector(
                 onTap: () {
-                  if ((widget.chatType == ChatType.one_to_one)) {
+                  if ((data.chatType == ChatType.one_to_one)) {
                     NavigationService().navigateTo(CallingPage(
                       callType: CallType.voice,
-                      currentConversationId: widget.chatId.isEmpty
+                      currentConversationId: data.chatId.isEmpty
                           ? (chatCubit.state.currentConversationId ??
-                              widget.currentChatId ??
+                              data.currentChatId ??
                               "")
-                          : widget.chatId,
-                      image: widget.userPic ?? "",
-                      // name: widget.userName ?? '',
+                          : data.chatId,
+                      image: data.userPic ?? "",
+                      // name: data.userName ?? '',
                       name: AppMethods.getNickNameForParticipateDetails(
-                          widget.sender),
-                      receiverId: widget.userId,
+                          data.sender),
+                      receiverId: data.userId,
                       isActive: false,
                       from: "chatPage",
                     ));
                   } else {
                     NavigationService().navigateTo(GroupCallingPage(
                       callType: CallType.voice_group_call,
-                      currentConversationId: widget.chatId.isEmpty
+                      currentConversationId: data.chatId.isEmpty
                           ? (chatCubit.state.currentConversationId ??
-                              widget.currentChatId ??
+                              data.currentChatId ??
                               "")
-                          : widget.chatId,
-                      image: widget.userPic ?? "",
-                      name: widget.userName ?? '',
-                      receiverId: widget.userId,
+                          : data.chatId,
+                      image: data.userPic ?? "",
+                      name: data.userName ?? '',
+                      receiverId: data.userId,
                       isActive: false,
                       from: "chatPage",
                     ));
@@ -365,7 +346,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
                   color: AppColors.white),
               onSelected: (value) {
                 showClearChatDialog(
-                    context: context, chatId: widget.currentChatId);
+                    context: context, chatId: data.currentChatId);
               },
               itemBuilder: (BuildContext context) =>
                   <PopupMenuEntry<MessageOption>>[
@@ -382,7 +363,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
           return IconButton(
             key: _actionButtonKey,
             onPressed: () {
-              if ((widget.chatType != ChatType.one_to_one)) {
+              if ((data.chatType != ChatType.one_to_one)) {
                 if ((state.chatMessageModel?.removeFromChat ?? false) ||
                     (state.chatMessageModel?.otherUserRemoveFromChat ??
                         false)) {
@@ -390,11 +371,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
                 }
                 showDraggableBottomSheet(
                   context: context,
-                  chatType: widget.chatType,
-                  chatId: widget.chatId,
-                  currentChatId: widget.currentChatId,
-                  userData: widget.userData,
-                  disAppearingMessagesTime: widget.disAppearingMessagesTime,
+                  data: data,
                   onRestrictContentSharingChanged:
                       widget.onRestrictContentSharingChanged,
                 );
@@ -408,11 +385,11 @@ class _ChatAppBarState extends State<ChatAppBar> {
                       color: AppColors.white,
                     ),
                     onTap: () {
-                      if (widget.chatType == ChatType.one_to_one &&
-                          widget.sender != null &&
-                          widget.sender?.isOnline != null) {
+                      if (data.chatType == ChatType.one_to_one &&
+                          data.sender != null &&
+                          data.sender?.isOnline != null) {
                         NavigationService().navigateTo(UserProfileScreen(
-                          user: UserData.fromJson(widget.sender!.toJson()),
+                          user: UserData.fromJson(data.sender!.toJson()),
                         ));
                       }
                     },
@@ -427,7 +404,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
                       onTap: () {
                         showDisappearingMessageTimerSheet(
                           context,
-                          widget.disAppearingMessagesTime,
+                          data.disAppearingMessagesTime,
                           (value) async {
                             String senderId = userDataCubit.state?.sId ??
                                 (await chatCubit.dbHelper.getLoginData())
@@ -435,7 +412,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
                                 "";
                             showMessage(
                                 "updateMessageAutoDeleteTime call => ${{
-                              "chatId": widget.currentChatId,
+                              "chatId": data.currentChatId,
                               "messageAutoDeleteTime": value,
                               "messageId": DateTime.now()
                                   .millisecondsSinceEpoch
@@ -444,7 +421,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
                             }}");
                             SocketService().sendEvent(
                                 AppConstants.updateMessageAutoDeleteTime, {
-                              "chatId": widget.currentChatId,
+                              "chatId": data.currentChatId,
                               "messageAutoDeleteTime": value,
                               "messageId": DateTime.now()
                                   .millisecondsSinceEpoch
@@ -455,7 +432,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
                         );
                       },
                     ),
-                  if (!widget.isDeletedUser)
+                  if (!data.isDeletedUser)
                     ChatOption(
                       value: "reportUser",
                       name: S.of(context).reportUser,
@@ -468,8 +445,8 @@ class _ChatAppBarState extends State<ChatAppBar> {
                                 "Report User $reason   $description");
 
                             await homeCubit.reportUser(
-                                userId: widget.userId,
-                                userName: widget.userName,
+                                userId: data.userId,
+                                userName: data.userName,
                                 reason: reason,
                                 description: description,
                                 context: context);
@@ -477,7 +454,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
                         ));
                       },
                     ),
-                  if (!widget.isDeletedUser)
+                  if (!data.isDeletedUser)
                     ChatOption(
                       value: "blockedUser",
                       name: (state.chatMessageModel?.youBlocked ?? false)
@@ -496,7 +473,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
                               icon: Icons.person_off,
                               onSubmit: () {
                                 homeCubit.unBlockedUser(
-                                  userId: widget.userId,
+                                  userId: data.userId,
                                   context: context,
                                   callback: () async {
                                     chatCubit.handleUnblockUser(false);
@@ -505,23 +482,23 @@ class _ChatAppBarState extends State<ChatAppBar> {
                                         S
                                             .of(context)
                                             .unblockUserSuccessfully(
-                                                widget.userName ?? ""));
+                                                data.userName ?? ""));
                                   },
                                 );
                               },
                               title: S.of(context).unblockUserTitle,
                               subTitle: S
                                   .of(context)
-                                  .unblockUserSubtitle(widget.userName));
+                                  .unblockUserSubtitle(data.userName));
                         } else {
                           showCommonBlockUserDialog(
                               context: context,
                               onSubmit: () {
                                 homeCubit.blockedUser(
-                                  chatId: widget.currentChatId ??
+                                  chatId: data.currentChatId ??
                                       chatCubit.state.currentConversationId ??
-                                      widget.chatId,
-                                  userId: widget.userId,
+                                      data.chatId,
+                                  userId: data.userId,
                                   context: context,
                                   callback: () async {
                                     chatCubit.handleUnblockUser(true);
@@ -530,13 +507,13 @@ class _ChatAppBarState extends State<ChatAppBar> {
                                         S
                                             .of(context)
                                             .blockUserSuccessfully(
-                                                widget.userName ?? ""));
+                                                data.userName ?? ""));
                                   },
                                 );
                               },
                               title: S.of(context).blockUserTitle,
                               subTitle: S.of(context).blockUserSubtitle(
-                                  widget.userName ??
+                                  data.userName ??
                                       S.of(context).blockedContacts));
                         }
                       },
@@ -550,7 +527,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
                     ),
                     onTap: () {
                       showClearChatDialog(
-                          context: context, chatId: widget.currentChatId);
+                          context: context, chatId: data.currentChatId);
                     },
                   ),
                 ];

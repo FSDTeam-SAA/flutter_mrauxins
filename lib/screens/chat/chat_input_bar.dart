@@ -7,7 +7,7 @@ import 'package:two_one_two_messenger/cubit/chat_state.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
-import 'package:two_one_two_messenger/models/otp_verify.dart';
+import 'package:two_one_two_messenger/screens/chat/chat_screen_data.dart';
 import 'package:two_one_two_messenger/utils/colors.dart';
 import 'package:two_one_two_messenger/utils/constants.dart';
 import 'package:two_one_two_messenger/utils/text_style.dart';
@@ -17,23 +17,13 @@ import 'package:two_one_two_messenger/widgets/sent_media_widgets.dart';
 import 'package:two_one_two_messenger/widgets/svg_images.dart';
 
 class ChatInputBar extends StatelessWidget {
-  final ChatType chatType;
-  final String userName;
-  final String aesKey;
-  final bool isSendMessage;
-  final String? currentChatId;
-  final UserData? userData;
+  final ChatScreenData data;
   final TextEditingController messageCon;
   final FocusNode focusNode;
 
   const ChatInputBar({
     super.key,
-    required this.chatType,
-    required this.userName,
-    required this.aesKey,
-    required this.isSendMessage,
-    required this.currentChatId,
-    required this.userData,
+    required this.data,
     required this.messageCon,
     required this.focusNode,
   });
@@ -41,7 +31,7 @@ class ChatInputBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChatCubit, ChatState>(builder: (contextChat, state) {
-      if (isSendMessage &&
+      if (data.isSendMessage &&
           !(state.chatMessageModel?.youBlocked ?? false) &&
           !((state.chatMessageModel?.removeFromChat ?? false)) &&
           !(state.chatMessageModel?.otherUserRemoveFromChat ?? false) &&
@@ -95,7 +85,7 @@ class ChatInputBar extends StatelessWidget {
                         message: state.replyingToMessage!,
                         isSender:
                             state.replyingToMessage?.sender?.id ==
-                                userData?.sId,
+                                data.userData?.sId,
                       ),
                     ],
                   ),
@@ -140,9 +130,9 @@ class ChatInputBar extends StatelessWidget {
                                   return InkWell(
                                       onTap: () {
                                         buildBottomSheet(
-                                            chatId: currentChatId,
+                                            chatId: data.currentChatId,
                                             context: context,
-                                            aesKey: aesKey,
+                                            aesKey: data.aesKey,
                                             replyMessage:
                                                 state.replyingToMessage,
                                             isFromSavedMessage: false);
@@ -167,15 +157,15 @@ class ChatInputBar extends StatelessWidget {
                   GestureDetector(
                     behavior: HitTestBehavior.translucent,
                     onTap: () async {
-                      showMessage("ChatID::::$currentChatId");
+                      showMessage("ChatID::::${data.currentChatId}");
 
                       if (messageCon.text.trim().isNotEmpty) {
                         await chatCubit
                             .sentMessage(context,
                                 mediaType: 0,
                                 mimeType: MimeType.none,
-                                chatId: currentChatId ?? '',
-                                aesKey: aesKey,
+                                chatId: data.currentChatId ?? '',
+                                aesKey: data.aesKey,
                                 content: messageCon.text.trim(),
                                 replyMessage: state.replyingToMessage
                                 // callback: (sentMessageModel) {
@@ -213,8 +203,8 @@ class ChatInputBar extends StatelessWidget {
             alignment: Alignment.center,
             padding: EdgeInsets.all(16.w),
             color: AppColors.dialogBg,
-            child:
-                Text(S.of(context).blockedUserCannotSendMessage(userName)));
+            child: Text(
+                S.of(context).blockedUserCannotSendMessage(data.userName)));
       } else if ((state.chatMessageModel?.removeFromChat ?? false)) {
         return Container(
             width: double.infinity,
@@ -222,7 +212,7 @@ class ChatInputBar extends StatelessWidget {
             padding: EdgeInsets.all(16.w),
             color: AppColors.dialogBg,
             child: Text(S.of(context).removedUserCannotSendMessage(
-                chatType == ChatType.group
+                data.chatType == ChatType.group
                     ? S.of(context).group
                     : S.of(context).channel)));
       } else if ((state.chatMessageModel?.otherUserRemoveFromChat ?? false)) {
@@ -238,9 +228,10 @@ class ChatInputBar extends StatelessWidget {
             alignment: Alignment.center,
             padding: EdgeInsets.all(16.w),
             color: AppColors.dialogBg,
-            child: Text(
-                S.of(context).userBlockedYouSoCannotSendMessage(userName)));
-      } else if (!isSendMessage) {
+            child: Text(S
+                .of(context)
+                .userBlockedYouSoCannotSendMessage(data.userName)));
+      } else if (!data.isSendMessage) {
         return Container(
             width: double.infinity,
             alignment: Alignment.center,

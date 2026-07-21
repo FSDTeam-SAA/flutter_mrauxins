@@ -12,6 +12,7 @@ import 'package:two_one_two_messenger/models/conversation_model.dart';
 import 'package:two_one_two_messenger/screens/chat/chat_app_bar.dart';
 import 'package:two_one_two_messenger/screens/chat/chat_input_bar.dart';
 import 'package:two_one_two_messenger/screens/chat/chat_message_list.dart';
+import 'package:two_one_two_messenger/screens/chat/chat_screen_data.dart';
 import 'package:two_one_two_messenger/services/screen_protection_service.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
 
@@ -533,6 +534,23 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final chatData = ChatScreenData(
+      chatType: widget.chatType,
+      chatId: widget.chatId,
+      currentChatId: chatId,
+      userId: widget.userId,
+      userName: widget.userName,
+      userPic: widget.userPic,
+      aesKey: widget.aesKey,
+      sender: widget.sender,
+      isSendMessage: widget.isSendMessage,
+      isDeletedUser: widget.isDeletedUser,
+      isShowProfileImage: widget.isShowProfileImage,
+      restrictContentSharing: _restrictContentSharing,
+      userData: userData,
+      disAppearingMessagesTime: disAppearingMessagesTime,
+      groupMessageString: groupMessageString,
+    );
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, result) async {
@@ -553,17 +571,7 @@ class _ChatScreenState extends State<ChatScreen> {
           backgroundColor: AppColors.scaffoldBgDark,
           resizeToAvoidBottomInset: true,
           appBar: ChatAppBar(
-            chatType: widget.chatType,
-            chatId: widget.chatId,
-            currentChatId: chatId,
-            userId: widget.userId,
-            userName: widget.userName,
-            userPic: widget.userPic,
-            sender: widget.sender,
-            isSendMessage: widget.isSendMessage,
-            isDeletedUser: widget.isDeletedUser,
-            userData: userData,
-            disAppearingMessagesTime: disAppearingMessagesTime,
+            data: chatData,
             onNickNameStatusChanged: _onNickNameStatusChanged,
             onNickNameChanged: _onNickNameChanged,
             onRestrictContentSharingChanged: _syncRestrictContentSharing,
@@ -572,14 +580,7 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               Expanded(
                 child: ChatMessageList(
-                  chatType: widget.chatType,
-                  aesKey: widget.aesKey,
-                  isShowProfileImage: widget.isShowProfileImage,
-                  isSendMessage: widget.isSendMessage,
-                  userData: userData,
-                  restrictContentSharing: _restrictContentSharing,
-                  groupMessageString: groupMessageString,
-                  currentChatId: chatId,
+                  data: chatData,
                   messageKeys: messageKeys,
                   highlightedMessageId: highlightedMessageId,
                   scrollController: _scrollController,
@@ -592,12 +593,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               SizedBox(height: 16.h),
               ChatInputBar(
-                chatType: widget.chatType,
-                userName: widget.userName,
-                aesKey: widget.aesKey,
-                isSendMessage: widget.isSendMessage,
-                currentChatId: chatId,
-                userData: userData,
+                data: chatData,
                 messageCon: messageCon,
                 focusNode: _focusNode,
               ),

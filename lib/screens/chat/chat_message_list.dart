@@ -9,7 +9,7 @@ import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/models/chat_message_model.dart';
-import 'package:two_one_two_messenger/models/otp_verify.dart';
+import 'package:two_one_two_messenger/screens/chat/chat_screen_data.dart';
 import 'package:two_one_two_messenger/screens/chat/pinned_messages_widget.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
 import 'package:two_one_two_messenger/utils/colors.dart';
@@ -24,14 +24,7 @@ import 'package:two_one_two_messenger/widgets/svg_images.dart';
 import 'package:two_one_two_messenger/widgets/typing_status_bubble.dart';
 
 class ChatMessageList extends StatelessWidget {
-  final ChatType chatType;
-  final String aesKey;
-  final bool isShowProfileImage;
-  final bool isSendMessage;
-  final UserData? userData;
-  final bool restrictContentSharing;
-  final String groupMessageString;
-  final String? currentChatId;
+  final ChatScreenData data;
   final Map<String, GlobalKey> messageKeys;
   final String? highlightedMessageId;
   final AutoScrollController scrollController;
@@ -43,14 +36,7 @@ class ChatMessageList extends StatelessWidget {
 
   const ChatMessageList({
     super.key,
-    required this.chatType,
-    required this.aesKey,
-    required this.isShowProfileImage,
-    required this.isSendMessage,
-    required this.userData,
-    required this.restrictContentSharing,
-    required this.groupMessageString,
-    required this.currentChatId,
+    required this.data,
     required this.messageKeys,
     required this.highlightedMessageId,
     required this.scrollController,
@@ -99,8 +85,8 @@ class ChatMessageList extends StatelessWidget {
 
             if (chatList.isEmpty) {
               return Center(
-                child: chatType != ChatType.one_to_one &&
-                        groupMessageString.isNotEmpty
+                child: data.chatType != ChatType.one_to_one &&
+                        data.groupMessageString.isNotEmpty
                     ? Container(
                         padding: EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -115,7 +101,7 @@ class ChatMessageList extends StatelessWidget {
                             8.s,
                             Expanded(
                               child: Text(
-                                groupMessageString,
+                                data.groupMessageString,
                                 // overflow: TextOver,
                                 softWrap: true,
                                 style: AppTextStyles.regular(
@@ -196,7 +182,7 @@ class ChatMessageList extends StatelessWidget {
                     showMessage("Unpinning message ID: $id");
                     // Remove from pinned list
                   },
-                  currentUserId: userData!.sId!,
+                  currentUserId: data.userData!.sId!,
                 ),
                 Expanded(
                   child: GroupedListView<MessageModel, String>(
@@ -232,7 +218,7 @@ class ChatMessageList extends StatelessWidget {
                       Widget child;
                       if (chatList[index].type == "typing") {
                         child = TypingIndicatorBubble(
-                          chatType: chatType,
+                          chatType: data.chatType,
                           profilePic:
                               chatList[index].sender?.profilePicture ?? "",
                         );
@@ -287,8 +273,8 @@ class ChatMessageList extends StatelessWidget {
 
                                 SocketService().sendEvent(
                                     AppConstants.updateMessageAutoDeleteTime, {
-                                  "chatId":
-                                      chatList[index].chatId ?? currentChatId,
+                                  "chatId": chatList[index].chatId ??
+                                      data.currentChatId,
                                   "messageAutoDeleteTime": value,
                                   "messageId": DateTime.now()
                                       .millisecondsSinceEpoch
@@ -381,13 +367,13 @@ class ChatMessageList extends StatelessWidget {
                         // messageKeys[chatList[index].messageId!] =
                         //     chatList[index].key;
                         child = ChatBubble(
-                            aesKey: aesKey,
-                            isShowProfileImage: isShowProfileImage,
+                            aesKey: data.aesKey,
+                            isShowProfileImage: data.isShowProfileImage,
                             message: chatList[index],
-                            isSender:
-                                chatList[index].sender?.id == userData?.sId,
+                            isSender: chatList[index].sender?.id ==
+                                data.userData?.sId,
                             index: index,
-                            isAccessToMessageUtilities: (isSendMessage &&
+                            isAccessToMessageUtilities: (data.isSendMessage &&
                                 !(state.chatMessageModel?.youBlocked ??
                                     false) &&
                                 !((state.chatMessageModel?.removeFromChat ??
@@ -406,8 +392,9 @@ class ChatMessageList extends StatelessWidget {
                               }
                             },
                             onSwipe: () {},
-                            restrictContentSharing: restrictContentSharing,
-                            isGroup: chatType != ChatType.one_to_one,
+                            restrictContentSharing:
+                                data.restrictContentSharing,
+                            isGroup: data.chatType != ChatType.one_to_one,
                             mainContext: context);
                       } else {
                         messageKeys[chatList[index].messageId!] =
@@ -416,7 +403,7 @@ class ChatMessageList extends StatelessWidget {
                           key: chatList[index].key,
 
                           direction: chatList[index].sender?.id ==
-                                  userData?.sId
+                                  data.userData?.sId
                               ? DismissDirection.endToStart
                               : DismissDirection
                                   .startToEnd, // Swipe Right to Reply
@@ -433,7 +420,7 @@ class ChatMessageList extends StatelessWidget {
                           resizeDuration: Duration.zero,
                           crossAxisEndOffset: 0.5,
                           confirmDismiss: (direction) async {
-                            if ((isSendMessage &&
+                            if ((data.isSendMessage &&
                                 !(state.chatMessageModel?.youBlocked ??
                                     false) &&
                                 !((state.chatMessageModel?.removeFromChat ??
@@ -462,23 +449,25 @@ class ChatMessageList extends StatelessWidget {
                                       .transparent, // 🔥 Highlight effect
                             ),
                             child: ChatBubble(
-                                aesKey: aesKey,
-                                isShowProfileImage: isShowProfileImage,
+                                aesKey: data.aesKey,
+                                isShowProfileImage: data.isShowProfileImage,
                                 message: chatList[index],
                                 isSender: chatList[index].sender?.id ==
-                                    userData?.sId,
+                                    data.userData?.sId,
                                 index: index,
-                                isAccessToMessageUtilities: (isSendMessage &&
-                                    !(state.chatMessageModel?.youBlocked ??
-                                        false) &&
-                                    !((state.chatMessageModel
-                                            ?.removeFromChat ??
-                                        false)) &&
-                                    !((state.chatMessageModel
-                                            ?.otherUserRemoveFromChat ??
-                                        false)) &&
-                                    !(state.chatMessageModel?.isBlocked ??
-                                        false)),
+                                isAccessToMessageUtilities:
+                                    (data.isSendMessage &&
+                                        !(state.chatMessageModel
+                                                ?.youBlocked ??
+                                            false) &&
+                                        !((state.chatMessageModel
+                                                ?.removeFromChat ??
+                                            false)) &&
+                                        !((state.chatMessageModel
+                                                ?.otherUserRemoveFromChat ??
+                                            false)) &&
+                                        !(state.chatMessageModel?.isBlocked ??
+                                            false)),
                                 onTapScroll: () {
                                   if (chatList[index].replyTo != null) {
                                     showMessage(
@@ -489,8 +478,8 @@ class ChatMessageList extends StatelessWidget {
                                 },
                                 onSwipe: () {},
                                 restrictContentSharing:
-                                    restrictContentSharing,
-                                isGroup: chatType != ChatType.one_to_one,
+                                    data.restrictContentSharing,
+                                isGroup: data.chatType != ChatType.one_to_one,
                                 mainContext: context),
                           ),
                         );
