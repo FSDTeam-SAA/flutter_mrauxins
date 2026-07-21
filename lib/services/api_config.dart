@@ -5,7 +5,8 @@ class Urls {
   static const String swaggerDoc =
       'https://telegram-clone-4gd7.onrender.com/api-docs';
 
-  static const String baseURL = 'http://18.130.137.253:3001';
+  // static const String baseURL = 'http://18.130.137.253:3001';
+  static const String baseURL = 'http://10.0.2.2:3000';
   static const String mediaUrl =
       'https://telegrameclone.s3.eu-west-2.amazonaws.com/';
 }
