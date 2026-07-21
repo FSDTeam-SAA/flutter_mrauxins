@@ -46,6 +46,14 @@
           }
         },
         {
+          "client_id": "36500912954-g73b4d3bol9qle63jdlkl85af32fi4op.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.freshcodes.twoonetwomessenger",
+            "certificate_hash": "e82d3020f37201574f5e5865fc774b863629f7ed"
+          }
+        },
+        {
           "client_id": "36500912954-l27kgl00nt7kabc0uk9k1l3mn0gq1067.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
