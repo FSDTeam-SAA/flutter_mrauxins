@@ -387,7 +387,12 @@ class SendOtpCubit extends Cubit<SendOtpState> {
   Future<void> deleteToken(String userId, String token, BuildContext context,
       {Function(DeleteTokenResponse)? callback}) async {
     try {
-      if (userId.isEmpty && token.isEmpty) {
+      if (userId.isEmpty || token.isEmpty) {
+        // Nothing meaningful to delete server-side, but the local logout
+        // (callback) must still proceed — the user tapping Logout should
+        // never get stuck just because there's no token to clean up.
+        callback?.call(DeleteTokenResponse(
+            status: Utils.APISUCCESS, message: "No device token to delete"));
         return;
       }
 
@@ -398,8 +403,16 @@ class SendOtpCubit extends Cubit<SendOtpState> {
         callback?.call(response);
       }
     } catch (e) {
+      // Local logout must not be held hostage by this network call — if the
+      // device is offline, the user still needs to be able to log out.
+      // The stale token is left registered server-side, but it's a
+      // self-healing gap: sentPushNotificationToUser prunes it the next
+      // time a send to it fails (FCM will report it invalid/unregistered).
       Utils.showSnackBar(context, e.toString().replaceAll("Exception: ", ""),
           seconds: 3);
+      callback?.call(DeleteTokenResponse(
+          status: Utils.APISUCCESS,
+          message: "Logged out locally; device token deletion will be retried server-side"));
     } finally {
       Utils.hideLoader();
     }

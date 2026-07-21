@@ -1028,6 +1028,7 @@ final class LocalDbConstants {
   static final String refreshToken = 'refreshToken';
   static final String pendingInviteChatId = 'pendingInviteChatId';
   static final String pendingInviteLink = 'pendingInviteLink';
+  static final String fcmRegistrationPending = 'fcmRegistrationPending';
 }
 
 

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
@@ -31,14 +32,41 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     } else if (message.data['type'] == 'agora_end_call') {
       debugPrint("agora_end_call=== ${message.data}");
       await FlutterCallkitIncoming.endAllCalls();
+    } else {
+      // Every other data-only push (chat message, reaction, group/channel
+      // event, etc.) — mirrors the non-call branch of
+      // _showForegroundNotification, minus the "chat already open"
+      // suppression check, which reads app-UI state (chatCubit) that
+      // doesn't exist in this background isolate and would crash on
+      // first access. Without this branch, any such push arriving while
+      // the app is backgrounded or killed was previously dropped silently.
+      final fcm = FireBaseNotification();
+      await fcm._ensureLocalNotificationsInitialized();
+      final parsedData =
+          _decodeSenderField(Map<String, dynamic>.from(message.data));
+      await fcm._showLocalNotification(message, parsedData);
     }
-//   else if(message.data['type'] == 'chat'&&(message.notification?.body == 'missed voice call'||message.notification?.body == 'missed video call')){
-// await FlutterCallkitIncoming.endAllCalls();
-//   }
-    else if (message.data["sub_type"] != null) {}
   } catch (e, st) {
     showMessage("error==> $e, $st");
+    FirebaseCrashlytics.instance.recordError(e, st);
   }
+}
+
+// Decodes the 'sender' field (and nested data.sender) from their raw
+// FCM-transported JSON-string form into a Map. Mutates and returns the
+// same map. Shared by the foreground, background, and notification-tap
+// handling paths so the three don't drift out of sync with each other.
+Map<String, dynamic> _decodeSenderField(Map<String, dynamic> parsedData) {
+  if (parsedData["sender"] is String &&
+      (parsedData["sender"] as String).isNotEmpty) {
+    parsedData["sender"] = json.decode(parsedData["sender"]);
+  }
+  if (parsedData["data"] is Map &&
+      parsedData["data"]["sender"] is String &&
+      (parsedData["data"]["sender"] as String).isNotEmpty) {
+    parsedData["data"]["sender"] = json.decode(parsedData["data"]["sender"]);
+  }
+  return parsedData;
 }
 
 class FireBaseNotification {
@@ -105,6 +133,7 @@ class FireBaseNotification {
       }
     } catch (e, st) {
       showMessage('Error :::: FCM TOKEN $e St ::: $st');
+      FirebaseCrashlytics.instance.recordError(e, st);
     }
 
     firebaseMessaging.onTokenRefresh.listen(
@@ -119,7 +148,10 @@ class FireBaseNotification {
       },
     );
 
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    // NOTE: onBackgroundMessage is registered early in main(), before this
+    // setup runs, so the handler is wired up even if this async setup is
+    // still in flight (e.g. waiting on the iOS permission dialog) when the
+    // app gets backgrounded.
 
     // Get any messages which caused the application to open from a terminated state.
     RemoteMessage? initialMessage =
@@ -132,7 +164,7 @@ class FireBaseNotification {
       showMessage(
           'FireBaseNotification initialMessage data: ${initialMessage.data}');
       try {
-        if (initialMessage.data != {}) {
+        if (initialMessage.data.isNotEmpty) {
           if (Platform.isIOS) {
             await Future.delayed(Durations.long1);
           }
@@ -154,13 +186,14 @@ class FireBaseNotification {
       //   onTapNotification(notificationPayload);
       // }
       try {
-        if (message.data != {}) {
+        if (message.data.isNotEmpty) {
           // if (Platform.isAndroid) {
           await _showForegroundNotification(message);
         }
         // }
       } catch (e, st) {
         showMessage('Error =>FirebaseMessaging onMessage $e ==$st');
+        FirebaseCrashlytics.instance.recordError(e, st);
       }
     });
 
@@ -168,11 +201,12 @@ class FireBaseNotification {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
       showMessage('Got a message, app is in the foreground! ${message.data}');
       try {
-        if (message.data != {}) {
+        if (message.data.isNotEmpty) {
           _handleMessageClick(message, "background_click");
         }
       } catch (e, st) {
         showMessage("Error == $e, $st");
+        FirebaseCrashlytics.instance.recordError(e, st);
       }
     });
 
@@ -197,18 +231,41 @@ class FireBaseNotification {
     return token;
   }
 
+  // Covers both iOS authorization status and Android 13+'s runtime
+  // POST_NOTIFICATIONS permission.
+  Future<bool> isNotificationPermissionGranted() async {
+    final settings = await firebaseMessaging.getNotificationSettings();
+    return settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional;
+  }
+
   Future<void> setUpLocalNotification() async {
-    if (Platform.isIOS) {
-      await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(alert: true, badge: true, sound: true);
-    } else if (Platform.isAndroid) {
+    // Do NOT request iOS notification permission here. FirebaseMessaging.
+    // requestPermission() (called from firebaseCloudMessagingLSetup above)
+    // must be the only thing that requests iOS notification authorization —
+    // see the warning comment in notification_handler.dart. A second,
+    // independent requestPermissions() call from this plugin previously
+    // raced with it and left the APNs token permanently unset.
+    if (Platform.isAndroid) {
       await flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>()
           ?.requestNotificationsPermission();
     }
+
+    await _ensureLocalNotificationsInitialized();
+  }
+
+  bool _localNotificationsInitialized = false;
+
+  // Initializes the local-notifications plugin without requesting any
+  // permission. Safe to call from a background isolate (a fresh FireBase
+  // Notification singleton there has never had this run), where requesting
+  // permission is neither possible nor necessary — permission is already
+  // granted via the foreground/main-isolate flow above by the time any
+  // notification needs to be shown.
+  Future<void> _ensureLocalNotificationsInitialized() async {
+    if (_localNotificationsInitialized) return;
 
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('notification_icon');
@@ -245,7 +302,7 @@ class FireBaseNotification {
               : {};
           showMessage(
               "onDidReceiveNotificationResponse playLoadData $playLoadData");
-          if (playLoadData != {}) {
+          if (playLoadData.isNotEmpty) {
             if (playLoadData["type"] != "agora_call_invitation") {
               debugPrint(
                   "onDidReceiveNotificationResponse playLoadData Local notification $playLoadData");
@@ -258,23 +315,62 @@ class FireBaseNotification {
         }
       },
     );
+    _localNotificationsInitialized = true;
   }
 
   void cancelAllLocalNotification() {
     flutterLocalNotificationsPlugin.cancelAll();
   }
 
+  static const int _fcmRegistrationMaxAttempts = 3;
+
+  // Single, consolidated entry point for registering/refreshing the FCM
+  // token with the backend. Retries a bounded number of times with a short
+  // backoff; if every attempt fails, marks the registration as pending so
+  // ConnectivityCubit's reconnect listener (wired in main.dart) can retry it
+  // later instead of the registration silently never happening.
   Future<void> updateFcmToken(
       ApiClient apiClient, Map<String, dynamic> data) async {
-    try {
-      CommonResponseModel? response = await apiClient.updateFcmToken(data);
-      if (response?.status == Utils.APISUCCESS) {
-        await AppPreference.setString(
-            LocalDbConstants.firebaseToken, data["deviceToken"]);
+    for (int attempt = 1; attempt <= _fcmRegistrationMaxAttempts; attempt++) {
+      try {
+        CommonResponseModel? response = await apiClient.updateFcmToken(data);
+        if (response?.status == Utils.APISUCCESS) {
+          await AppPreference.setString(
+              LocalDbConstants.firebaseToken, data["deviceToken"]);
+          await AppPreference.setBoolean(
+              LocalDbConstants.fcmRegistrationPending,
+              value: false);
+          return;
+        }
+        debugPrint(
+            "updateFcmToken attempt $attempt did not succeed: ${response?.status}");
+      } catch (e, st) {
+        debugPrint("Error ==>$e  $st (attempt $attempt)");
+        FirebaseCrashlytics.instance.recordError(e, st);
       }
-    } catch (e, st) {
-      debugPrint("Error ==>$e  $st");
+      if (attempt < _fcmRegistrationMaxAttempts) {
+        await Future.delayed(Duration(seconds: attempt * 2));
+      }
     }
+    await AppPreference.setBoolean(LocalDbConstants.fcmRegistrationPending,
+        value: true);
+  }
+
+  // Called from ConnectivityCubit's "back online" listener. Re-attempts a
+  // previously failed token registration rather than waiting for the user
+  // to next fully restart the app.
+  Future<void> retryPendingFcmRegistration(ApiClient apiClient) async {
+    if (!AppPreference.getBoolean(LocalDbConstants.fcmRegistrationPending)) {
+      return;
+    }
+    final userId = AppPreference.getCurrentUserId();
+    final token = AppPreference.getFCMToken();
+    if (userId.isEmpty || token.isEmpty) return;
+    await updateFcmToken(apiClient, {
+      "userId": userId,
+      "deviceToken": token,
+      "deviceType": Platform.isAndroid ? 'Android' : 'ios',
+    });
   }
 
   void cancelLocalNotification(int id) {
@@ -285,19 +381,7 @@ class FireBaseNotification {
     try {
       showMessage("in side show notification ==========");
 
-      Map<String, dynamic> parsedData = message.data;
-      if (parsedData.containsKey("sender") &&
-          parsedData["sender"] is String &&
-          parsedData["sender"].isNotEmpty) {
-        parsedData["sender"] = json.decode(parsedData["sender"]);
-      }
-
-      // Fix 'sender' field, as it's a string containing JSON
-      if (parsedData["data"] != null &&
-          parsedData["data"]["sender"] is String) {
-        parsedData["data"]["sender"] =
-            json.decode(parsedData["data"]["sender"]);
-      }
+      Map<String, dynamic> parsedData = _decodeSenderField(message.data);
       final String encodedMessage = json.encode({
         'messageId': message.messageId,
         'data': parsedData,
@@ -349,17 +433,18 @@ class FireBaseNotification {
       if (parsedData["type"] == "chat_message") {
         if (chatCubit.isChatPage == false ||
             chatCubit.chatId != message.data['chat_id']) {
-          _showLocalNotification(message, parsedData);
+          await _showLocalNotification(message, parsedData);
         }
       } else if (parsedData["type"] != "agora_call_invitation") {
-        _showLocalNotification(message, parsedData);
+        await _showLocalNotification(message, parsedData);
       }
     } catch (e, st) {
       debugPrint('Error showing notification: $e $st');
+      FirebaseCrashlytics.instance.recordError(e, st);
     }
   }
 
-  void _showLocalNotification(
+  Future<void> _showLocalNotification(
       RemoteMessage message, Map<String, dynamic> payloadData) async {
     RemoteNotification? notification = message.notification;
     final title = notification?.title ?? payloadData["title"] ?? "The 212";
@@ -432,17 +517,7 @@ class FireBaseNotification {
   }
 
   Future<void> _handleMessageClick(RemoteMessage message, String type) async {
-    Map<String, dynamic> parsedData = message.data;
-    if (parsedData.containsKey("sender") && parsedData["sender"] is String) {
-      parsedData["sender"] = json.decode(parsedData["sender"]);
-    }
-
-    // Fix 'sender' field, as it's a string containing JSON
-    if (parsedData["data"] != null &&
-        parsedData["data"]["sender"] is String &&
-        parsedData["data"]["sender"].isNotEmpty) {
-      parsedData["data"]["sender"] = json.decode(parsedData["data"]["sender"]);
-    }
+    Map<String, dynamic> parsedData = _decodeSenderField(message.data);
     final String encodedMessage = json.encode({
       'messageId': message.messageId,
       'data': parsedData,

@@ -1,4 +1,8 @@
+import 'dart:ui';
+
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -60,6 +64,17 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
+
+  // Must be registered before the app can be backgrounded — this is a fast,
+  // synchronous registration (no dialog), unlike the calls below it, so it's
+  // safe to await here without blocking runApp().
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   NotificationHandler.handleNotification(); // Do NOT await — permission dialog blocks main() before runApp() on iOS
   final apiClient = ApiClient();
@@ -189,6 +204,9 @@ class MyApp extends StatelessWidget {
                         (navigatorKey.currentState?.canPop() ?? false)) {
                       navigatorKey.currentState?.pop();
                     }
+                    FireBaseNotification()
+                        .retryPendingFcmRegistration(
+                            context.read<HomeCubit>().apiClient);
                   }
                 },
                 child: GlobalLoaderOverlay(

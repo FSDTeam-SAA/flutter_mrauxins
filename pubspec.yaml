@@ -115,7 +115,7 @@ dependencies:
   video_player: ^2.11.1
   qr_flutter: ^4.1.0
   # cached_video_player_plus:
-  # firebase_crashlytics: ^4.3.5
+  firebase_crashlytics: ^4.3.5
   app_links: ^6.4.0
   share_plus: ^10.1.4
 
@@ -128,7 +128,6 @@ dev_dependencies:
   
   
 dependency_overrides:
-  flutter_callkit_incoming: ^2.5.0
   # video_player:
   record_platform_interface: 1.2.0
   syncfusion_flutter_sliders: ^33.2.7

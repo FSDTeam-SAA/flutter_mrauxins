@@ -95,6 +95,17 @@
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-3940256099942544~3347511713"/>
+        <!-- Matches the channel id used by push_notifications.dart's
+             _showLocalNotification, so notifications the OS auto-displays
+             (app fully killed, no data-only routing through Dart) land in
+             the same channel/importance the app itself configures, instead
+             of an unconfigured default one. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="high_importance_channel" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/notification_icon" />
     </application>
     <queries>
         <provider android:authorities="com.facebook.katana.provider.PlatformProvider" />

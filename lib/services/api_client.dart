@@ -406,7 +406,7 @@ class ApiClient {
       final response = await post(
         APIS.updateFcmToken,
         data,
-        requiresToken: false,
+        requiresToken: true,
       );
 
       final res = CommonResponseModel.fromJson(response.data);

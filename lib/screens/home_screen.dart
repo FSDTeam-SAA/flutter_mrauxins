@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:two_one_two_messenger/GoogleAds/BannerAds/BannerAdManager.dart';
 import 'package:two_one_two_messenger/cubit/home_state.dart';
 import 'package:two_one_two_messenger/cubit/user_data_cubit.dart';
@@ -39,6 +40,7 @@ import 'package:two_one_two_messenger/widgets/refresh_indicator%20copy.dart';
 import 'package:two_one_two_messenger/widgets/svg_images.dart';
 
 import '../cubit/home_cubit.dart';
+import '../utils/app_dialoge.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
 import '../utils/text_style.dart';
@@ -65,6 +67,27 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   AppLifecycleState? _previousLifecycleState;
   final SocketService _socketService = SocketService();
   final NotificationService _notificationService = NotificationService();
+
+  // Session-scoped (not persisted): avoids re-prompting every time this
+  // screen re-inits during the same app run if the user dismisses it.
+  static bool _hasPromptedNotificationPermissionThisSession = false;
+
+  Future<void> _promptEnableNotificationsIfNeeded() async {
+    if (_hasPromptedNotificationPermissionThisSession) return;
+    final granted =
+        await FireBaseNotification().isNotificationPermissionGranted();
+    if (granted || !mounted) return;
+    _hasPromptedNotificationPermissionThisSession = true;
+    showCommonLogOutDialog(
+      context: context,
+      title: "Enable Notifications",
+      subTitle:
+          "You won't receive alerts for new messages or calls until notifications are turned on for this app.",
+      icon: SvgAssets.icNotification,
+      onSubmit: () => openAppSettings(),
+    );
+  }
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -119,6 +142,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
     adConfigCubit.fetchConfig();
     homeCubit.getAgoraAppId();
+    homeCubit.registerFcmTokenForCurrentUser();
+    _promptEnableNotificationsIfNeeded();
     _notificationService.initialize(
       user: user,
       homeCubit: homeCubit,
