@@ -63,7 +63,6 @@ class ChatBubble extends StatefulWidget {
   final bool isShowProfileImage;
   final bool isAccessToMessageUtilities;
   final bool restrictContentSharing;
-  final bool restrictContentSharing;
   final VoidCallback onSwipe;
   final VoidCallback? onTapScroll;
   final String? aesKey;
@@ -79,7 +78,6 @@ class ChatBubble extends StatefulWidget {
     required this.onSwipe,
     required this.onTapScroll,
     this.isAccessToMessageUtilities = true,
-    this.restrictContentSharing = false,
     this.restrictContentSharing = false,
     required this.aesKey,
   });
