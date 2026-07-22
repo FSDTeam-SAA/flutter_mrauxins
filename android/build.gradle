@@ -1,3 +1,13 @@
+// Some third-party plugins (agora_rtc_engine's bundled iris_method_channel
+// module, among others) read this shared property via their own
+// `safeExtGet('compileSdkVersion', 31)` fallback instead of Flutter's
+// `flutter.compileSdkVersion`. Without it they silently build against
+// SDK 31, which AGP's AAR metadata check now rejects since their androidx
+// transitives (fragment, lifecycle, core-ktx, etc.) require compileSdk 34+.
+ext {
+    compileSdkVersion = 36
+}
+
 allprojects {
     repositories {
         google()

@@ -292,7 +292,7 @@ class FireBaseNotification {
             android: initializationSettingsAndroid,
             iOS: initializationSettingsIOS);
     await flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
+      settings: initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse payload) {
         /// working on this notification function
         showMessage('onDidReceiveNotificationResponse :: $payload');
@@ -374,7 +374,7 @@ class FireBaseNotification {
   }
 
   void cancelLocalNotification(int id) {
-    flutterLocalNotificationsPlugin.cancel(id);
+    flutterLocalNotificationsPlugin.cancel(id: id);
   }
 
   Future<void> _showForegroundNotification(RemoteMessage message) async {
@@ -477,10 +477,10 @@ class FireBaseNotification {
       ),
     );
     await flutterLocalNotificationsPlugin.show(
-        DateTime.now().millisecondsSinceEpoch.remainder(100000),
-        title,
-        body,
-        platformChannelSpecifics,
+        id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+        title: title,
+        body: body,
+        notificationDetails: platformChannelSpecifics,
         payload: jsonEncode(payloadData));
   }
 
@@ -509,10 +509,10 @@ class FireBaseNotification {
     );
 
     await flutterLocalNotificationsPlugin.show(
-      1, // Notification ID
-      'Call is Active', // Title
-      'Your video call is still active.', // Body
-      platformChannelSpecifics,
+      id: 1, // Notification ID
+      title: 'Call is Active',
+      body: 'Your video call is still active.',
+      notificationDetails: platformChannelSpecifics,
     );
   }
 
