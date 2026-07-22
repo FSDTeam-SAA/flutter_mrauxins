@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
+import 'package:two_one_two_messenger/GoogleAds/app_config_model.dart';
 import 'package:two_one_two_messenger/GoogleAds/config_model.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
@@ -656,6 +657,23 @@ class ApiClient {
           e.response?.data['message'] ?? 'get Ads Config failed';
 
       AppLogger.logs('get Ads Config Error: $errorMessage');
+      throw Exception(errorMessage);
+    }
+  }
+
+  Future<AppConfigModelRes> checkAppVersion() async {
+    try {
+      final response = await get(
+        APIS.getAppConfig,
+        requiresToken: false,
+      );
+
+      return AppConfigModelRes.fromJson(response.data);
+    } on DioException catch (e) {
+      String errorMessage =
+          e.response?.data['message'] ?? 'Check app version failed';
+
+      AppLogger.logs('Check App Version Error: $errorMessage');
       throw Exception(errorMessage);
     }
   }

@@ -39,6 +39,7 @@ import 'cubit/send_otp_cubit.dart';
 import 'cubit/stories_cubit.dart';
 import 'cubit/theme_cubit.dart';
 import 'cubit/user_data_cubit.dart';
+import 'cubit/version_check_cubit.dart';
 import 'cubit/view_stories_cubit.dart';
 import 'database/local_db.dart';
 import 'screens/splash_screen.dart';
@@ -161,6 +162,9 @@ void main() async {
           ),
           BlocProvider(
             create: (context) => ConnectivityCubit(),
+          ),
+          BlocProvider(
+            create: (context) => VersionCheckCubit(apiClient),
           ),
         ],
         child: MyApp(),

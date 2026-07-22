@@ -58,6 +58,8 @@ class AppColors {
   static const Color textFieldBG = Color(0xFFF0F0F0);
   static const Color textPlaceHolder = Color(0xFF8C8C8C);
   static const Color redColor = Color(0xFFE90D0D);
+  static const Color updateCardBg = Color(0x1AFFFFFF);
+  static const Color updateButtonColor = Color(0xFF8A1010);
   static const Color purpleText = Color(0xFFC5CAFF);
   static const Color whiteOpa = Color(0XFFFFFF80);
   static const Color btnGrey = Color(0XFF3A4359);

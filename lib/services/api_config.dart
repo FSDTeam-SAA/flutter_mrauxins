@@ -5,8 +5,8 @@ class Urls {
   static const String swaggerDoc =
       'https://telegram-clone-4gd7.onrender.com/api-docs';
 
-  static const String baseURL = 'http://18.130.137.253:3001';
-  // static const String baseURL = 'http://10.0.2.2:3000';
+  //static const String baseURL = 'http://18.130.137.253:3001';
+  static const String baseURL = 'http://10.0.2.2:3001';
   static const String mediaUrl =
       'https://telegrameclone.s3.eu-west-2.amazonaws.com/';
 }
@@ -70,6 +70,7 @@ class APIS {
   static const String refreshToken = '/api/v1/refresh-token';
   static const String updateFcmToken = '/api/v1/replace-token';
   static const String getAdsConfig = '/api/v1/ads-config';
+  static const String getAppConfig = '/api/v1/app-config';
   static const String setNickname = '/api/v1/setNickname';
   static const String toggleNickname = '/api/v1/toggle-nickname';
 }
