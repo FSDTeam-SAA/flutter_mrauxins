@@ -17,6 +17,7 @@ import 'package:two_one_two_messenger/services/screen_protection_service.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
 
 import '../cubit/chat_cubit.dart';
+import '../cubit/typing_cubit.dart';
 import '../cubit/user_data_cubit.dart';
 import '../models/chat_message_model.dart';
 import '../models/otp_verify.dart';
@@ -84,6 +85,7 @@ class _ChatScreenState extends State<ChatScreen> {
     // suggestedRowHeight: 200,
   );
   final SocketService _socketService = SocketService();
+  late final TypingCubit _typingCubit;
 
   int disAppearingMessagesTime = 0;
 
@@ -216,6 +218,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     userData = context.read<UserDataCubit>().state;
+    _typingCubit = context.read<TypingCubit>();
     _restrictContentSharing = widget.restrictContentSharing;
     showMessage("initState called${DateTime.now()} ${widget.chatId} ");
     init();
@@ -346,6 +349,7 @@ class _ChatScreenState extends State<ChatScreen> {
       showMessage(":: USER Is Online $data");
       if (mounted && data["userId"] == widget.userId) {
         chatCubit.updateOnlineLastStatus(data: data);
+        _typingCubit.clearTypingList();
       }
     });
     _socketService.onBlockUser((data) {
@@ -417,7 +421,7 @@ class _ChatScreenState extends State<ChatScreen> {
             chatId: data["chatId"], messageId: data["pinMessage"]["messageId"]);
       }
     });
-    chatCubit.clearTypingList();
+    _typingCubit.clearTypingList();
     _socketService.onUserTyping(
         // AppConstants.receivedTypingStatus,
         (data) {
@@ -425,7 +429,7 @@ class _ChatScreenState extends State<ChatScreen> {
       showMessage(
           ":: USER Is Typing ${widget.chatId} ${newTypingModel.chatId == widget.chatId} $data");
       if (newTypingModel.chatId == widget.chatId) {
-        chatCubit.updateTypingList(newTypingModel);
+        _typingCubit.updateTypingList(newTypingModel);
       }
     });
   }

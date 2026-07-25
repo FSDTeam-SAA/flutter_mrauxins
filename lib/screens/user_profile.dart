@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
@@ -6,6 +7,7 @@ import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/services/api_config.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
 
+import '../cubit/nickname_cubit.dart';
 import '../models/otp_verify.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
@@ -281,7 +283,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 nickName: widget.user.nickName,
                                 onPressed: (name) {
                                   if (name != null) {
-                                    chatCubit.setNickname(
+                                    context.read<NicknameCubit>().setNickname(
                                       context: context,
                                       contactUserId: widget.user.sId ?? "",
                                       nickName: name,
@@ -332,7 +334,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         trailing: Switch(
                           value: widget.user.isActiveNickname ?? false,
                           onChanged: (value) {
-                            chatCubit.toggleNickname(
+                            context.read<NicknameCubit>().toggleNickname(
                               context: context,
                               contactUserId: widget.user.sId ?? "",
                               isActiveNickname:

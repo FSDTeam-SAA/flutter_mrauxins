@@ -5,6 +5,7 @@ import 'package:grouped_list/grouped_list.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:two_one_two_messenger/cubit/chat_cubit.dart';
 import 'package:two_one_two_messenger/cubit/chat_state.dart';
+import 'package:two_one_two_messenger/cubit/typing_cubit.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
@@ -62,22 +63,23 @@ class ChatMessageList extends StatelessWidget {
             final chatList = List<MessageModel>.from(state.chatList ?? []);
             // messageList.clear();
             onMessageListChanged(List.from(chatList));
-            if ((state.currentTypingusers ?? []).isNotEmpty) {
+            final currentTypingusers =
+                contextChat.watch<TypingCubit>().state.currentTypingusers;
+            if (currentTypingusers.isNotEmpty) {
               if (chatList.isNotEmpty && chatList[0].type != "typing") {
                 // showMessage("addMessages == ${chatList[0].type}");
                 chatList.insert(
                     0,
                     MessageModel(
                       type: "typing",
-                      sender: state.currentTypingusers!.first.sender ??
+                      sender: currentTypingusers.first.sender ??
                           Sender(
-                              id: state.currentTypingusers!.first.sender?.id ??
+                              id: currentTypingusers.first.sender?.id ?? "",
+                              profilePicture: currentTypingusers
+                                      .first.sender?.profilePicture ??
                                   "",
-                              profilePicture: state.currentTypingusers!.first
-                                      .sender?.profilePicture ??
-                                  "",
-                              userName: state.currentTypingusers!.first.sender
-                                      ?.userName ??
+                              userName: currentTypingusers
+                                      .first.sender?.userName ??
                                   ""),
                     ));
               }

@@ -28,16 +28,20 @@ import 'package:two_one_two_messenger/services/socket_service.dart';
 import 'package:two_one_two_messenger/utils/colors.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
 import 'package:two_one_two_messenger/widgets/annotated_region.dart';
+import 'cubit/call_cubit.dart';
 import 'cubit/chat_cubit.dart';
 import 'cubit/create_stories_cubit.dart';
 import 'cubit/home_cubit.dart';
 import 'cubit/new_group_cubit.dart';
+import 'cubit/nickname_cubit.dart';
 import 'cubit/otp_verify_cubit.dart';
 import 'cubit/profile_cubit.dart';
+import 'cubit/saved_messages_cubit.dart';
 import 'cubit/search_cubit.dart';
 import 'cubit/send_otp_cubit.dart';
 import 'cubit/stories_cubit.dart';
 import 'cubit/theme_cubit.dart';
+import 'cubit/typing_cubit.dart';
 import 'cubit/user_data_cubit.dart';
 import 'cubit/version_check_cubit.dart';
 import 'cubit/view_stories_cubit.dart';
@@ -132,6 +136,18 @@ void main() async {
           ),
           BlocProvider(
             create: (context) => ChatCubit(apiClient, dbHelper),
+          ),
+          BlocProvider(
+            create: (context) => NicknameCubit(apiClient),
+          ),
+          BlocProvider(
+            create: (context) => CallCubit(apiClient, dbHelper),
+          ),
+          BlocProvider(
+            create: (context) => TypingCubit(),
+          ),
+          BlocProvider(
+            create: (context) => SavedMessagesCubit(apiClient, dbHelper),
           ),
           // BlocProvider(
           //   create: (context) => SendMessageCubit(apiClient, dbHelper),

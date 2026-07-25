@@ -13,8 +13,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:two_one_two_messenger/cubit/chat_cubit.dart';
-import 'package:two_one_two_messenger/cubit/chat_state.dart';
+import 'package:two_one_two_messenger/cubit/call_cubit.dart';
+import 'package:two_one_two_messenger/cubit/call_state.dart';
 import 'package:two_one_two_messenger/database/local_db.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
@@ -81,20 +81,22 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
   // bool isVideoCall = false;
   AppLifecycleState? _previousLifecycleState;
   final SocketService _socketService = SocketService();
+  late final CallCubit _callCubit;
   @override
   void initState() {
     debugPrints.log(
         "in side init ==== from${widget.from}==>${widget.channelName} ${widget.token}");
 
+    _callCubit = context.read<CallCubit>();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      chatCubit.changeCallType(callType: widget.callType);
+      _callCubit.changeCallType(callType: widget.callType);
       callId = widget.callId ?? "";
       onCallEnd();
       if (widget.callType == CallType.voice) {
-        chatCubit.toggleSpeaker(false);
+        _callCubit.toggleSpeaker(false);
       } else {
-        chatCubit.toggleSpeaker(true);
+        _callCubit.toggleSpeaker(true);
       }
 
       if (widget.token == null || widget.channelName == null) {
@@ -192,7 +194,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
 
   void startCallTimeout() {
     _callTimeoutTimer = Timer(Duration(seconds: 40), () async {
-      await chatCubit.rejectCall(
+      await _callCubit.rejectCall(
         // context: context,
         chatId: widget.currentConversationId,
         duration: 0,
@@ -204,7 +206,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
 
   handleLocalVideoStream(bool isShow) {
     try {
-      if (chatCubit.state.callType == CallType.video) {
+      if (_callCubit.state.callType == CallType.video) {
         if (mounted && _engine != null) {
           showMessage("App is  CallingPage handleLocalVideoStream $isShow");
           setState(() {
@@ -328,14 +330,14 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
                 ),
               );
 
-              chatCubit.changeCallType(callType: CallType.video);
+              _callCubit.changeCallType(callType: CallType.video);
               _engine?.enableVideo();
-              chatCubit.toggleSpeaker(true);
+              _callCubit.toggleSpeaker(true);
               _engine?.setEnableSpeakerphone(true);
             } else if (message == 'voice') {
-              chatCubit.changeCallType(callType: CallType.voice);
+              _callCubit.changeCallType(callType: CallType.voice);
               _engine?.disableVideo();
-              chatCubit.toggleSpeaker(false);
+              _callCubit.toggleSpeaker(false);
               _engine?.setEnableSpeakerphone(false);
             }
           },
@@ -385,7 +387,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
               //           ? stats.duration.toString()
               //           : "missed voice call");
               // }
-              await chatCubit.rejectCall(
+              await _callCubit.rejectCall(
                   // context: context,
                   callId: callId,
                   chatId: widget.currentConversationId,
@@ -421,7 +423,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
     try {
       showMessage(
           "_initializeOutgoingCall==>type=${widget.callType.name} ChatId=${widget.currentConversationId}");
-      tokenAndChannel = await chatCubit.generateTokenAndChannelName(
+      tokenAndChannel = await _callCubit.generateTokenAndChannelName(
           context: context,
           data: {
             "type": widget.callType.name,
@@ -573,7 +575,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     // debugPrints.log("FlutterCallkitIncoming =====> $isAccepted");
-    return BlocBuilder<ChatCubit, ChatState>(
+    return BlocBuilder<CallCubit, CallState>(
       builder: (context, state) {
         return PopScope(
           canPop: _engine != null || widget.token == null,
@@ -616,7 +618,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
                     leading: CupertinoButton(
                       onPressed: () async {
                         _endCall();
-                        await chatCubit.rejectCall(
+                        await _callCubit.rejectCall(
                             // context: context,
                             chatId: widget.currentConversationId,
                             callId: callId,
@@ -812,7 +814,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
                                   child: CustomButton(
                                     onPressed: () async {
                                       await _endCall();
-                                      await chatCubit.rejectCall(
+                                      await _callCubit.rejectCall(
                                         // context: context,
                                         duration: 0,
                                         callId: callId,
@@ -926,21 +928,21 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
                                           try {
                                             if (state.callType ==
                                                 CallType.video) {
-                                              chatCubit.changeCallType(
+                                              _callCubit.changeCallType(
                                                   callType: CallType.voice);
                                               _engine?.disableVideo();
                                               _sendCallTypeChange(
                                                   CallType.voice);
-                                              chatCubit.toggleSpeaker(false);
+                                              _callCubit.toggleSpeaker(false);
                                               _engine?.setEnableSpeakerphone(
                                                   false);
                                             } else {
-                                              chatCubit.changeCallType(
+                                              _callCubit.changeCallType(
                                                   callType: CallType.video);
                                               _engine?.enableVideo();
                                               _sendCallTypeChange(
                                                   CallType.video);
-                                              chatCubit.toggleSpeaker(true);
+                                              _callCubit.toggleSpeaker(true);
                                               _engine
                                                   ?.setEnableSpeakerphone(true);
                                             }
@@ -970,7 +972,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
                                       // 5.s,
                                       CupertinoButton(
                                         onPressed: () async {
-                                          await chatCubit
+                                          await _callCubit
                                               .toggleSpeaker(!state.isSpeaker);
                                           _engine?.setEnableSpeakerphone(
                                               !state.isSpeaker);
@@ -1004,7 +1006,7 @@ class _CallingPageState extends State<CallingPage> with WidgetsBindingObserver {
                                             //     context: context,reciverID:);
 
                                             try {
-                                              await chatCubit.rejectCall(
+                                              await _callCubit.rejectCall(
                                                 // context: context,
                                                 chatId: widget
                                                     .currentConversationId,

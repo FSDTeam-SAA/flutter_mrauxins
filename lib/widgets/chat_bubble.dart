@@ -8,8 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:two_one_two_messenger/cubit/saved_messages_cubit.dart';
 import 'package:two_one_two_messenger/database/local_db.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
@@ -94,7 +96,7 @@ class _ChatBubbleState extends State<ChatBubble> {
     final offset = _lastTapPosition;
     switch (option) {
       case ChatMessageOption.saveMessage:
-        chatCubit.saveMessages(
+        context.read<SavedMessagesCubit>().saveMessages(
           chatId: widget.message.chatId ?? "",
           context: context,
           isTempMessage: widget.message.id == widget.message.messageId,
@@ -1547,11 +1549,11 @@ class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
       case ChatMessageOption.pin:
         showMessage("TempMessage==> ${widget.message.toJson()}");
         if (widget.message.messageDetails?.pinned ?? false) {
-          chatCubit.unPinSavedMessage(
+          context.read<SavedMessagesCubit>().unPinSavedMessage(
               messageId: widget.message.messageId ?? "",
               userId: widget.currentUserId ?? "");
         } else {
-          chatCubit.pinSavedMessage(
+          context.read<SavedMessagesCubit>().pinSavedMessage(
               messageId: widget.message.messageId ?? "",
               userId: widget.currentUserId ?? "");
         }
@@ -1715,7 +1717,9 @@ class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
       ),
       onReactionAdded: (emoji) {
         showMessage('reaction: $emoji');
-        chatCubit.reactSavedMessage(message: widget.message, reaction: emoji);
+        context
+            .read<SavedMessagesCubit>()
+            .reactSavedMessage(message: widget.message, reaction: emoji);
       },
       onMenuItemTapped: (menuItem) {
         showMessage('menu item: $menuItem');
