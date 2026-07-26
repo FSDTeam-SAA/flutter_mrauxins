@@ -486,9 +486,18 @@ class _ChatScreenState extends State<ChatScreen> {
             (value) {},
           );
       chatId = chatCubit.state.currentConversationId;
-      widget.chatId = chatCubit.state.currentConversationId ?? "";
-      widget.aesKey =
+      final newChatId = chatCubit.state.currentConversationId ?? "";
+      final newAesKey =
           chatCubit.state.createConversationModel?.encryptedAESKey ?? "";
+      if (mounted) {
+        setState(() {
+          widget.chatId = newChatId;
+          widget.aesKey = newAesKey;
+        });
+      } else {
+        widget.chatId = newChatId;
+        widget.aesKey = newAesKey;
+      }
       if (widget.chatId.isNotEmpty && widget.aesKey.isNotEmpty) {
         await getMessages(widget.chatId, widget.aesKey);
       }
