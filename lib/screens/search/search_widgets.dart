@@ -253,17 +253,22 @@ class _GroupedListWithRailState<T> extends State<GroupedListWithRail<T>> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: letters
             .split('')
-            .map((letter) => Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4.w),
-                  child: Text(
-                    letter,
-                    style: AppTextStyles.medium(
-                      fontSize: 10.sp,
-                      color: letter == _activeRailLetter
-                          ? Colors.red
-                          : availableLetters.contains(letter)
-                              ? AppColors.white.withValues(alpha: 0.8)
-                              : AppColors.white.withValues(alpha: 0.25),
+            .map((letter) => Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4.w),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        letter,
+                        style: AppTextStyles.medium(
+                          fontSize: 10.sp,
+                          color: letter == _activeRailLetter
+                              ? Colors.red
+                              : availableLetters.contains(letter)
+                                  ? AppColors.white.withValues(alpha: 0.8)
+                                  : AppColors.white.withValues(alpha: 0.25),
+                        ),
+                      ),
                     ),
                   ),
                 ))
