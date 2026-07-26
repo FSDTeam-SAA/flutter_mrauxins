@@ -4,8 +4,8 @@ class Urls {
   static const String url = 'http://45.248.67.90:8029/sfa/app_login_en/';
   static const String swaggerDoc = 'http://18.130.137.253:3001/api-docs';
 
-  static const String baseURL = 'http://18.130.137.253:3001';
-  // static const String baseURL = 'http://10.0.2.2:3001';
+  // static const String baseURL = 'http://18.130.137.253:3001';
+  static const String baseURL = 'http://10.0.2.2:3000';
   static const String mediaUrl =
       'https://telegrameclone.s3.eu-west-2.amazonaws.com/';
 }

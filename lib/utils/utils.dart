@@ -65,25 +65,6 @@ extension DateTimeExtensions on DateTime {
     return "$day-$month-$year";
   }
 
-  // String formatMessageTimestamp() {
-  //   final now = DateTime.now();
-  //   final difference = now.difference(this).inDays;
-
-  //   if (difference == 0) {
-  //     // Same day
-  //     return DateFormat().add_jm().format(this);
-  //   } else if (difference == 1) {
-  //     // Previous day
-  //     return 'Yesterday';
-  //   } else if (difference < 7) {
-  //     // Within the last week
-  //     return DateFormat('E').format(this); // Mon, Tue, etc.
-  //   } else {
-  //     // 1 week old or more
-  //     return DateFormat('dd/MM').format(this);
-  //   }
-  // }
-
   String formatMessageTimestamp() {
     final now = DateTime.now();
     final todayMidnight = DateTime(now.year, now.month, now.day);
@@ -186,15 +167,7 @@ class Utils {
   static void showLoader() {
     EasyLoading.show(
       dismissOnTap: false,
-      // maskType: EasyLoadingMaskType.black,
-      // indicator: CustomLoadingWidget(
-      //   size: 45.h,
-      // )
     );
-    //     if (navigatorKey.currentContext != null) {
-    //   navigatorKey.currentContext!.loaderOverlay.show();
-
-    // }
   }
 
   /// Hide the global loader overlay.
@@ -498,16 +471,6 @@ class Utils {
                 ),
                 onPressed: () => Navigator.pop(context, true),
               ),
-              // CustomButton(
-              //   child: Text(
-              //     S.current.lblContinue,
-              //     style: AppTextStyles.medium(
-              //       fontSize: 16.sp,
-              //       color: AppColors.white,
-              //     ),
-              //   ),
-              //   onPressed: () => Navigator.pop(context, true),
-              // ),
             ],
           ),
         );
@@ -602,18 +565,6 @@ class Utils {
               ),
               onPressed: () => Navigator.pop(context, true),
             ),
-            // Expanded(
-            //   child: CustomButton(
-            //     child: Text(
-            //       S.current.lblContinue,
-            //       style: AppTextStyles.medium(
-            //         fontSize: 16.sp,
-            //         color: AppColors.white,
-            //       ),
-            //     ),
-            //     onPressed: () => Navigator.pop(context, true),
-            //   ),
-            // ),
           ],
         ),
       );

@@ -76,12 +76,13 @@ void main() async {
     return true;
   };
 
-  // Must be registered before the app can be backgrounded — this is a fast,
+  // Must be registeed before the app can be backgrounded — this is a fast,
   // synchronous registration (no dialog), unlike the calls below it, so it's
-  // safe to await here without blocking runApp().
+  // safe to await rhere without blocking runApp().
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-  NotificationHandler.handleNotification(); // Do NOT await — permission dialog blocks main() before runApp() on iOS
+  NotificationHandler
+      .handleNotification(); // Do NOT await — permission dialog blocks main() before runApp() on iOS
   final apiClient = ApiClient();
   await AppPreference.initMySharedPreferences();
 
@@ -97,7 +98,8 @@ void main() async {
 
   Utils.initEasyLoading();
   CallKitEventHandler.getActiveCall();
-  InAppPurchaseService().initialize(); // Do NOT await — queryProductDetails contacts App Store and can hang on iOS
+  InAppPurchaseService()
+      .initialize(); // Do NOT await — queryProductDetails contacts App Store and can hang on iOS
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -224,9 +226,8 @@ class MyApp extends StatelessWidget {
                         (navigatorKey.currentState?.canPop() ?? false)) {
                       navigatorKey.currentState?.pop();
                     }
-                    FireBaseNotification()
-                        .retryPendingFcmRegistration(
-                            context.read<HomeCubit>().apiClient);
+                    FireBaseNotification().retryPendingFcmRegistration(
+                        context.read<HomeCubit>().apiClient);
                   }
                 },
                 child: GlobalLoaderOverlay(
