@@ -1019,6 +1019,7 @@ final class LocalDbConstants {
   static final String publicKey = '_publicKey';
   static final String privateKey = '_privateKey';
   static final String firebaseToken = 'fcmToken';
+  static final String voipToken = 'voipToken';
   static final String languageKey = 'LanguageKey';
   static final String phoneVerify = 'phoneVerify';
   static final String emailVerify = 'emailVerify';

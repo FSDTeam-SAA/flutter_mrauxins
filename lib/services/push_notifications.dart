@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:two_one_two_messenger/database/local_db.dart';
+import 'package:two_one_two_messenger/firebase_options.dart';
 import 'package:two_one_two_messenger/models/common_res.dart';
 import 'package:two_one_two_messenger/screens/groupCall.dart';
 import 'package:two_one_two_messenger/screens/voice_call_page.dart';
@@ -24,6 +26,15 @@ import '../extension/bloc.dart';
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
+    // This handler can run in a fresh, headless isolate (app backgrounded/
+    // terminated) that never ran main()'s Firebase.initializeApp(), so
+    // FirebaseCrashlytics.instance below would throw "no app configured"
+    // without this.
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
 
     showMessage("back ground shoe data is === ${message.toMap().toString()}");
     if (message.data['type'] == 'agora_call_invitation') {
@@ -104,17 +115,18 @@ class FireBaseNotification {
           badge: true,
           sound: true,
         );
-        // Wait for APNS token — iOS requires it before FCM can generate a token
-        String? apnsToken;
-        for (int i = 0; i < 10; i++) {
-          apnsToken = await firebaseMessaging.getAPNSToken();
-          if (apnsToken != null) break;
-          await Future.delayed(const Duration(seconds: 1));
-        }
-        showMessage('APNS Token: $apnsToken');
+
+        // Registers whatever VoIP token PushKit already generated at launch —
+        // covers the case where AppDelegate's pushRegistry(didUpdate:) fired
+        // (and emitted DID_UPDATE_DEVICE_PUSH_TOKEN_VOIP) before this Dart
+        // engine attached its onEvent listener in CallKitEventHandler.
+        await registerVoipTokenIfNeeded(apiClient);
       }
 
-      final token = await firebaseMessaging.getToken();
+      // Utils.fetchToken() waits for the APNS token before requesting the
+      // FCM token on iOS and times out instead of hanging indefinitely —
+      // the single shared implementation for all APNs-aware token fetches.
+      final token = await Utils.fetchToken();
       if (token != null && token.isNotEmpty) {
         await AppPreference.setString(LocalDbConstants.firebaseToken, token);
         showMessage('FCM TOKEN to be Registered: $token');
@@ -214,17 +226,7 @@ class FireBaseNotification {
   }
 
   Future<String> getToken() async {
-    if (Platform.isIOS) {
-      String? apns = await firebaseMessaging.getAPNSToken();
-      if (apns == null) {
-        for (int i = 0; i < 5; i++) {
-          await Future.delayed(const Duration(seconds: 1));
-          apns = await firebaseMessaging.getAPNSToken();
-          if (apns != null) break;
-        }
-      }
-    }
-    String token = await firebaseMessaging.getToken() ?? "";
+    String token = await Utils.fetchToken() ?? "";
     await AppPreference.setString(LocalDbConstants.firebaseToken, token);
     log('TOKEN to be Registered: $token');
 
@@ -371,6 +373,49 @@ class FireBaseNotification {
       "deviceToken": token,
       "deviceType": Platform.isAndroid ? 'Android' : 'ios',
     });
+  }
+
+  // Registers the PushKit VoIP token with the backend, once the current
+  // user is known. Separate from updateFcmToken (rather than reusing it)
+  // because that method unconditionally overwrites the stored FCM token
+  // from data["deviceToken"] on success — a VoIP-only payload would corrupt
+  // it. Requires backend support for a "voipToken" field on the same
+  // /api/v1/replace-token endpoint.
+  Future<void> updateVoipToken(ApiClient apiClient, String voipToken) async {
+    try {
+      final userId = AppPreference.getCurrentUserId();
+      if (userId.isEmpty) return;
+      final response = await apiClient.updateFcmToken({
+        "userId": userId,
+        "voipToken": voipToken,
+        "deviceType": 'ios',
+      });
+      if (response?.status == Utils.APISUCCESS) {
+        await AppPreference.setString(LocalDbConstants.voipToken, voipToken);
+      }
+    } catch (e, st) {
+      showMessage('Error :::: VoIP TOKEN $e St ::: $st');
+      FirebaseCrashlytics.instance.recordError(e, st);
+    }
+  }
+
+  // iOS-only. Reads whatever VoIP token flutter_callkit_incoming's native
+  // side currently has cached (set from AppDelegate's PKPushRegistryDelegate)
+  // and registers it with the backend if it's new. Call on startup and
+  // whenever CallKitEventHandler observes a DID_UPDATE_DEVICE_PUSH_TOKEN_VOIP
+  // event.
+  Future<void> registerVoipTokenIfNeeded(ApiClient apiClient) async {
+    if (!Platform.isIOS) return;
+    try {
+      final voipToken = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
+      if (voipToken == null || voipToken.isEmpty) return;
+      if (voipToken == AppPreference.getString(LocalDbConstants.voipToken)) {
+        return;
+      }
+      await updateVoipToken(apiClient, voipToken);
+    } catch (e, st) {
+      showMessage('Error :::: registerVoipTokenIfNeeded $e St ::: $st');
+    }
   }
 
   void cancelLocalNotification(int id) {

@@ -11,6 +11,7 @@ import 'package:flutter_callkit_incoming/entities/ios_params.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:two_one_two_messenger/database/local_db.dart';
 import 'package:two_one_two_messenger/models/otp_verify.dart';
+import 'package:two_one_two_messenger/services/api_client.dart';
 import 'package:two_one_two_messenger/services/push_notifications.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
 import 'package:two_one_two_messenger/utils/constants.dart';
@@ -91,6 +92,8 @@ class CallKitEventHandler {
           onCallDeclined(callKitParams);
         case CallEventActionCallEnded(:final callKitParams):
           onCallEnded(callKitParams);
+        case CallEventActionDidUpdateDevicePushTokenVoip():
+          onVoipTokenUpdated();
         default:
           log('Unhandled event: ${event.eventName}');
       }
@@ -109,12 +112,26 @@ class CallKitEventHandler {
           onCallDeclined(callKitParams);
         case CallEventActionCallEnded(:final callKitParams):
           onCallEnded(callKitParams);
+        case CallEventActionDidUpdateDevicePushTokenVoip():
+          onVoipTokenUpdated();
         default:
           if (kDebugMode) {
             print('Unhandled event: ${event.eventName}');
           }
       }
     });
+  }
+
+  // Fired by AppDelegate's PKPushRegistryDelegate (via
+  // SwiftFlutterCallkitIncomingPlugin.setDevicePushTokenVoIP) whenever the
+  // VoIP push token is issued or rotated. Registers it with the backend so
+  // incoming-call VoIP pushes reach this device.
+  static Future<void> onVoipTokenUpdated() async {
+    try {
+      await FireBaseNotification().registerVoipTokenIfNeeded(ApiClient());
+    } catch (e, st) {
+      showMessage("onVoipTokenUpdated error === > $e ,$st");
+    }
   }
 
   static void onCallAccepted(CallKitParams callKitParams) {
