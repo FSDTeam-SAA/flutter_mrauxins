@@ -7,7 +7,6 @@ import 'package:two_one_two_messenger/models/conversation_model.dart';
 import 'package:two_one_two_messenger/screens/channel_info.dart';
 import 'package:two_one_two_messenger/screens/chat_screen.dart';
 import 'package:two_one_two_messenger/screens/group_info.dart';
-import 'package:two_one_two_messenger/services/api_config.dart';
 import 'package:two_one_two_messenger/utils/navigation.dart';
 import 'package:two_one_two_messenger/widgets/avatar_widgets.dart';
 import 'package:two_one_two_messenger/widgets/custom_loading_widget.dart';
@@ -72,7 +71,7 @@ class _DatabaseResultTile extends StatelessWidget {
         child: Row(
           children: [
             AvatarWidgets(
-              userPic: resultType == 'user' ? image : '${Urls.mediaUrl}$image',
+              userPic: image,
               svgAvatar: resultType == 'channel'
                   ? SvgAssets.megaphone
                   : resultType == 'group'

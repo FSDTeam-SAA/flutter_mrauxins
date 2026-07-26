@@ -2,18 +2,13 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:two_one_two_messenger/database/message_db_repo.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
-import 'package:two_one_two_messenger/models/nick_name/nick_name_response.dart';
 import 'package:two_one_two_messenger/models/otp_verify.dart';
-import 'package:two_one_two_messenger/models/saved_messages.dart';
-import 'package:two_one_two_messenger/models/toggle_nickname_response.dart';
-import 'package:two_one_two_messenger/models/token_and_channel.dart';
 import 'package:two_one_two_messenger/services/encryption_service.dart';
 import 'package:two_one_two_messenger/services/pagination_handler.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
@@ -23,7 +18,6 @@ import 'package:two_one_two_messenger/utils/media_storage_helper.dart';
 import '../database/local_db.dart';
 import '../models/chat_message_model.dart';
 import '../models/create_conversaion_model.dart';
-import '../models/sent_message_model.dart';
 import '../services/api_client.dart';
 import '../utils/utils.dart';
 import 'chat_state.dart';
@@ -34,12 +28,8 @@ class ChatCubit extends Cubit<ChatState> {
   final MessageRepository messageRepo;
   // final String currentUserId;
 
-  // CreateConversionData conversionData = CreateConversionData();
-  // List<ChatData> chatList = [];
   bool isChatPage = false;
   String chatId = '';
-  final ImagePicker picker = ImagePicker();
-  List<XFile> selectedFile = [];
   final _socketService = SocketService();
 
   ChatCubit(this.apiClient, this.dbHelper)
@@ -49,11 +39,6 @@ class ChatCubit extends Cubit<ChatState> {
   void changeDropdownValue(String newValue) {
     // emit(newValue);
   }
-
-  // void handleIsSendMessageValue(bool newValue,String isCallFrom) {
-  //   emit(state.copyWith(isSendMessage: newValue));
-  //   log("handleIsSendMessageValue $isCallFrom $newValue  ${state.isSendMessage}");
-  // }
 
   void changeChatPageStatus(String chatId, bool isChat, String userId) {
     isChatPage = isChat;
@@ -79,9 +64,7 @@ class ChatCubit extends Cubit<ChatState> {
 
       showMessage("updateOnlineLastStatus ${chatMessageModel?.isOnline}");
 
-      emit(state.copyWith(
-          chatMessageModel: chatMessageModel,
-          currentTypingusers: data["isOnline"] ? null : []));
+      emit(state.copyWith(chatMessageModel: chatMessageModel));
     }
   }
 
@@ -110,35 +93,6 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
-  Future<void> changeCallType({required CallType callType}) async {
-    emit(state.copyWith(callType: callType));
-  }
-
-  Future<void> toggleSpeaker(bool value) async {
-    emit(state.copyWith(isSpeaker: value));
-  }
-
-  Future<TokenAndChannel?> generateTokenAndChannelName(
-      {required BuildContext context,
-      required Map<String, dynamic> data,
-      required String chatId}) async {
-    try {
-      final response = await apiClient.requestCall(
-          chatId: chatId, data: data, context: context);
-      if (response.status == Utils.APISUCCESS) {
-        return TokenAndChannel.fromJson(response.data!.toJson());
-      } else {
-        showMessage(response.message ?? "");
-        // showToast(response.message);
-        return null;
-      }
-    } catch (e, st) {
-      showMessage('generateTokenAndChannelName: $e, $st');
-      // showToast(NameData.failedToGenerateToken);
-      return null;
-    }
-  }
-
   Future<void> resetChatScreenState() async {
     emit(state.copyWith(
         chatLoadingState: LoadingState.success,
@@ -152,75 +106,6 @@ class ChatCubit extends Cubit<ChatState> {
 
   int chatCurrentPage = 1;
   int chatTotalPage = 1;
-  // Future<void> getChatMessages(
-  //     {required String chatId,
-  //     required BuildContext context,
-  //     required String aesKey,
-  //     required String searchQuery,
-  //     required bool isLoadMore}) async {
-  //   try {
-  //     Map<String, dynamic>? data = {
-  //       'page': isLoadMore ? chatCurrentPage + 1 : 1,
-  //       'search': searchQuery,
-  //       "limit": 15
-  //     };
-
-  //     if (isLoadMore) {
-  //       log("isLoadMore===$chatTotalPage $chatCurrentPage ${chatTotalPage > chatCurrentPage}");
-  //       if (chatTotalPage < chatCurrentPage) return;
-  //       emit(state.copyWith(chatMessageLoadingMore: isLoadMore));
-  //     } else {
-  //       chatTotalPage = 1;
-  //       emit(state.copyWith(chatLoadingState: LoadingState.loading));
-  //     }
-
-  //     ChatMessageModelResponse response =
-  //         await apiClient.getChatMessages(chatId, context, aesKey, data);
-  //     if (response.status == Utils.APISUCCESS) {
-  //       // ChatMessageModel chatData = ChatMessageModel.fromJson(response.data, aesKey)
-  //       Set<MessageModel> newList = isLoadMore
-  //           ? Set.from([
-  //               ...state.chatList ?? Set.of([]),
-  //               ...response.data?.messages ?? Set.of([])
-  //             ].cast<MessageModel>())
-  //           : response.data?.messages ?? Set.of([]);
-  //       log("Get Message Pagination1111=== ${response.data?.pagination?.toJson()}");
-  //       if (response.data?.pagination != null) {
-  //         log("Get Message Pagination=== ${response.data?.pagination?.toJson()}");
-  //         chatTotalPage = response.data!.pagination!.totalPages!;
-  //         if (response.data!.pagination!.page! >
-  //             response.data!.pagination!.totalPages!) {
-  //           emit(state.copyWith(
-  //               chatLoadingState: LoadingState.success,
-  //               chatMessageLoadingMore: false));
-  //           return;
-  //         }
-
-  //         chatCurrentPage = response.data!.pagination!.page!;
-  //         log("isLoadMore=2==$chatTotalPage $chatCurrentPage ${chatTotalPage > chatCurrentPage}");
-  //       } else {
-  //         chatCurrentPage = 1;
-  //         log("isLoadMore=3==$chatTotalPage $chatCurrentPage ${chatTotalPage > chatCurrentPage}");
-  //       }
-  //       emit(state.copyWith(
-  //           chatLoadingState: LoadingState.success,
-  //           chatMessageLoadingMore: false,
-  //           chatMessageModel: response.data?.copyWith(messages: newList),
-  //           chatList: newList));
-  //     } else {
-  //       emit(state.copyWith(
-  //           chatLoadingState: LoadingState.success,
-  //           chatMessageLoadingMore: false));
-  //     }
-  //   } catch (e, st) {
-  //     Utils.showSnackBar(context, e.toString().replaceAll("Exception: ", ""),
-  //         seconds: 3);
-  //     showMessage("getChatMessages $e $st");
-  //     emit(state.copyWith(
-  //         chatLoadingState: LoadingState.error,
-  //         chatErrorMessage: e.toString()));
-  //   }
-  // }
   // Call this when app starts or when user opens the chat screen
   Future<void> checkAndRetryPendingMessages({
     required BuildContext context,
@@ -375,107 +260,6 @@ class ChatCubit extends Cubit<ChatState> {
       chatPaginationController.isFetching = false;
     }
   }
-  // Old GetMessage api
-  // Future<void> getChatMessages({
-  //   required String chatId,
-  //   required BuildContext context,
-  //   required String aesKey,
-  //   required String searchQuery,
-  //   required bool isLoadMore,
-  // }) async {
-  //   try {
-  //     if (isLoadMore &&
-  //         (!chatPaginationController.hasMore ||
-  //             chatPaginationController.isFetching)) {
-  //       return;
-  //     }
-
-  //     chatPaginationController.isFetching = true;
-
-  //     if (!isLoadMore) {
-  //       chatPaginationController.reset(); // Reset pagination on new search/load
-  //       emit(state.copyWith(chatLoadingState: LoadingState.loading));
-  //     } else {
-  //       emit(state.copyWith(chatMessageLoadingMore: true));
-  //     }
-
-  //     final int currentPage =
-  //         isLoadMore ? chatPaginationController.currentPage + 1 : 1;
-
-  //     Map<String, dynamic> data = {
-  //       'page': currentPage,
-  //       'search': searchQuery,
-  //       'limit': chatPaginationController.limit,
-  //     };
-
-  //     final ChatMessageModelResponse response =
-  //         await apiClient.getChatMessages(chatId, context, aesKey, data);
-
-  //     if (response.status == Utils.APISUCCESS) {
-  //       final pagination = response.data?.pagination;
-  //       final Set<MessageModel> newMessages = isLoadMore
-  //           ? <MessageModel>{
-  //               ...state.chatList ?? <MessageModel>{},
-  //               ...response.data?.messages ?? <MessageModel>{}
-  //             }
-  //           : response.data?.messages ?? <MessageModel>{};
-
-  //       if (pagination != null) {
-  //         chatPaginationController.hasMore =
-  //             pagination.page! < pagination.totalPages!;
-  //         chatPaginationController.currentPage = pagination.page!;
-  //       } else {
-  //         chatPaginationController.hasMore = false;
-  //         chatPaginationController.currentPage = 1;
-  //       }
-  //       debugPrint(
-  //           "getChat Message = ${response.data?.isOnline} ${response.data?.lastSeen}");
-  //       emit(state.copyWith(
-  //         chatLoadingState: LoadingState.success,
-  //         chatMessageLoadingMore: false,
-  //         chatMessageModel: response.data?.copyWith(messages: newMessages),
-  //         chatList: newMessages,
-  //       ));
-  //     } else {
-  //       emit(state.copyWith(
-  //         chatLoadingState: LoadingState.success,
-  //         chatMessageLoadingMore: false,
-  //       ));
-  //     }
-  //   } catch (e, st) {
-  //     Utils.showSnackBar(context, e.toString().replaceAll("Exception: ", ""),
-  //         seconds: 3);
-  //     emit(state.copyWith(
-  //       chatLoadingState: LoadingState.error,
-  //       chatErrorMessage: e.toString(),
-  //       chatMessageLoadingMore: false,
-  //     ));
-  //     showMessage("getChatMessages $e\n$st");
-  //   } finally {
-  //     chatPaginationController.isFetching = false;
-  //   }
-  // }
-
-  Future<void> rejectCall(
-      {
-      // required BuildContext context,
-      required String chatId,
-      required String callId,
-      required int duration}) async {
-    try {
-      UserData? currentuser = await dbHelper.getLoginData();
-      //  showMessage("onend call userid==${currentuser?.sId??""}");
-      SocketService().emitEndCall({
-        "user_id": currentuser?.sId,
-        "duration": duration,
-        "chat_id": chatId,
-        "callId": callId,
-      });
-    } catch (e, st) {
-      showMessage("Error in end Call $e, $st");
-    }
-  }
-
   Future<void> deleteChatMessages(
       {required String messageId,
       required String chatId,
@@ -546,132 +330,6 @@ class ChatCubit extends Cubit<ChatState> {
       showMessage("Error ==> $e $st");
     } finally {
       // Utils.hideLoader();
-    }
-  }
-
-  Future<void> saveMessages(
-      {required BuildContext context,
-      required String messageId,
-      required String chatId,
-      required bool isTempMessage,
-      void Function(CommonMessageResponse)? callback}) async {
-    try {
-      Map<String, dynamic> data = {};
-      if (isTempMessage) {
-        data = {
-          "chatId": chatId,
-          "tempMessageId": messageId,
-          "isTempMessage": true
-        };
-      } else {
-        data = {
-          "messageId": messageId,
-          "chatId": chatId,
-          "isTempMessage": isTempMessage
-        };
-      }
-      showMessage("saveMessages  DATA. $data");
-      Utils.showLoader();
-      CommonMessageResponse response =
-          await apiClient.saveMessage(context: context, data: data);
-      if (response.status == Utils.APISUCCESS) {
-        callback?.call(response);
-      }
-    } catch (e, st) {
-      showMessage("saveMessages errot $e, $st");
-      Utils.showSnackBar(context, e.toString().replaceAll("Exception: ", ""),
-          seconds: 3);
-    } finally {
-      Utils.hideLoader();
-    }
-  }
-
-  int saveMessagesCurrentPage = 1;
-  Timer? debounceTimer;
-  void onSearchSavedMessages(BuildContext context, String searchQuery) {
-    if (debounceTimer != null) {
-      debounceTimer!.cancel();
-    }
-
-    debounceTimer = Timer(
-      Duration(seconds: 1),
-      () {
-        saveMessagesCurrentPage = 1;
-        getSaveMessages(context, searchQuery: searchQuery, isLoadMore: false);
-      },
-    );
-  }
-
-  void handleSearchSavedMessage(BuildContext context, void Function() onTap) {
-    emit(state.copyWith(isSearchSavedMessages: !state.isSearchSavedMessages));
-
-    if (state.isSearchSavedMessages) {
-      onTap.call();
-
-      onSearchSavedMessages(context, "");
-    }
-  }
-
-  Future<void> getSaveMessages(BuildContext context,
-      {Function(CommonMessageResponse)? callback,
-      required String searchQuery,
-      required bool isLoadMore}) async {
-    try {
-      if ((state.savedMessagesData?.savedMessages ?? []).isEmpty) {
-        emit(state.copyWith(savedMessageLoadingState: LoadingState.loading));
-      }
-      Map<String, dynamic>? data = {
-        'page': isLoadMore ? saveMessagesCurrentPage + 1 : 1,
-        'search': searchQuery,
-      };
-
-      if (isLoadMore) {
-        emit(state.copyWith(savedMessageLoadingMore: isLoadMore));
-      }
-      GetSavedMessagesResponse response =
-          await apiClient.getSaveMessages(context, data);
-      if (response.status == Utils.APISUCCESS) {
-        SavedMessagesData savedMessagesData =
-            SavedMessagesData.fromJson(response.data!.toJson(), "");
-
-        final newList = isLoadMore
-            ? [
-                ...state.savedMessagesData?.savedMessages ?? [],
-                ...response.data?.savedMessages ?? []
-              ].cast<SavedMessage>()
-            : response.data?.savedMessages ?? [];
-        if (response.data?.pagination != null) {
-          if (response.data!.pagination!.page! >
-              response.data!.pagination!.totalPages!) {
-            emit(state.copyWith(
-                savedMessageLoadingState: LoadingState.success,
-                savedMessageLoadingMore: false));
-            return;
-          }
-
-          saveMessagesCurrentPage = response.data!.pagination!.page!;
-        } else {
-          saveMessagesCurrentPage = 1;
-        }
-        emit(state.copyWith(
-            savedMessageLoadingMore: false,
-            savedMessagesData:
-                savedMessagesData.copyWith(savedMessages: newList),
-            savedMessageLoadingState: LoadingState.success));
-      } else {
-        emit(state.copyWith(
-            savedMessageLoadingState: LoadingState.success,
-            savedMessageLoadingMore: false));
-      }
-    } catch (e, st) {
-      Utils.showSnackBar(context, e.toString().replaceAll("Exception: ", ""),
-          seconds: 3);
-      showMessage("Error getSaveMessages $e $st");
-      emit(state.copyWith(
-          savedMessageLoadingState: LoadingState.error,
-          savedMessageLoadingMore: false));
-    } finally {
-      Utils.hideLoader();
     }
   }
 
@@ -856,73 +514,6 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
-// void updateTypingList( TypingModel newTypingModel) {
-
-//    List<TypingModel> typingList = List<TypingModel>.from(state.currentTypingusers??[]);
-//   // Remove elements that have a different chatId or are set to isTyping = false
-//   typingList.removeWhere((element) =>
-//       element.chatId != newTypingModel.chatId || element.isTypeing == false);
-
-//   // If isTyping is true, add or update the typing model in the list
-//   if (newTypingModel.isTypeing == true) {
-//     // Check if the model already exists in the list
-//     int index = typingList.indexWhere((element) => element.sender == newTypingModel.sender);
-
-//     if (index != -1) {
-//       // Update the existing model
-//       typingList[index] = newTypingModel;
-//     } else {
-//       // Add a new model
-//       typingList.add(newTypingModel);
-//     }
-//   }else{
-//     typingList.removeWhere((element) =>
-//       element.sender == newTypingModel.sender );
-//   }
-//   showMessage("updateTypingList==>${typingList.length}");
-//   emit(state.copyWith(currentTypingusers: typingList));
-// }
-
-  void updateTypingList(TypingModel newTypingModel) {
-    // Create a new list from the current state to avoid modifying the original reference
-    List<TypingModel> typingList =
-        List<TypingModel>.from(state.currentTypingusers ?? []);
-
-    // Remove elements with different chatId or those with isTyping = false
-    typingList.removeWhere((element) =>
-        element.chatId != newTypingModel.chatId || element.isTyping == false);
-
-    if (newTypingModel.isTyping == true) {
-      // Check if the sender already exists in the list
-      int index = typingList
-          .indexWhere((element) => element.sender == newTypingModel.sender);
-
-      if (index != -1) {
-        // Update the existing typing model
-        typingList[index] = newTypingModel;
-      } else {
-        // Add a new typing model
-        typingList.add(newTypingModel);
-      }
-    } else {
-      // Remove the typing model if isTyping is false
-      typingList.removeWhere(
-          (element) => element.sender?.id == newTypingModel.sender?.id);
-    }
-
-    showMessage("updateTypingList==1111>${typingList.length}");
-
-    // Emit a new state only if there's an actual change
-    if (!listEquals(state.currentTypingusers, typingList)) {
-      emit(state.copyWith(
-          currentTypingusers: List<TypingModel>.from(typingList)));
-    }
-  }
-
-  void clearTypingList() {
-    emit(state.copyWith(currentTypingusers: []));
-  }
-
   void updateMessageFromChatList(
       BuildContext context, MessageModel message, String messageId) {
     Set<MessageModel> updatedMessages =
@@ -970,10 +561,6 @@ class ChatCubit extends Cubit<ChatState> {
 
   void handleReplyMessage(MessageModel? message) {
     emit(state.copyWith(replyingToMessage: message));
-  }
-
-  void handleReplySavedMessage(SavedMessage? message) {
-    emit(state.copyWith(replyingToSavedMessage: message));
   }
 
   void updateUploadProgress(String messageId, double progress) {
@@ -1140,14 +727,6 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
-  // Future<List<XFile>> _prepareFilesForRetry(
-  //     List<FileElement> fileElements) async {
-  //   return await Future.wait(fileElements.map((e) async {
-  //     if (e.file != null) return e.file!;
-  //     if (e.localPath != null) return XFile(e.localPath!);
-  //     throw Exception('No file available for retry');
-  //   }));
-  // }
   Future<List<XFile>> _prepareFilesForRetry(
       List<FileElement> fileElements) async {
     return await Future.wait(fileElements.map((e) async {
@@ -1183,6 +762,18 @@ class ChatCubit extends Cubit<ChatState> {
       // 1. Get current user info
       final currentUser = await dbHelper.getLoginData();
       if (currentUser == null) throw Exception('User not logged in');
+
+      // Conversation creation can fail/lag (e.g. network blip) leaving
+      // chatId/aesKey empty; encrypting with an empty key crashes deep in
+      // EncryptionHelper, so bail out early with a clear message instead.
+      if ((chatId ?? "").isEmpty || (aesKey ?? "").isEmpty) {
+        Utils.showSnackBar(
+          context,
+          "Couldn't send message, please try again",
+          seconds: 3,
+        );
+        return;
+      }
 
       final encryptionHelper = EncryptionHelper();
       final encryptedContent =
@@ -1499,506 +1090,6 @@ class ChatCubit extends Cubit<ChatState> {
       );
     }
   }
-//   Future<void> sentMessage(
-//     BuildContext context, {
-//     required int mediaType,
-//     required MimeType mimeType,
-//     String? chatId,
-//     String? aesKey,
-//     String? content,
-//     List<XFile>? files,
-//     MessageModel? replyMessage,
-//     String? gifUrl,
-//     String? sizeForGIF,
-//     // Function(SentMessageModel? sentMessageModel)? callback,
-//   }) async {
-//     try {
-//       final encryptionHelper = EncryptionHelper();
-//       final encryptedContent =
-//           encryptionHelper.encryptMessage(content ?? "", aesKey ?? "");
-//       if (replyMessage != null) {
-//         final replyMessageContent = encryptionHelper.encryptMessage(
-//             replyMessage.content ?? "", aesKey ?? "");
-//         replyMessage = replyMessage.copyWith(
-//             content: replyMessageContent, replyTo: null, resetReplyTo: true);
-//       }
-//       String type = mediaType == 0
-//           ? "text"
-//           : MimeType.image == mimeType
-//               ? "image"
-//               : MimeType.video == mimeType
-//                   ? "video"
-//                   : MimeType.audio == mimeType
-//                       ? "audio"
-//                       : MimeType.gif == mimeType
-//                           ? "gif"
-//                           : MimeType.pdf == mimeType
-//                               ? "pdf"
-//                               : "document";
-//       final String messageId = DateTime.now().microsecondsSinceEpoch.toString();
-//       // if (mediaType != 0) {
-//       //   Utils.showLoader();
-//       // }
-
-//       if (mediaType == 0) {
-//         MessageModel message = MessageModel(
-//             chatId: chatId,
-//             messageId: messageId,
-//             content: encryptedContent,
-//             createdAt: DateTime.now(),
-//             isRead: false,
-//             isSent: true,
-//             type: "text",
-//             isDeleted: false,
-//             sender: await Utils.currentUserToSender(),
-//             id: messageId,
-//             replyTo: replyMessage);
-
-//         chatCubit.updateChatList(
-//             context, message.toJson(), "sendMessage test", aesKey ?? "");
-//       } else {
-//         // emit(state.copyWith(sendMessageState: LoadingState.loading));
-//         if (files == null && encryptedContent == null) {
-//           // Utils.hideLoader();
-//           return;
-//         }
-//         List<FileElement> fileEle;
-
-//         if (type == "gif") {
-//           fileEle = [FileElement(url: gifUrl, fileName: "GIF")];
-//         } else {
-//           fileEle = await Future.wait(
-//             files!.map(
-//               (e) async => FileElement(
-//                 file: e,
-//                 fileSize: await e.length(),
-//               ),
-//             ),
-//           );
-//         }
-//         MessageModel message = MessageModel(
-//             chatId: chatId,
-//             messageId: messageId,
-//             content: encryptedContent,
-//             createdAt: DateTime.now(),
-//             isRead: false,
-//             isSent: false,
-//             type: type,
-//             isDeleted: false,
-//             sender: await Utils.currentUserToSender(),
-//             id: messageId,
-//             files: fileEle,
-//             replyTo: replyMessage);
-
-//         chatCubit.updateChatList(
-//             context, message.toJson(), "sendMessage media", aesKey ?? "");
-//       }
-
-//       String senderId = (userDataCubit.state?.sId ?? "").isEmpty
-//           ? (await dbHelper.getLoginData())?.sId ?? ""
-//           : userDataCubit.state?.sId ?? "";
-//       if (mediaType == 0 && senderId.isNotEmpty) {
-//         _socketService.sendEvent(AppConstants.sendMessage, {
-//           "chatId": chatId,
-//           "content": encryptedContent,
-//           "type": "text",
-//           "messageId": messageId,
-//           "sender": senderId,
-//           if (replyMessage != null) "replyToMessageId": replyMessage.messageId
-//         });
-//         if (replyMessage != null) {
-//           handleReplyMessage(null);
-//         }
-//         return;
-//       }
-//       showMessage(
-//           "sent message requiest 1==>$messageId   ${mimeType.name} $aesKey ${encryptedContent}");
-//       SentMessageModel response = await apiClient.sentMessage(
-//         context,
-//         mediaType: mediaType,
-//         type: type,
-//         chatId: chatId,
-//         content: encryptedContent,
-//         files: files,
-//         aesKey: aesKey,
-//         gifUrl: gifUrl,
-//         sizeForGIF: sizeForGIF,
-//         messageId: messageId,
-//         replyToMessageId:
-//             (replyMessage != null) ? replyMessage.messageId : null,
-//         onProgress: (progress) {
-//           chatCubit.updateUploadProgress(messageId, progress);
-//         },
-//       );
-//       if (response.status == Utils.APISUCCESS) {
-//         if (response.data != null) {
-//           updateMessageFromChatList(context, response.data!, messageId);
-//         }
-// //         else if (response.data != null) {
-// // // callback?.call(response);
-// //           showMessage("sent message responce ==>${response.data?.toJson()}");
-// //           updateChatList(
-// //               context, response.data, "sendMessage media", aesKey ?? "");
-// //         }
-
-//         emit(state.copyWith(
-//           replyingToMessage: null,
-//           sendMessageState: LoadingState.success,
-//         ));
-//       }
-//     } catch (e, st) {
-//       Utils.showSnackBar(context, e.toString().replaceAll("Exception: ", ""),
-//           seconds: 3);
-//       // emit(SentMessageError(e.toString()));
-//       log("sent Message==${e} $st");
-//     } finally {
-//       if (mediaType != 0) {
-//         Utils.hideLoader();
-//       }
-//     }
-//   }
-
-  Future<void> sentSaveMessage(
-    BuildContext context, {
-    required int mediaType,
-    required MimeType mimeType,
-    required String content,
-    List<XFile>? files,
-    SavedMessage? replyMessage,
-    String? gifUrl,
-    String? sizeForGIF,
-    // Function(SentMessageModel? sentMessageModel)? callback,
-  }) async {
-    try {
-      String type = mediaType == 0
-          ? "text"
-          : MimeType.image == mimeType
-              ? "image"
-              : MimeType.video == mimeType
-                  ? "video"
-                  : MimeType.audio == mimeType
-                      ? "audio"
-                      : MimeType.gif == mimeType
-                          ? "gif"
-                          : MimeType.pdf == mimeType
-                              ? "pdf"
-                              : "document";
-      final String messageId = DateTime.now().millisecondsSinceEpoch.toString();
-      // if (mediaType != 0) {
-      //   Utils.showLoader();
-      // }
-      String senderId = userDataCubit.state?.sId ?? "";
-      if (senderId.isEmpty) {
-        final userData = await dbHelper.getLoginData();
-        senderId = userData?.sId ?? "";
-      }
-      if (mediaType == 0) {
-        MessageModel message = MessageModel(
-          chatId: "",
-          messageId: messageId,
-          content: content,
-          createdAt: DateTime.now(),
-          isRead: false,
-          type: "text",
-          isDeleted: false,
-          sender: await Utils.currentUserToSender(),
-          id: messageId,
-          replyTo: replyMessage?.messageDetails,
-        );
-        // log("message  ${message.toJson()}");
-        SavedMessage savedMessage = SavedMessage(
-            id: messageId,
-            messageDetails: message,
-            messageId: messageId,
-            senderDetails: message.sender);
-        List<SavedMessage> updateList =
-            List.from((state.savedMessagesData?.savedMessages ?? []));
-        updateList.insert(0, savedMessage);
-
-        if (state.savedMessagesData != null) {
-          emit(state.copyWith(
-              savedMessagesData: state.savedMessagesData!
-                  .copyWith(savedMessages: updateList)));
-        } else {
-          emit(state.copyWith(
-              savedMessagesData:
-                  SavedMessagesData().copyWith(savedMessages: updateList)));
-        }
-
-        if (senderId.isNotEmpty) {
-          _socketService.sendEvent(AppConstants.sendSavedMessage, {
-            "sender": senderId,
-            "messageId": messageId,
-            "content": content,
-            "type": "text",
-            if (replyMessage != null) "replyToMessageId": replyMessage.messageId
-          });
-          showMessage("Send Saved Message Event = = ${{
-            "sender": senderId,
-            "messageId": messageId,
-            "content": content,
-            "type": "text"
-          }}");
-          if (replyMessage != null) {
-            handleReplySavedMessage(null);
-          }
-          return;
-        }
-      } else {
-        if (files == null && content == null) {
-          // Utils.hideLoader();
-          return;
-        }
-        List<FileElement> fileEle;
-
-        if (type == "gif") {
-          fileEle = [FileElement(url: gifUrl, fileName: "GIF")];
-        } else {
-          fileEle = await Future.wait(
-            files!.map(
-              (e) async => FileElement(
-                file: e,
-                fileSize: await e.length(),
-              ),
-            ),
-          );
-        }
-        MessageModel message = MessageModel(
-          chatId: "",
-          messageId: messageId,
-          content: content,
-          createdAt: DateTime.now(),
-          isRead: false,
-          type: type,
-          isDeleted: false,
-          sender: await Utils.currentUserToSender(),
-          id: messageId,
-          files: fileEle,
-          replyTo: replyMessage?.messageDetails,
-        );
-        // log("message  ${message.toJson()}");
-        SavedMessage savedMessage = SavedMessage(
-            id: messageId,
-            messageDetails: message,
-            messageId: messageId,
-            senderDetails: message.sender);
-        List<SavedMessage> updateList =
-            List.from((state.savedMessagesData?.savedMessages ?? []));
-        updateList.insert(0, savedMessage);
-
-        if (state.savedMessagesData != null) {
-          emit(state.copyWith(
-              savedMessagesData: state.savedMessagesData!
-                  .copyWith(savedMessages: updateList)));
-        } else {
-          emit(state.copyWith(
-              savedMessagesData:
-                  SavedMessagesData().copyWith(savedMessages: updateList)));
-        }
-        if (replyMessage != null) {
-          handleReplySavedMessage(null);
-        }
-      }
-
-      if (files == null && content == null) {
-        // Utils.hideLoader();
-        return;
-      }
-
-      showMessage("sent message requiest ==>${mimeType.name}  $content");
-      SentMessageModel response = await apiClient.sentSaveMessage(context,
-          mediaType: mediaType,
-          type: type,
-          // chatId: chatId,
-          content: content,
-          files: files,
-          gifUrl: gifUrl,
-          sizeForGIF: sizeForGIF,
-          messageId: messageId,
-          replyToMessageId:
-              (replyMessage != null) ? replyMessage.messageId : null);
-      if (response.status == Utils.APISUCCESS) {
-        if (mediaType != 0 && response.data != null) {
-          showMessage(
-              "sent save message responce ==>${response.data?.toJson()}");
-          SavedMessage savedMessage = SavedMessage(
-              id: messageId,
-              messageDetails: response.data,
-              messageId: messageId,
-              senderDetails: response.data?.sender);
-          List<SavedMessage> updateList =
-              List.from((state.savedMessagesData?.savedMessages ?? []).map(
-            (e) {
-              if (e.id == savedMessage.id) {
-                return savedMessage;
-              }
-              return e;
-            },
-          ));
-
-          // updateList.insert(0, savedMessage);
-
-          emit(state.copyWith(
-              replyingToSavedMessage: null,
-              savedMessagesData: state.savedMessagesData!
-                  .copyWith(savedMessages: updateList)));
-        }
-
-        emit(state.copyWith(
-          sendMessageState: LoadingState.success,
-        ));
-      }
-    } catch (e, st) {
-      Utils.showSnackBar(context, e.toString().replaceAll("Exception: ", ""),
-          seconds: 3);
-      log("sent Message==$e $st");
-      // emit(SentMessageError(e.toString()));
-    } finally {
-      if (mediaType != 0) {
-        Utils.hideLoader();
-      }
-    }
-  }
-
-  Future<void> clearAllSavedMessages(BuildContext context,
-      {Function(CommonMessageResponse)? callback}) async {
-    try {
-      Utils.showLoader();
-      CommonMessageResponse response =
-          await apiClient.clearAllSavedMessages(context);
-      if (response.status == Utils.APISUCCESS) {
-        callback?.call(response);
-        emit(state.copyWith(
-            savedMessagesData:
-                state.savedMessagesData?.copyWith(savedMessages: [])));
-      }
-    } catch (e) {
-      Utils.showSnackBar(context, e.toString().replaceAll("Exception: ", ""),
-          seconds: 3);
-    } finally {
-      Utils.hideLoader();
-    }
-  }
-
-  Future<void> deleteSavedMessages(
-      String messageId, int index, BuildContext context,
-      {Function(CommonMessageResponse)? callback}) async {
-    try {
-      if (messageId.isEmpty) {
-        return;
-      }
-      Utils.showLoader();
-      CommonMessageResponse response = await apiClient.deleteSavedMessages(
-          messageId: messageId, context: context);
-      if (response.status == Utils.APISUCCESS) {
-        SavedMessagesData savedMessagesData =
-            SavedMessagesData.fromJson(state.savedMessagesData!.toJson(), "");
-        List<SavedMessage> updatedMessageList =
-            savedMessagesData.savedMessages ?? [];
-        updatedMessageList.removeAt(index);
-        savedMessagesData.copyWith(savedMessages: updatedMessageList);
-        callback?.call(response);
-        emit(state.copyWith(savedMessagesData: savedMessagesData));
-        showMessage("deleteSavedMessages==>$messageId");
-      }
-    } catch (e) {
-      Utils.showSnackBar(context, e.toString().replaceAll("Exception: ", ""),
-          seconds: 3);
-    } finally {
-      Utils.hideLoader();
-    }
-  }
-
-  void editSavedMessage({
-    required SavedMessage message,
-    required String newText,
-    required void Function() callback,
-  }) {
-    // final encryptionHelper = EncryptionHelper();
-    // final encryptedContent =
-    //     encryptionHelper.encryptMessage(newText ?? "", aesKey ?? "");
-    Map<String, dynamic> data = {
-      "messageId": message.messageId,
-      "editedContent": newText,
-      "userId": message.senderDetails?.id
-    };
-    // showMessage("edited message == $data");
-    SocketService().editSavedMessage(data);
-    callback.call();
-  }
-
-  void updateSavedMessageList(message) {
-    if ((state.savedMessagesData?.savedMessages ?? []).isEmpty) return;
-    SavedMessagesData savedMessagesData = state.savedMessagesData!;
-    List<SavedMessage> updatedMessageList =
-        (savedMessagesData.savedMessages ?? []).map(
-      (e) {
-        if (e.messageId == message["messageId"]) {
-          return SavedMessage.fromJson(message["message"], "");
-        }
-        return e;
-      },
-    ).toList();
-    savedMessagesData =
-        savedMessagesData.copyWith(savedMessages: updatedMessageList);
-    emit(state.copyWith(savedMessagesData: savedMessagesData));
-  }
-
-  void onEditSaveMessage(Map<String, dynamic> message) {
-    if ((state.savedMessagesData?.savedMessages ?? []).isEmpty) return;
-
-    SavedMessagesData savedMessagesData = state.savedMessagesData!;
-    SavedMessage updatedMessage = SavedMessage.fromJson(message, "");
-    log("updateSavedMessageList inner 1111${updatedMessage.toJson()}");
-    List<SavedMessage> updatedMessageList =
-        savedMessagesData.savedMessages!.map(
-      (e) {
-        if (e.messageId == updatedMessage.messageId) {
-          log("updateSavedMessageList inner ${updatedMessage.toJson()}");
-          return e.copyWith(
-              messageDetails: e.messageDetails?.copyWith(
-                  content: updatedMessage.messageDetails?.content,
-                  isEditedMessage: updatedMessage
-                      .messageDetails?.isEditedMessage)); // Ensure correct path
-        }
-        return e;
-      },
-    ).toList();
-
-    // Ensure a new instance is created
-    SavedMessagesData newSavedMessagesData =
-        savedMessagesData.copyWith(savedMessages: updatedMessageList);
-
-    emit(state.copyWith(savedMessagesData: newSavedMessagesData));
-  }
-
-  void onReactSavedMessage(Map<String, dynamic> message) {
-    if ((state.savedMessagesData?.savedMessages ?? []).isEmpty) return;
-
-    SavedMessagesData savedMessagesData = state.savedMessagesData!;
-    SavedMessage updatedMessage = SavedMessage.fromJson(message, "");
-    log("updateSavedMessageList inner 1111${updatedMessage.toJson()}");
-    List<SavedMessage> updatedMessageList =
-        savedMessagesData.savedMessages!.map(
-      (e) {
-        if (e.messageId == updatedMessage.messageId) {
-          log("updateSavedMessageList inner ${updatedMessage.toJson()}");
-          return e.copyWith(
-              messageDetails: e.messageDetails?.copyWith(
-            reactions: updatedMessage.messageDetails?.reactions,
-          )); // Ensure correct path
-        }
-        return e;
-      },
-    ).toList();
-
-    // Ensure a new instance is created
-    SavedMessagesData newSavedMessagesData =
-        savedMessagesData.copyWith(savedMessages: updatedMessageList);
-
-    emit(state.copyWith(savedMessagesData: newSavedMessagesData));
-  }
-
   Future<void> editMessage(
       {required MessageModel message,
       required String newText,
@@ -2038,24 +1129,6 @@ class ChatCubit extends Cubit<ChatState> {
     // callback.call();
   }
 
-  Future<void> reactSavedMessage({
-    required SavedMessage message,
-    required String reaction,
-    // required void Function() callback,
-  }) async {
-    List<String> reactions = message.messageDetails?.reactions ?? [];
-    UserData? user = await dbHelper.getLoginData();
-    reactions.add(reaction);
-    Map<String, dynamic> data = {
-      "messageId": message.messageId,
-      "reactions": reactions,
-      "userId": user?.sId ?? "",
-    };
-    // showMessage("edited message == $data");
-    SocketService().reactSavedMessageEvent(data);
-    // callback.call();
-  }
-
   void handleUnblockUser(bool value) {
     emit(state.copyWith(
         chatMessageModel: state.chatMessageModel?.copyWith(youBlocked: value)));
@@ -2086,24 +1159,10 @@ class ChatCubit extends Cubit<ChatState> {
     });
   }
 
-  void pinSavedMessage({required String messageId, required String userId}) {
-    SocketService().sendEvent(AppConstants.pinedSavedMessage, {
-      "messageId": messageId,
-      "userId": userId,
-    });
-  }
-
   void unPinMessage({required String messageId, required String chatId}) {
     SocketService().sendEvent(AppConstants.unPinedMessage, {
       "messageId": messageId,
       "chatId": chatId,
-    });
-  }
-
-  void unPinSavedMessage({required String messageId, required String userId}) {
-    SocketService().sendEvent(AppConstants.unPinedSavedMessage, {
-      "messageId": messageId,
-      "userId": userId,
     });
   }
 
@@ -2167,141 +1226,4 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
-  void onPinnedSavedMessage({required String messageId}) {
-    SavedMessagesData? savedMessageModel = state.savedMessagesData;
-    if (savedMessageModel != null) {
-      List<SavedMessage> pinSavedMessages =
-          List.from(savedMessageModel.pinnedSavedMessages ?? []);
-
-      List<SavedMessage> savedMessages =
-          List.from(savedMessageModel.savedMessages ?? []);
-
-      SavedMessage? pinnedMessage;
-      // Update pinned status in chatMessages list
-      savedMessages = savedMessages.map((message) {
-        if (message.messageId == messageId) {
-          MessageModel? msg = message.messageDetails?.copyWith(pinned: true);
-          pinnedMessage = message.copyWith(messageDetails: msg);
-
-          return pinnedMessage!; // Assuming you have a copyWith method
-        }
-        return message;
-      }).toList();
-
-      pinSavedMessages.add(pinnedMessage!);
-      savedMessageModel = savedMessageModel.copyWith(
-          pinnedSavedMessages: pinSavedMessages.toSet().toList(),
-          savedMessages: savedMessages.toSet().toList());
-      emit(state.copyWith(
-        savedMessagesData: savedMessageModel,
-      ));
-    }
-  }
-
-  void onUnPinnedSavedMessage({required String messageId}) {
-    SavedMessagesData? savedMessageModel = state.savedMessagesData;
-    if (savedMessageModel != null) {
-      List<SavedMessage> pinSavedMessages =
-          List.from(savedMessageModel.pinnedSavedMessages ?? []);
-
-      List<SavedMessage> savedMessages =
-          List.from(savedMessageModel.savedMessages ?? []);
-      pinSavedMessages.removeWhere((message) => message.messageId == messageId);
-
-      // Update pinned status in chatMessages list
-      savedMessages = savedMessages.map((message) {
-        if (message.messageId == messageId) {
-          MessageModel? msg = message.messageDetails?.copyWith(pinned: false);
-          return message.copyWith(messageDetails: msg);
-
-          // Assuming you have a copyWith method
-        }
-        return message;
-      }).toList();
-
-      savedMessageModel = savedMessageModel.copyWith(
-          pinnedSavedMessages: pinSavedMessages.toSet().toList(),
-          savedMessages: savedMessages.toSet().toList());
-      emit(state.copyWith(
-        savedMessagesData: savedMessageModel,
-      ));
-    }
-  }
-
-  Future<void> setNickname({
-    required BuildContext context,
-    required String contactUserId,
-    required String nickName,
-    Function(SetNicknameResponse)? callback,
-  }) async {
-    try {
-      log("contactUserId -->$contactUserId  Name > $nickName");
-      if (contactUserId.isEmpty) {
-        return;
-      }
-      Utils.showLoader();
-      SetNicknameResponse response = await apiClient.nickNameSet(
-        contactUserId: contactUserId,
-        nickName: nickName,
-      );
-      if (response.status == Utils.APISUCCESS) {
-        // await messageRepo.clearChat(
-        //   chatId: chatId,
-        // );
-        // emit(state.copyWith(
-        //     chatList: Set.of([]),
-        //     chatMessageModel:
-        //         state.chatMessageModel?.copyWith(messages: Set.of([]))));
-
-        // emit(state.copyWith(
-        //     chatList: Set.of([]),
-        //     chatMessageModel:
-        //         state.chatMessageModel?.copyWith(messages: Set.of([]))));
-        callback?.call(response);
-      }
-    } catch (e, st) {
-      Utils.showSnackBar(context, e.toString().replaceAll("Exception: ", ""),
-          seconds: 3);
-      showMessage("Error ==> $e $st");
-    } finally {
-      Utils.hideLoader();
-    }
-  }
-
-  Future<void> toggleNickname({
-    required BuildContext context,
-    required String contactUserId,
-    required bool isActiveNickname,
-    Function(ToggleNickNameResponse)? callback,
-  }) async {
-    try {
-      log("toggleNickname contactUserId -->$contactUserId ");
-      if (contactUserId.isEmpty) {
-        return;
-      }
-      Utils.showLoader();
-      ToggleNickNameResponse response = await apiClient.toggleNickName(
-          contactUserId: contactUserId, isActiveNickname: isActiveNickname);
-      if (response.status == Utils.APISUCCESS) {
-        // await messageRepo.clearChat(
-        //   chatId: chatId,
-        // );
-        // emit(state.copyWith(
-        //     chatList: Set.of([]),
-        //     chatMessageModel:
-        //         state.chatMessageModel?.copyWith(messages: Set.of([]))));
-
-        // emit(state.copyWith(
-        //     chatList: Set.of([]),
-        //     chatMessageModel:
-        //         state.chatMessageModel?.copyWith(messages: Set.of([]))));
-        callback?.call(response);
-      }
-    } catch (e, st) {
-      Utils.showSnackBar(context, e.toString().replaceAll("Exception: ", ""));
-      showMessage("Error ==> $e $st");
-    } finally {
-      Utils.hideLoader();
-    }
-  }
 }

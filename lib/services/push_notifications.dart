@@ -585,37 +585,7 @@ class FireBaseNotification {
       parsedData["isActive"] = false;
       selectNotificationSubject.add(parsedData);
     }
-
-    // Extract the data and handle navigation
-    // if (parsedData.containsKey('type')) {
-    //   if (parsedData['type'] == "chat_message") {
-    //   NavigationService().popUntil();
-    //     await Future.delayed(Durations.long1);
-
-    //     NavigationService().navigateTo(ChatScreen(unreadMessageCount: 0,
-    //       userName: parsedData["sender"]["userName"],
-    //       userId: parsedData["sender"]["_id"],
-    //       userPic: parsedData["sender"]["profilePicture"]??"",
-    //       chatId: message.data["chat_id"],
-    //     ));
-    //   }
-
-    //   showMessage("msg click ==== ${message.data}");
-
-    // } else {
-    //   debugPrint("No route specified in the message data.");
-    // }
   }
-
-  // void onTapNotification(PayloadData payloadData) {
-  //   ApiLog.addLog(
-  //       'Notification onTapNotification payloadData: ${payloadData.toJson()}');
-  //   showMessage(
-  //       'Notification onTapNotification payloadData: ${payloadData.toJson()}');
-  //   if (payloadData.redirect?.isNotEmpty ?? false) {
-  //     selectNotificationSubject.add(payloadData);
-  //   }
-  // }
 }
 
 class ReceivedNotification {

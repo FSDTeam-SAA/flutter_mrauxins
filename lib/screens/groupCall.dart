@@ -16,8 +16,8 @@ import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:two_one_two_messenger/cubit/chat_cubit.dart';
-import 'package:two_one_two_messenger/cubit/chat_state.dart';
+import 'package:two_one_two_messenger/cubit/call_cubit.dart';
+import 'package:two_one_two_messenger/cubit/call_state.dart';
 import 'package:two_one_two_messenger/database/local_db.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
@@ -89,8 +89,10 @@ class _GroupCallingPageState extends State<GroupCallingPage>
   final SocketService _socketService = SocketService();
   UserData? currentUser;
   Timer? _callTimeoutTimer;
+  late final CallCubit _callCubit;
   @override
   void initState() {
+    _callCubit = context.read<CallCubit>();
     onInit();
     super.initState();
   }
@@ -100,15 +102,15 @@ class _GroupCallingPageState extends State<GroupCallingPage>
 
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      chatCubit.changeCallType(callType: widget.callType);
+      _callCubit.changeCallType(callType: widget.callType);
       onCallEnd();
       callId = widget.callId ?? "";
 
       if (widget.callType == CallType.voice ||
           widget.callType == CallType.voice_group_call) {
-        chatCubit.toggleSpeaker(false);
+        _callCubit.toggleSpeaker(false);
       } else {
-        chatCubit.toggleSpeaker(true);
+        _callCubit.toggleSpeaker(true);
       }
 
       if (widget.token == null || widget.channelName == null) {
@@ -135,7 +137,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
 
   void startCallTimeout() {
     _callTimeoutTimer = Timer(Duration(seconds: 40), () async {
-      await chatCubit.rejectCall(
+      await _callCubit.rejectCall(
         // context: context,
         chatId: widget.currentConversationId,
         duration: 0,
@@ -221,7 +223,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
 
   handleLocalVideoStream(bool isShow) {
     try {
-      if (chatCubit.state.callType == CallType.video_group_call) {
+      if (_callCubit.state.callType == CallType.video_group_call) {
         if (mounted && _engine != null) {
           showMessage("App is  CallingPage handleLocalVideoStream $isShow");
           setState(() {
@@ -378,14 +380,14 @@ class _GroupCallingPageState extends State<GroupCallingPage>
                 ),
               );
 
-              chatCubit.changeCallType(callType: CallType.video_group_call);
+              _callCubit.changeCallType(callType: CallType.video_group_call);
               _engine?.enableVideo();
-              chatCubit.toggleSpeaker(true);
+              _callCubit.toggleSpeaker(true);
               _engine?.setEnableSpeakerphone(true);
             } else if (message == 'voice') {
-              chatCubit.changeCallType(callType: CallType.voice_group_call);
+              _callCubit.changeCallType(callType: CallType.voice_group_call);
               _engine?.disableVideo();
-              chatCubit.toggleSpeaker(false);
+              _callCubit.toggleSpeaker(false);
               _engine?.setEnableSpeakerphone(false);
             }
           },
@@ -456,7 +458,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
               // }
               showMessage(
                   "on Leave channel --> ${_startTime == null ? 0 : ((DateTime.now().millisecondsSinceEpoch - (_startTime ?? DateTime.now().millisecondsSinceEpoch)) ~/ 1000)}");
-              await chatCubit.rejectCall(
+              await _callCubit.rejectCall(
                   // context: context,
                   chatId: widget.currentConversationId,
                   callId: callId,
@@ -518,7 +520,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
 
   Future<void> _initializeOutgoingCall() async {
     try {
-      tokenAndChannel = await chatCubit.generateTokenAndChannelName(
+      tokenAndChannel = await _callCubit.generateTokenAndChannelName(
           context: context,
           data: {
             "type": widget.callType.name,
@@ -676,7 +678,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ChatCubit, ChatState>(builder: (context, state) {
+    return BlocBuilder<CallCubit, CallState>(builder: (context, state) {
       return PopScope(
         canPop: _engine != null || widget.token == null,
         child: Scaffold(
@@ -689,7 +691,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
             leading: CupertinoButton(
               onPressed: () async {
                 _endCall();
-                await chatCubit.rejectCall(
+                await _callCubit.rejectCall(
                     callId: callId,
                     // context: context,
                     chatId: widget.currentConversationId,
@@ -1149,7 +1151,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
     );
   }
 
-  Widget _buildCallControls(ChatState state) {
+  Widget _buildCallControls(CallState state) {
     if (!isAccepted && widget.token != null && widget.channelName != null) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1177,7 +1179,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
             child: CustomButton(
               onPressed: () async {
                 await _endCall();
-                await chatCubit.rejectCall(
+                await _callCubit.rejectCall(
                   // context: context,
                   callId: callId,
                   duration: 0,
@@ -1273,18 +1275,18 @@ class _GroupCallingPageState extends State<GroupCallingPage>
                   onPressed: () {
                     try {
                       if (state.callType == CallType.video_group_call) {
-                        chatCubit.changeCallType(
+                        _callCubit.changeCallType(
                             callType: CallType.voice_group_call);
                         _engine?.disableVideo();
                         _sendCallTypeChange(CallType.voice_group_call);
-                        chatCubit.toggleSpeaker(false);
+                        _callCubit.toggleSpeaker(false);
                         _engine?.setEnableSpeakerphone(false);
                       } else {
-                        chatCubit.changeCallType(
+                        _callCubit.changeCallType(
                             callType: CallType.video_group_call);
                         _engine?.enableVideo();
                         _sendCallTypeChange(CallType.video_group_call);
-                        chatCubit.toggleSpeaker(true);
+                        _callCubit.toggleSpeaker(true);
                         _engine?.setEnableSpeakerphone(true);
                       }
                       showMessage(
@@ -1310,7 +1312,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
                 // 5.s,
                 CupertinoButton(
                   onPressed: () async {
-                    await chatCubit.toggleSpeaker(!state.isSpeaker);
+                    await _callCubit.toggleSpeaker(!state.isSpeaker);
                     _engine?.setEnableSpeakerphone(!state.isSpeaker);
                   },
                   padding: EdgeInsets.zero,
@@ -1343,7 +1345,7 @@ class _GroupCallingPageState extends State<GroupCallingPage>
                       debugPrints.log("end call $_engine ${widget.token}");
                       try {
                         // _engine = null;
-                        await chatCubit.rejectCall(
+                        await _callCubit.rejectCall(
                           // context: context,
                           callId: callId,
                           chatId: widget.currentConversationId,

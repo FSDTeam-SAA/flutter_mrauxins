@@ -8,8 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:two_one_two_messenger/cubit/saved_messages_cubit.dart';
 import 'package:two_one_two_messenger/database/local_db.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
@@ -94,15 +96,15 @@ class _ChatBubbleState extends State<ChatBubble> {
     final offset = _lastTapPosition;
     switch (option) {
       case ChatMessageOption.saveMessage:
-        chatCubit.saveMessages(
-          chatId: widget.message.chatId ?? "",
-          context: context,
-          isTempMessage: widget.message.id == widget.message.messageId,
-          messageId: widget.message.id ?? '',
-          callback: (response) {
-            Utils.showSnackBar(context, response.message ?? '', seconds: 3);
-          },
-        );
+        context.read<SavedMessagesCubit>().saveMessages(
+              chatId: widget.message.chatId ?? "",
+              context: context,
+              isTempMessage: widget.message.id == widget.message.messageId,
+              messageId: widget.message.id ?? '',
+              callback: (response) {
+                Utils.showSnackBar(context, response.message ?? '', seconds: 3);
+              },
+            );
         break;
 
       case ChatMessageOption.copy:
@@ -298,8 +300,7 @@ class _ChatBubbleState extends State<ChatBubble> {
       }
       addMenuItem(
         ChatMessageOption.deleteMessage,
-        Utils.canEditOrDeleteMessage(
-                widget.message.createdAt ?? DateTime.now())
+        Utils.canEditOrDeleteMessage(widget.message.createdAt ?? DateTime.now())
             ? S.current.lblDeleteMessage
             : S.current.deleteForMe,
         Icons.delete,
@@ -431,25 +432,6 @@ class _MessageWidgetState extends State<MessageWidget> {
                                 color: AppColors.white.withValues(alpha: 0.65)),
                           ),
                         ),
-                      // if (widget.message.createdAt != null && widget.isSender)
-                      //   Column(
-                      //     mainAxisAlignment: MainAxisAlignment.end,
-                      //     children: [
-                      //       Padding(
-                      //         padding:
-                      //             const EdgeInsets.symmetric(horizontal: 4.0),
-                      //         child: Text(
-                      //           DateFormat.jm().format(
-                      //               (widget.message.createdAt ??
-                      //                   DateTime.now())),
-                      //           style: AppTextStyles.regular(
-                      //               fontSize: 12.sp,
-                      //               color: AppColors.white.withValues(alpha:0.65)),
-                      //         ),
-                      //       ),
-                      //     ],
-                      //   ),
-
                       if (widget.isSender &&
                           (widget.message.uploadStatus ==
                                   MessageUploadStatus.failed ||
@@ -490,7 +472,6 @@ class _MessageWidgetState extends State<MessageWidget> {
                             color: AppColors.redColor,
                           ),
                         ),
-
                       Stack(
                         alignment: Alignment.center,
                         children: [
@@ -758,15 +739,8 @@ class _MessageWidgetState extends State<MessageWidget> {
                                   ),
                                 )
                               ] else if (((widget.message.type == 'image') &&
-                                      (widget.message.files != null &&
-                                          widget.message.files!.isNotEmpty))
-                                  // &&
-                                  //     (widget.message.files?.first.url?.endsWith('.png') == true ||
-                                  //         widget.message.files?.first.url?.endsWith('.jpg') ==
-                                  //             true ||
-                                  //         widget.message.files?.first.url?.endsWith('.jpeg') ==
-                                  //             true)
-                                  ) ...[
+                                  (widget.message.files != null &&
+                                      widget.message.files!.isNotEmpty))) ...[
                                 Container(
                                   width: context.w * 0.65,
                                   padding: EdgeInsets.all(10),
@@ -1199,20 +1173,9 @@ class _MessageWidgetState extends State<MessageWidget> {
                                   ),
                                 )
                               ] else if (((widget.message.type == 'document' ||
-                                          widget.message.type == 'pdf') &&
-                                      (widget.message.files != null &&
-                                          widget.message.files!.isNotEmpty))
-                                  //         &&
-                                  // (widget.message.files?.first.url
-                                  //             ?.endsWith('.pdf') ==
-                                  //         true ||
-                                  //     widget.message.files?.first.url
-                                  //             ?.endsWith('.doc') ==
-                                  //         true ||
-                                  //     widget.message.files?.first.url
-                                  //             ?.endsWith('.docx') ==
-                                  //         true)
-                                  ) ...[
+                                      widget.message.type == 'pdf') &&
+                                  (widget.message.files != null &&
+                                      widget.message.files!.isNotEmpty))) ...[
                                 Container(
                                   // width: context.w,
                                   padding: EdgeInsets.all(10),
@@ -1402,24 +1365,6 @@ class _MessageWidgetState extends State<MessageWidget> {
                                 color: AppColors.white.withValues(alpha: 0.65)),
                           ),
                         ),
-                      // if (widget.message.createdAt != null && (!widget.isSender))
-                      //   Column(
-                      //     mainAxisAlignment: MainAxisAlignment.end,
-                      //     children: [
-                      //       Padding(
-                      //         padding:
-                      //             const EdgeInsets.symmetric(horizontal: 4.0),
-                      //         child: Text(
-                      //           DateFormat.jm().format(
-                      //               widget.message.createdAt ?? DateTime.now()),
-                      //           style: AppTextStyles.regular(
-                      //               fontSize: 12.sp,
-                      //               color: AppColors.white.withValues(alpha:0.65)),
-                      //         ),
-                      //       ),
-                      //     ],
-                      //   ),
-
                       if (!widget.isSender &&
                           (widget.message.uploadStatus ==
                                   MessageUploadStatus.failed ||
@@ -1480,21 +1425,6 @@ class _MessageWidgetState extends State<MessageWidget> {
                     ),
                   ),
                 ),
-              // if (!(widget.message.isSent ?? true))
-              //   Align(
-              //     alignment: widget.isSender
-              //         ? Alignment.centerRight
-              //         : Alignment.centerLeft,
-              //     child: Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              //       child: Text(
-              //         "Sending..",
-              //         style: AppTextStyles.regular(
-              //             fontSize: 12.sp,
-              //             color: AppColors.white.withValues(alpha:0.65)),
-              //       ),
-              //     ),
-              //   ),
             ],
           ),
         ),
@@ -1547,11 +1477,11 @@ class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
       case ChatMessageOption.pin:
         showMessage("TempMessage==> ${widget.message.toJson()}");
         if (widget.message.messageDetails?.pinned ?? false) {
-          chatCubit.unPinSavedMessage(
+          context.read<SavedMessagesCubit>().unPinSavedMessage(
               messageId: widget.message.messageId ?? "",
               userId: widget.currentUserId ?? "");
         } else {
-          chatCubit.pinSavedMessage(
+          context.read<SavedMessagesCubit>().pinSavedMessage(
               messageId: widget.message.messageId ?? "",
               userId: widget.currentUserId ?? "");
         }
@@ -1701,8 +1631,7 @@ class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
     return ChatMessageWrapper(
       messageId: reactionMessageId,
       controller: _reactionsController,
-      alignment:
-          widget.isSender ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: widget.isSender ? Alignment.centerRight : Alignment.centerLeft,
       config: ChatReactionsConfig(
         dialogBackgroundColor: AppColors.dark,
         dialogBorderRadius: BorderRadius.circular(12),
@@ -1715,7 +1644,9 @@ class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
       ),
       onReactionAdded: (emoji) {
         showMessage('reaction: $emoji');
-        chatCubit.reactSavedMessage(message: widget.message, reaction: emoji);
+        context
+            .read<SavedMessagesCubit>()
+            .reactSavedMessage(message: widget.message, reaction: emoji);
       },
       onMenuItemTapped: (menuItem) {
         showMessage('menu item: $menuItem');
@@ -1726,7 +1657,6 @@ class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
     );
   }
 }
-
 
 class SavedMessageWidget extends StatelessWidget {
   final SavedMessage message;

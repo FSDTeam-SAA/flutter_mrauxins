@@ -27,6 +27,11 @@
          (and the permission it requires) are stripped from the merged manifest. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" tools:node="remove" />
 
+    <!-- flutter_callkit_incoming also declares this standalone (not just via the
+         service's foregroundServiceType attribute); remove it to match, since camera
+         is never actually held through a foreground service in this app's call flow. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" tools:node="remove" />
+
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
@@ -96,6 +101,17 @@
         <activity
             android:name="io.agora.rtc2.extensions.MediaProjectionMgr$LocalScreenCaptureAssistantActivity"
             tools:node="remove" />
+
+        <!-- flutter_callkit_incoming hard-codes foregroundServiceType="phoneCall|microphone|camera"
+             on this service, but the app mutes local video (handleLocalVideoStream(false) in
+             groupCall.dart/voice_call_page.dart) the moment it's backgrounded, so camera is never
+             actually kept alive via this service. Drop "camera" so we only declare/need to justify
+             the FGS types the app genuinely uses in the background (phone call ring + live mic audio). -->
+        <service
+            android:name="com.hiennv.flutter_callkit_incoming.CallkitNotificationService"
+            android:foregroundServiceType="phoneCall|microphone"
+            tools:node="merge"
+            tools:replace="android:foregroundServiceType" />
         <!-- <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
         <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token"/> -->
         <!-- Don't delete the meta-data below.

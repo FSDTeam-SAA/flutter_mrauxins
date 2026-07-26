@@ -259,20 +259,6 @@ class ConversationTile extends StatelessWidget {
                           Row(
                             // mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              // _buildPinWidget(conversationData.isPinned),
-                              // _buildMuteWidget(
-                              //     conversationData.isNotificationMute),
-                              // Visibility(
-                              //   visible: conversationData.isPinned ?? false,
-                              //   child: Padding(
-                              //     padding: const EdgeInsets.only(right: 5),
-                              //     child: Icon(
-                              //       Icons.push_pin,
-                              //       size: 18.h,
-                              //       color: Colors.white,
-                              //     ),
-                              //   ),
-                              // ),
                               if (conversationData.lastMessage?.createdAt !=
                                   null)
                                 Text(
@@ -326,48 +312,6 @@ class ConversationTile extends StatelessWidget {
                         icon: Icons.delete,
                         label: S.of(context).delete,
                       ),
-                      // pinUnpinSlidableAction(
-                      //   context,
-                      //   isPin: conversationData.isPinned ?? false,
-                      //   onpinUnpin: (p0) => onpinUnpin(
-                      //     chatId: conversationData.id ?? "",
-                      //     userId: user.sId ?? "",
-                      //     isPin: p0,
-                      //   ),
-                      // ),
-                      // readUnreadSlidableAction(
-                      //   context,
-                      //   // isRead: conversationData.isRead ?? false,
-                      //   isRead: (conversationData.unreadMessageCount ?? 0) == 0,
-                      //   onClickReadUnRead: (p0) => onClickReadUnRead(
-                      //     chatId: conversationData.id ?? "",
-                      //     userId: user.sId ?? "",
-                      //     // isPin: p0,
-                      //   ),
-                      // ),
-
-                      // readUnreadSlidableAction(
-                      //   context,
-                      //   isRead: false,
-                      //   onSubmit: () {},
-                      // )
-                      // SlidableAction(
-                      //   onPressed: (context) {
-                      //     // showCommonDeleteDialog(
-                      //     //   context: context,
-                      //     //   subTitle: S.of(context).deleteChatSubtitle,
-                      //     //   title: S.of(context).deleteThisChat,
-                      //     //   onSubmit: () {
-                      //     //     homeCubit.deleteChat(
-                      //     //         context, conversationData.id!);
-                      //     //   },
-                      //     // );
-                      //   },
-                      //   backgroundColor: AppColors.greenColor,
-                      //   foregroundColor: Colors.white,
-                      //   icon: Icons.push_pin_outlined,
-                      //   label: S.of(context).pin,
-                      // ),
                     ],
                   ),
 
@@ -410,15 +354,6 @@ class ConversationTile extends StatelessWidget {
                             ? S.of(context).unArchive
                             : S.of(context).archive,
                       ),
-                      // muteUnmuteSlidableAction(
-                      //   context,
-                      //   isMute: conversationData.isNotificationMute ?? false,
-                      //   onMuteUnMute: (value) => onClickMuteUnMute(
-                      //     chatId: conversationData.id ?? "",
-                      //     userId: user.sId ?? "",
-                      //     isMuted: value,
-                      //   ),
-                      // ),
                     ],
                   ),
 
@@ -433,28 +368,7 @@ class ConversationTile extends StatelessWidget {
                       isLockChat: true,
                       isMute: conversationData.isNotificationMute ?? false,
                     ),
-                    // onLongPress: () {
-                    //   CustomAlertDialog(
-                    //     context: context,
-                    //     icon: Icon(
-                    //       Icons.archive,
-                    //       color: AppColors.white,
-                    //     ),
-                    //     title: isArchive
-                    //         ? S.of(context).areYouSureToWantToUnArchiveThisChat
-                    //         : S.of(context).areYouSureToWantToArchiveThisChat,
-                    //     buttonText: S.current.yes,
-                    //     onPressed: () {
-                    //       if (isArchive) {
-                    //         homeCubit.unArchiveChat(
-                    //             user.sId ?? "", conversationData.id ?? "");
-                    //       } else {
-                    //         homeCubit.archiveChat(
-                    //             user.sId ?? "", conversationData.id ?? "");
-                    //       }
-                    //     },
-                    //   );
-                    // },
+
                     onTap: () async {
                       // debugPrint(
                       //     "lastMessahge=== ${state.conversationModel?.data?[index].lastMessage?.toJson()}");

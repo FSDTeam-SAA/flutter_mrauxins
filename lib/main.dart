@@ -28,16 +28,20 @@ import 'package:two_one_two_messenger/services/socket_service.dart';
 import 'package:two_one_two_messenger/utils/colors.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
 import 'package:two_one_two_messenger/widgets/annotated_region.dart';
+import 'cubit/call_cubit.dart';
 import 'cubit/chat_cubit.dart';
 import 'cubit/create_stories_cubit.dart';
 import 'cubit/home_cubit.dart';
 import 'cubit/new_group_cubit.dart';
+import 'cubit/nickname_cubit.dart';
 import 'cubit/otp_verify_cubit.dart';
 import 'cubit/profile_cubit.dart';
+import 'cubit/saved_messages_cubit.dart';
 import 'cubit/search_cubit.dart';
 import 'cubit/send_otp_cubit.dart';
 import 'cubit/stories_cubit.dart';
 import 'cubit/theme_cubit.dart';
+import 'cubit/typing_cubit.dart';
 import 'cubit/user_data_cubit.dart';
 import 'cubit/version_check_cubit.dart';
 import 'cubit/view_stories_cubit.dart';
@@ -72,12 +76,13 @@ void main() async {
     return true;
   };
 
-  // Must be registered before the app can be backgrounded — this is a fast,
+  // Must be registeed before the app can be backgrounded — this is a fast,
   // synchronous registration (no dialog), unlike the calls below it, so it's
-  // safe to await here without blocking runApp().
+  // safe to await rhere without blocking runApp().
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-  NotificationHandler.handleNotification(); // Do NOT await — permission dialog blocks main() before runApp() on iOS
+  NotificationHandler
+      .handleNotification(); // Do NOT await — permission dialog blocks main() before runApp() on iOS
   final apiClient = ApiClient();
   await AppPreference.initMySharedPreferences();
 
@@ -93,7 +98,8 @@ void main() async {
 
   Utils.initEasyLoading();
   CallKitEventHandler.getActiveCall();
-  InAppPurchaseService().initialize(); // Do NOT await — queryProductDetails contacts App Store and can hang on iOS
+  InAppPurchaseService()
+      .initialize(); // Do NOT await — queryProductDetails contacts App Store and can hang on iOS
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -132,6 +138,18 @@ void main() async {
           ),
           BlocProvider(
             create: (context) => ChatCubit(apiClient, dbHelper),
+          ),
+          BlocProvider(
+            create: (context) => NicknameCubit(apiClient),
+          ),
+          BlocProvider(
+            create: (context) => CallCubit(apiClient, dbHelper),
+          ),
+          BlocProvider(
+            create: (context) => TypingCubit(),
+          ),
+          BlocProvider(
+            create: (context) => SavedMessagesCubit(apiClient, dbHelper),
           ),
           // BlocProvider(
           //   create: (context) => SendMessageCubit(apiClient, dbHelper),
@@ -208,9 +226,8 @@ class MyApp extends StatelessWidget {
                         (navigatorKey.currentState?.canPop() ?? false)) {
                       navigatorKey.currentState?.pop();
                     }
-                    FireBaseNotification()
-                        .retryPendingFcmRegistration(
-                            context.read<HomeCubit>().apiClient);
+                    FireBaseNotification().retryPendingFcmRegistration(
+                        context.read<HomeCubit>().apiClient);
                   }
                 },
                 child: GlobalLoaderOverlay(
