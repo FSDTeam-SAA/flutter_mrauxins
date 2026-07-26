@@ -28,7 +28,9 @@ class AvatarWidgets extends StatelessWidget {
               ? null
               : DecorationImage(
                   image: CachedNetworkImageProvider(
-                    "${Urls.mediaUrl}$userPic",
+                    userPic.startsWith('http')
+                        ? userPic
+                        : "${Urls.mediaUrl}$userPic",
                   ),
                   fit: BoxFit.cover),
           color: AppColors.darkInputFill,
