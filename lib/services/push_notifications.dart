@@ -43,6 +43,14 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     } else if (message.data['type'] == 'agora_end_call') {
       debugPrint("agora_end_call=== ${message.data}");
       await FlutterCallkitIncoming.endAllCalls();
+    } else if (message.notification != null) {
+      // The push carries a `notification` block, so while the app is
+      // backgrounded/terminated the OS has already auto-displayed it
+      // natively (Android's default FirebaseMessagingService, iOS's APNs
+      // alert) with zero Dart code involved. Showing it again here was
+      // producing a second, duplicate banner for every such push.
+      showMessage(
+          "Skipping manual local notification: OS already displayed the notification payload");
     } else {
       // Every other data-only push (chat message, reaction, group/channel
       // event, etc.) — mirrors the non-call branch of
@@ -475,13 +483,23 @@ class FireBaseNotification {
         FlutterCallkitIncoming.endAllCalls();
         return;
       }
+      // On iOS, setForegroundNotificationPresentationOptions(alert: true, ...)
+      // above makes the OS present the `notification` block itself even
+      // while the app is foregrounded. Android has no such foreground
+      // auto-display, so it still needs the manual show below regardless of
+      // whether a `notification` block is present.
+      final bool osAlreadyDisplaying =
+          Platform.isIOS && message.notification != null;
       if (parsedData["type"] == "chat_message") {
-        if (chatCubit.isChatPage == false ||
-            chatCubit.chatId != message.data['chat_id']) {
+        if (!osAlreadyDisplaying &&
+            (chatCubit.isChatPage == false ||
+                chatCubit.chatId != message.data['chat_id'])) {
           await _showLocalNotification(message, parsedData);
         }
       } else if (parsedData["type"] != "agora_call_invitation") {
-        await _showLocalNotification(message, parsedData);
+        if (!osAlreadyDisplaying) {
+          await _showLocalNotification(message, parsedData);
+        }
       }
     } catch (e, st) {
       debugPrint('Error showing notification: $e $st');

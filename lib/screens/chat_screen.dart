@@ -582,7 +582,6 @@ class _ChatScreenState extends State<ChatScreen> {
         bottom: false,
         child: Scaffold(
           backgroundColor: AppColors.scaffoldBgDark,
-          resizeToAvoidBottomInset: true,
           appBar: ChatAppBar(
             data: chatData,
             onNickNameStatusChanged: _onNickNameStatusChanged,
@@ -610,7 +609,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 messageCon: messageCon,
                 focusNode: _focusNode,
               ),
-              // SizedBox(height: 16.h),
             ],
           ),
         ),

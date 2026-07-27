@@ -125,24 +125,17 @@ class ChatInputBar extends StatelessWidget {
                             suffixIcon: Padding(
                               padding: EdgeInsets.symmetric(
                                   horizontal: 15.w, vertical: 10.h),
-                              child: BlocBuilder<ChatCubit, ChatState>(
-                                builder: (context, state) {
-                                  return InkWell(
-                                      onTap: () {
-                                        buildBottomSheet(
-                                            chatId: data.currentChatId,
-                                            context: context,
-                                            aesKey: data.aesKey,
-                                            replyMessage:
-                                                state.replyingToMessage,
-                                            isFromSavedMessage: false);
-
-                                        // context.read<ChatCubit>().getChatMessages(chatId??"", context);
-                                      },
-                                      child: SvgPicture.asset(
-                                          SvgAssets.icAddRounded));
-                                },
-                              ),
+                              child: InkWell(
+                                  onTap: () {
+                                    buildBottomSheet(
+                                        chatId: data.currentChatId,
+                                        context: context,
+                                        aesKey: data.aesKey,
+                                        replyMessage: state.replyingToMessage,
+                                        isFromSavedMessage: false);
+                                  },
+                                  child: SvgPicture.asset(
+                                      SvgAssets.icAddRounded)),
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(50.r),
