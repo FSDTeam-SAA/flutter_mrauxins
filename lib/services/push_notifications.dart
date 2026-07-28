@@ -510,7 +510,25 @@ class FireBaseNotification {
   Future<void> _showLocalNotification(
       RemoteMessage message, Map<String, dynamic> payloadData) async {
     RemoteNotification? notification = message.notification;
-    final title = notification?.title ?? payloadData["title"] ?? "The 212";
+
+    // Some pushes reach here with no `notification` block and no usable
+    // title/body/content in `data` — e.g. an empty FCM sync/keepalive ping
+    // delivered after the device has been offline or asleep, not a real
+    // message. Previously this fell back to showing a blank notification
+    // titled after the app ("The 212"). There's nothing meaningful to show,
+    // so skip it entirely instead.
+    final hasTitle = notification?.title != null ||
+        (payloadData["title"] as String?)?.isNotEmpty == true;
+    final hasBody = notification?.body != null ||
+        (payloadData["body"] as String?)?.isNotEmpty == true ||
+        (payloadData["content"] as String?)?.isNotEmpty == true;
+    if (!hasTitle && !hasBody) {
+      showMessage(
+          'Skipping local notification: empty payload (no title/body/content)');
+      return;
+    }
+
+    final title = notification?.title ?? payloadData["title"] ?? "";
     final body = notification?.body ??
         payloadData["body"] ??
         payloadData["content"] ??
