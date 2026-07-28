@@ -208,7 +208,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
   Future<void> _onNewContactsTap() async {
     bool granted = false;
     try {
-      granted = await FlutterContacts.requestPermission();
+      granted = await Utils.hasContactsPermission();
     } catch (e) {
       if (!mounted) return;
       Utils.showSnackBar(context, S.of(context).somethingWentWrongPleaseTryAgain);
@@ -234,7 +234,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
     }
 
     try {
-      await FlutterContacts.openExternalInsert();
+      await FlutterContacts.native.showCreator();
       if (!mounted) return;
       await homeCubit.fetchContactsForSync(context);
       if (!mounted) return;

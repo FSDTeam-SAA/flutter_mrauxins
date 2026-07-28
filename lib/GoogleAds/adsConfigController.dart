@@ -2,10 +2,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:two_one_two_messenger/GoogleAds/ConfigController.dart';
 import 'package:two_one_two_messenger/GoogleAds/config_model.dart';
 import 'package:two_one_two_messenger/database/local_db.dart';
-import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/services/api_client.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
 

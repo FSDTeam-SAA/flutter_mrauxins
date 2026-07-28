@@ -2,7 +2,6 @@
 //
 //     final userNameCheckRes = userNameCheckResFromJson(jsonString);
 
-import 'package:meta/meta.dart';
 import 'dart:convert';
 
 UserNameCheckRes userNameCheckResFromJson(String str) =>

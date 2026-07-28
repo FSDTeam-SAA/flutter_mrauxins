@@ -11,6 +11,7 @@ import 'package:flutter_callkit_incoming/entities/ios_params.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:two_one_two_messenger/database/local_db.dart';
 import 'package:two_one_two_messenger/models/otp_verify.dart';
+import 'package:two_one_two_messenger/services/api_client.dart';
 import 'package:two_one_two_messenger/services/push_notifications.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
 import 'package:two_one_two_messenger/utils/constants.dart';
@@ -36,10 +37,8 @@ class CallKitEventHandler {
       appName: AppConstants.appName,
       duration: 30000,
       extra: parsedData,
-      id: message.messageId,
+      id: message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
       type: 0,
-      textDecline: "Reject",
-      textAccept: "Accept",
       nameCaller: (parsedData["call_type"] == CallType.video_group_call.name ||
               parsedData["call_type"] == CallType.voice_group_call.name)
           ? "Group Call '${parsedData["groupName"]}'"
@@ -55,6 +54,8 @@ class CallKitEventHandler {
           textColor: '#ffffff',
           incomingCallNotificationChannelName: "Incoming Call",
           missedCallNotificationChannelName: "Missed Call",
+          textAccept: "Accept",
+          textDecline: "Reject",
           isShowCallID: false),
       ios: IOSParams(
         // iconName: 'CallKitLogo',
@@ -84,24 +85,17 @@ class CallKitEventHandler {
     FlutterCallkitIncoming.onEvent.listen((event) {
       if (event == null) return;
       log("FlutterCallkitIncoming listener == ${event.toString()}");
-      log("FlutterCallkitIncoming listener == ${event.event.toString()}");
-      showMessage(
-          "FlutterCallkitIncoming listener name == ${event.body.toString()}");
-// onCallAccepted(event.body);
-      switch (event.event.name.split(".").last) {
-        case 'ACTION_CALL_ACCEPT':
-          onCallAccepted(event.body);
-          break;
-
-        case 'ACTION_CALL_DECLINE':
-          onCallDeclined(event.body);
-          break;
-        case 'ACTION_CALL_ENDED':
-          onCallEnded(event.body);
-          break;
+      switch (event) {
+        case CallEventActionCallAccept(:final callKitParams):
+          onCallAccepted(callKitParams);
+        case CallEventActionCallDecline(:final callKitParams):
+          onCallDeclined(callKitParams);
+        case CallEventActionCallEnded(:final callKitParams):
+          onCallEnded(callKitParams);
+        case CallEventActionDidUpdateDevicePushTokenVoip():
+          onVoipTokenUpdated();
         default:
-          log('Unhandled event: ${event.event.name}');
-          break;
+          log('Unhandled event: ${event.eventName}');
       }
     });
   }
@@ -113,38 +107,43 @@ class CallKitEventHandler {
       if (kDebugMode) {
         print("FlutterCallkitIncoming listener == ${event.toString()}");
       }
-      log("FlutterCallkitIncoming listener == ${event.event.toString()}");
-      showMessage(
-          "FlutterCallkitIncoming listener name == ${event.body.toString()}");
-// onCallAccepted(event.body);
-      switch (event.event.name.split(".").last) {
-        case 'ACTION_CALL_DECLINE':
-          onCallDeclined(event.body);
-          break;
-        case 'ACTION_CALL_ENDED':
-          onCallEnded(event.body);
-          break;
+      switch (event) {
+        case CallEventActionCallDecline(:final callKitParams):
+          onCallDeclined(callKitParams);
+        case CallEventActionCallEnded(:final callKitParams):
+          onCallEnded(callKitParams);
+        case CallEventActionDidUpdateDevicePushTokenVoip():
+          onVoipTokenUpdated();
         default:
           if (kDebugMode) {
-            print('Unhandled event: ${event.event.name}');
+            print('Unhandled event: ${event.eventName}');
           }
-          break;
       }
     });
   }
 
-  static void onCallAccepted(Map<dynamic, dynamic> body) {
+  // Fired by AppDelegate's PKPushRegistryDelegate (via
+  // SwiftFlutterCallkitIncomingPlugin.setDevicePushTokenVoIP) whenever the
+  // VoIP push token is issued or rotated. Registers it with the backend so
+  // incoming-call VoIP pushes reach this device.
+  static Future<void> onVoipTokenUpdated() async {
+    try {
+      await FireBaseNotification().registerVoipTokenIfNeeded(ApiClient());
+    } catch (e, st) {
+      showMessage("onVoipTokenUpdated error === > $e ,$st");
+    }
+  }
+
+  static void onCallAccepted(CallKitParams callKitParams) {
     // Navigate to custom call UI
     try {
-      showMessage("FlutterCallkitIncoming Call accepted: ${body["extra"]}");
-      // showMessage(
-      //     "FlutterCallkitIncoming Call user_pic: ${body['extra']['agora_token']}");
+      showMessage(
+          "FlutterCallkitIncoming Call accepted: ${callKitParams.extra}");
 
-      // Map<String, dynamic> data = body["extra"];
-      Map<dynamic, dynamic> data = body["extra"];
+      Map<dynamic, dynamic> data =
+          Map<dynamic, dynamic>.from(callKitParams.extra ?? {});
       data["isActive"] = true;
       FireBaseNotification.selectNotificationSubject.add(data);
-      // FireBaseNotification.selectNotificationSubject.add(body["extra"]);
     } catch (e, st) {
       if (kDebugMode) {
         print("error ==>$e, $st");
@@ -152,13 +151,12 @@ class CallKitEventHandler {
     }
   }
 
-  static Future<void> onCallDeclined(Map<dynamic, dynamic> body) async {
-    // log("Call declined: $body");
+  static Future<void> onCallDeclined(CallKitParams callKitParams) async {
     try {
       UserData? currentuser = await DatabaseHelper().getLoginData();
       final userId = currentuser?.sId ?? "";
 
-      showMessage("onCallDeclined$body");
+      showMessage("onCallDeclined${callKitParams.extra}");
 
       SocketService().connect();
       SocketService()
@@ -166,19 +164,18 @@ class CallKitEventHandler {
       SocketService().emitEndCall({
         "user_id": userId,
         "duration": 0,
-        "chat_id": body['extra']['chat_id'],
-        "callId": body['extra']['callId']
+        "chat_id": callKitParams.extra?['chat_id'],
+        "callId": callKitParams.extra?['callId']
       });
 
       await FlutterCallkitIncoming.endAllCalls();
-      // log("Call declined: $body");
     } catch (e, st) {
       showMessage("error === > $e ,$st");
     }
   }
 
-  static Future<void> onCallEnded(Map<dynamic, dynamic> body) async {
-    showMessage("Call ended: $body");
+  static Future<void> onCallEnded(CallKitParams callKitParams) async {
+    showMessage("Call ended: ${callKitParams.extra}");
     await FlutterCallkitIncoming.endAllCalls();
     // Handle call end
   }
@@ -186,11 +183,11 @@ class CallKitEventHandler {
   static Future getActiveCall() async {
     final calldata = await FlutterCallkitIncoming.activeCalls();
     showMessage("get call data==>$calldata");
-    if (calldata == null || (calldata as List).isEmpty) return;
-    Map<dynamic, dynamic> data = calldata[0]["extra"];
+    if (calldata.isEmpty) return;
+    Map<dynamic, dynamic> data =
+        Map<dynamic, dynamic>.from(calldata[0].extra ?? {});
     data["isActive"] = true;
     FireBaseNotification.selectNotificationSubject.add(data);
     FlutterCallkitIncoming.endAllCalls();
-    // showMessage("get call data==>${calldata[0]["extra"]}");
   }
 }

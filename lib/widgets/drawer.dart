@@ -4,10 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/screens/calls_screen.dart';
-import 'package:two_one_two_messenger/screens/contacts_screen.dart';
 import 'package:two_one_two_messenger/screens/invite_friend_screen.dart';
 import 'package:two_one_two_messenger/screens/my_profile_screen.dart';
 import 'package:two_one_two_messenger/screens/saved_messages.dart';
+import 'package:two_one_two_messenger/screens/search_screen.dart';
 import 'package:two_one_two_messenger/services/api_config.dart';
 import 'package:two_one_two_messenger/services/fcm_service.dart';
 import 'package:two_one_two_messenger/services/socket_service.dart';
@@ -225,7 +225,7 @@ class CustomDrawerState extends State<CustomDrawer> {
                     image: SvgAssets.icContacts,
                     text: S.of(context).sContacts,
                     onTap: () async {
-                      NavigationService().navigateTo(ContactsScreen());
+                      NavigationService().navigateTo(SearchScreen());
                       Utils.closeDrawer(context);
                     },
                   ),

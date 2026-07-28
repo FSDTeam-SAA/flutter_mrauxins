@@ -1,4 +1,8 @@
+import 'dart:ui';
+
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,17 +28,22 @@ import 'package:two_one_two_messenger/services/socket_service.dart';
 import 'package:two_one_two_messenger/utils/colors.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
 import 'package:two_one_two_messenger/widgets/annotated_region.dart';
+import 'cubit/call_cubit.dart';
 import 'cubit/chat_cubit.dart';
 import 'cubit/create_stories_cubit.dart';
 import 'cubit/home_cubit.dart';
 import 'cubit/new_group_cubit.dart';
+import 'cubit/nickname_cubit.dart';
 import 'cubit/otp_verify_cubit.dart';
 import 'cubit/profile_cubit.dart';
+import 'cubit/saved_messages_cubit.dart';
 import 'cubit/search_cubit.dart';
 import 'cubit/send_otp_cubit.dart';
 import 'cubit/stories_cubit.dart';
 import 'cubit/theme_cubit.dart';
+import 'cubit/typing_cubit.dart';
 import 'cubit/user_data_cubit.dart';
+import 'cubit/version_check_cubit.dart';
 import 'cubit/view_stories_cubit.dart';
 import 'database/local_db.dart';
 import 'screens/splash_screen.dart';
@@ -42,11 +51,18 @@ import 'services/api_client.dart';
 import 'services/deep_link_handler.dart';
 import 'services/push_notifications.dart';
 import 'utils/constants.dart';
-import 'utils/navigation.dart';
 import 'utils/theme.dart';
 import 'widgets/loader.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+// Lets widgets (e.g. BannerAdManager) react when another route covers or
+// uncovers their screen. Needed because NavigationService pushes non-opaque
+// fade PageTransitions, so covered screens keep painting — including native
+// ad platform views, whose white surface can flash through during keyboard
+// animations.
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,7 +70,19 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  NotificationHandler.handleNotification(); // Do NOT await — permission dialog blocks main() before runApp() on iOS
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
+
+  // Must be registeed before the app can be backgrounded — this is a fast,
+  // synchronous registration (no dialog), unlike the calls below it, so it's
+  // safe to await rhere without blocking runApp().
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  NotificationHandler
+      .handleNotification(); // Do NOT await — permission dialog blocks main() before runApp() on iOS
   final apiClient = ApiClient();
   await AppPreference.initMySharedPreferences();
 
@@ -70,7 +98,8 @@ void main() async {
 
   Utils.initEasyLoading();
   CallKitEventHandler.getActiveCall();
-  InAppPurchaseService().initialize(); // Do NOT await — queryProductDetails contacts App Store and can hang on iOS
+  InAppPurchaseService()
+      .initialize(); // Do NOT await — queryProductDetails contacts App Store and can hang on iOS
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -110,6 +139,18 @@ void main() async {
           BlocProvider(
             create: (context) => ChatCubit(apiClient, dbHelper),
           ),
+          BlocProvider(
+            create: (context) => NicknameCubit(apiClient),
+          ),
+          BlocProvider(
+            create: (context) => CallCubit(apiClient, dbHelper),
+          ),
+          BlocProvider(
+            create: (context) => TypingCubit(),
+          ),
+          BlocProvider(
+            create: (context) => SavedMessagesCubit(apiClient, dbHelper),
+          ),
           // BlocProvider(
           //   create: (context) => SendMessageCubit(apiClient, dbHelper),
           // ),
@@ -139,6 +180,9 @@ void main() async {
           ),
           BlocProvider(
             create: (context) => ConnectivityCubit(),
+          ),
+          BlocProvider(
+            create: (context) => VersionCheckCubit(apiClient),
           ),
         ],
         child: MyApp(),
@@ -182,6 +226,8 @@ class MyApp extends StatelessWidget {
                         (navigatorKey.currentState?.canPop() ?? false)) {
                       navigatorKey.currentState?.pop();
                     }
+                    FireBaseNotification().retryPendingFcmRegistration(
+                        context.read<HomeCubit>().apiClient);
                   }
                 },
                 child: GlobalLoaderOverlay(
@@ -219,7 +265,10 @@ class MyApp extends StatelessWidget {
                       locale: Provider.of<LanguageChangeProvider>(context)
                           .currentLocal,
                       home: SplashScreen(),
-                      navigatorObservers: [connectionRouteObserver],
+                      navigatorObservers: [
+                        connectionRouteObserver,
+                        routeObserver,
+                      ],
                       // onUnknownRoute: (settings) => MaterialPageRoute(
                       //   builder: (_) => SplashScreen(),
                       // ),

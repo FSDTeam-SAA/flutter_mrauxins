@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
+import 'package:two_one_two_messenger/GoogleAds/app_config_model.dart';
 import 'package:two_one_two_messenger/GoogleAds/config_model.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
@@ -47,8 +48,9 @@ class ApiClient {
   ApiClient()
       : dio = Dio(BaseOptions(
           baseUrl: Urls.baseURL,
-          connectTimeout: const Duration(seconds: 5000),
-          receiveTimeout: const Duration(seconds: 3000),
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 30),
+          sendTimeout: const Duration(seconds: 60),
         )) {
     dio.interceptors.add(LogInterceptor(
       responseBody: true,
@@ -279,9 +281,10 @@ class ApiClient {
       // Return the parsed response
       return null;
     } on DioException catch (e, st) {
-      String errorMessage = e.response?.data['message'] ?? 'Send Otp failed';
-      AppLogger.logs('Send Otp Error: $errorMessage');
-      showMessage("Error sendOtp $e $st");
+      String errorMessage =
+          e.response?.data['message'] ?? 'Session refresh failed';
+      AppLogger.logs('Refresh Token Error: $errorMessage');
+      showMessage("Error refreshToken $e $st");
       manageLogout();
       throw Exception(errorMessage);
     }
@@ -404,7 +407,7 @@ class ApiClient {
       final response = await post(
         APIS.updateFcmToken,
         data,
-        requiresToken: false,
+        requiresToken: true,
       );
 
       final res = CommonResponseModel.fromJson(response.data);
@@ -658,26 +661,43 @@ class ApiClient {
     }
   }
 
+  Future<AppConfigModelRes> checkAppVersion() async {
+    try {
+      final response = await get(
+        APIS.getAppConfig,
+        requiresToken: false,
+      );
+
+      return AppConfigModelRes.fromJson(response.data);
+    } on DioException catch (e) {
+      String errorMessage =
+          e.response?.data['message'] ?? 'Check app version failed';
+
+      AppLogger.logs('Check App Version Error: $errorMessage');
+      throw Exception(errorMessage);
+    }
+  }
+
   Future<UpdateProfileResponse> updateUserProfile(
       {required Map<String, dynamic> data,
       required BuildContext context,
       File? file}) async {
     try {
-      String fileName = '';
-
-      if (file != null) {
-        fileName = file.path.split('/').last;
-        data['files'] = [
-          await MultipartFile.fromFile(file.path,
-              filename: fileName, contentType: MediaType('image', '*'))
-        ];
-      }
-
       showMessage("Map ==? $data");
 
       final response = await putWithFormData(
         APIS.user,
-        () async => FormData.fromMap(data),
+        () async {
+          final requestData = Map<String, dynamic>.from(data);
+          if (file != null) {
+            requestData['files'] = [
+              await MultipartFile.fromFile(file.path,
+                  filename: file.path.split('/').last,
+                  contentType: MediaType('image', '*'))
+            ];
+          }
+          return FormData.fromMap(requestData);
+        },
         requiresToken: true,
       );
 
@@ -765,7 +785,7 @@ class ApiClient {
 
       final conversationResponse =
           CreateConversionModel.fromJson(response.data);
-      showMessage("REsponse::::::::::${conversationResponse}");
+      showMessage("REsponse::::::::::$conversationResponse");
       return conversationResponse; // Return the parsed response
     } on DioException catch (e) {
       String errorMessage =
@@ -925,7 +945,7 @@ class ApiClient {
           });
           showMessage("sent Message = data ${{
             // "chatId": chatId,
-            if (content != null && content.isNotEmpty) "content": content,
+            if (content.isNotEmpty) "content": content,
             "type": type,
             "messageId": messageId,
             if ((gifUrl ?? "").isNotEmpty && (sizeForGIF != null))
@@ -1751,7 +1771,7 @@ class ApiClient {
           ToggleNickNameResponse.fromJson(response.data);
       return toggleNickNameResponse; // Return the parsed response
     } on DioException catch (e) {
-      debugPrint("Error Message >> ${e}");
+      debugPrint("Error Message >> $e");
       String errorMessage =
           e.response?.data?['message']['message'] ?? 'Something went wrong';
       // Utils.showSnackBar(context, errorMessage);

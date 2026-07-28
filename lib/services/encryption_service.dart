@@ -67,7 +67,12 @@ class EncryptionHelper {
   /// Encrypts a message using AES-GCM
   String encryptMessage(String message, String aesKey) {
     if (message.isEmpty) return "";
-    final keyBytes = Uint8List.fromList(utf8.encode(aesKey)).sublist(0, 32);
+    final rawKeyBytes = Uint8List.fromList(utf8.encode(aesKey));
+    if (rawKeyBytes.length < 32) {
+      throw Exception(
+          "Cannot encrypt message: conversation key is missing or invalid");
+    }
+    final keyBytes = rawKeyBytes.sublist(0, 32);
     final key = encrypt.Key(keyBytes);
     final iv = encrypt.IV.fromLength(16); // Generate IV dynamically
 
@@ -97,7 +102,12 @@ class EncryptionHelper {
       if (data['iv'] == null || data['cipher'] == null) {
         return encryptedJson; // Not properly structured encrypted message
       }
-      final keyBytes = Uint8List.fromList(utf8.encode(aesKey)).sublist(0, 32);
+      final rawKeyBytes = Uint8List.fromList(utf8.encode(aesKey));
+      if (rawKeyBytes.length < 32) {
+        throw Exception(
+            "Cannot decrypt message: conversation key is missing or invalid");
+      }
+      final keyBytes = rawKeyBytes.sublist(0, 32);
       final key = encrypt.Key(keyBytes);
       final iv = encrypt.IV.fromBase64(data['iv']);
 

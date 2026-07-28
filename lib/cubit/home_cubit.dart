@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_thumbnail_video/video_thumbnail.dart';
@@ -146,30 +147,27 @@ class HomeCubit extends Cubit<HomeState> {
     if (response.status == Utils.APISUCCESS) {
       await AppPreference.setAgoraAppId(response.data?.appId ?? "");
     }
+  }
 
-    // String token = AppPreference.getFCMToken();
-    // debugPrint("old Fcm Token $token");
-    String newToken = await FireBaseNotification().getToken();
-    if (AppPreference.getCurrentUserId().isNotEmpty) {
-      updateFcmToken(apiClient, {
-        "userId": AppPreference.getCurrentUserId(),
+  // Independent of getAgoraAppId on purpose: this used to run as a tail end
+  // of that method with no error handling, so a failure fetching the Agora
+  // app id (an unrelated call) silently aborted FCM token registration too.
+  // Call both from HomeScreen's init, unawaited, so one can never block the
+  // other.
+  Future<void> registerFcmTokenForCurrentUser() async {
+    try {
+      final userId = AppPreference.getCurrentUserId();
+      if (userId.isEmpty) return;
+      final newToken = await FireBaseNotification().getToken();
+      if (newToken.isEmpty) return;
+      await FireBaseNotification().updateFcmToken(apiClient, {
+        "userId": userId,
         "deviceToken": newToken,
         "deviceType": Platform.isAndroid ? 'Android' : 'ios',
       });
-    }
-  }
-
-  Future<void> updateFcmToken(
-      ApiClient apiClient, Map<String, dynamic> data) async {
-    try {
-      CommonResponseModel? response = await apiClient.updateFcmToken(data);
-      if (response?.status == Utils.APISUCCESS) {
-        debugPrint("update old Fcm Token ${data["deviceToken"]}");
-        await AppPreference.setString(
-            LocalDbConstants.firebaseToken, data["deviceToken"]);
-      }
     } catch (e, st) {
-      debugPrint("Error ==>$e  $st");
+      debugPrint("Error registering FCM token ==>$e  $st");
+      FirebaseCrashlytics.instance.recordError(e, st);
     }
   }
 
@@ -975,6 +973,10 @@ class HomeCubit extends Cubit<HomeState> {
           clearSelectedGroupPic();
         }
         // NavigationService().popUntil();
+        if (showSuccessMessage) {
+          Utils.showSnackBar(context,
+              S.current.groupOrChannelUpdateSuccessfully(chatType.name));
+        }
         if (showSuccessMessage) {
           Utils.showSnackBar(context,
               S.current.groupOrChannelUpdateSuccessfully(chatType.name));

@@ -1,10 +1,7 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:two_one_two_messenger/database/local_db.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/main.dart';
@@ -23,43 +20,8 @@ class ContactService {
   final ApiClient apiClient;
   ContactService({required this.dbHelper, required this.apiClient});
 
-  /// Fetch local contacts, store them in the database, and update only changed contacts.
-  // Future<void> fetchAndStoreLocalContacts() async {
-  //   if (!await FlutterContacts.requestPermission()) {
-  //     return;
-  //   }
-
-  //   List<Contact> localContacts =
-  //       await FlutterContacts.getContacts(withProperties: true);
-  //   showMessage("localContacts ==>${localContacts.length} ${localContacts}");
-  //   for (var contact in localContacts) {
-  //     String phoneNumber = Utils.removeSpaceAndSpecialCharectorsFromString(
-  //         contact.phones.isNotEmpty ? contact.phones.first.number : "");
-  //     // log("fetchAndStoreLocalContacts===>$phoneNumber");
-  //     String displayName = contact.displayName ?? "";
-
-  //     // Get contact from database
-  //     ContactUser? existingContact =
-  //         await dbHelper.getContactByPhone(phoneNumber);
-
-  //     if (existingContact != null) {
-  //       // Update only if the name has changed
-  //       if (existingContact.name != displayName) {
-  //         await dbHelper.updateLocalContact(phoneNumber, displayName);
-  //       }
-  //     } else {
-  //       // Insert new contact
-  //       await dbHelper.insertContact(ContactUser(
-  //         phone: phoneNumber,
-  //         name: displayName,
-  //         isRegistered: false, // Initially assume not registered
-  //       ));
-  //     }
-  //   }
-  // }
-
   Future<void> fetchAndStoreLocalContacts() async {
-    if (!await FlutterContacts.requestPermission()) {
+    if (!await Utils.hasContactsPermission()) {
       await CustomAlertDialog(
         context: navigatorKey.currentContext!,
         icon: SvgImage(
@@ -83,8 +45,8 @@ class ContactService {
     }
 
     // Fetch local contacts from device
-    List<Contact> localContacts =
-        await FlutterContacts.getContacts(withProperties: true);
+    List<Contact> localContacts = await FlutterContacts.getAll(
+        properties: {ContactProperty.name, ContactProperty.phone});
 
     // showMessage("D localContacts $localContacts");
 
@@ -94,8 +56,8 @@ class ContactService {
         Utils.removeSpaceAndSpecialCharectorsFromString(
                 contact.phones.isNotEmpty ? contact.phones.first.number : ""):
             (contact.displayName ?? "").isEmpty
-                ? contact.displayName
-                : "${contact.name.first} ${contact.name.last}"
+                ? (contact.displayName ?? "")
+                : "${contact.name?.first ?? ''} ${contact.name?.last ?? ''}"
     };
 
     // showMessage("D localContactsMap $localContactsMap");
@@ -148,69 +110,6 @@ class ContactService {
   Future<List<ContactUser>> getAllLocalContacts() async {
     return await dbHelper.getAllContacts();
   }
-
-  /// Fetch API users and update database contacts
-  // Future<void> syncApiUsersWithContacts({
-  //   required BuildContext context,
-  //   required String searchQuery,
-  //   required List<String> contactNumbers,
-  //   required int page,
-  //   required int limit,
-  //   required List<Participant> removedUsers,
-  // }) async {
-  //   try {
-  //     AllUserResponse response = await apiClient.getAllUser(
-  //         searchQuery, page, limit, context, contactNumbers);
-
-  //     if (response.status == Utils.APISUCCESS) {
-  //       List<UserData> apiUsers = response.data?.users ?? [];
-  //       Set<String> removedUserIds = removedUsers.map((p) => p.id!).toSet();
-  //       log("getAllUser ${apiUsers.length}");
-  //       List<ContactUser> updatedContacts = [];
-
-  //       for (var apiUser in apiUsers) {
-  //         if (removedUserIds.contains(apiUser.sId)) continue;
-
-  //         ContactUser? existingContact =
-  //             await dbHelper.getContactByPhone(apiUser.phone ?? "");
-
-  //         if (existingContact != null) {
-  //           // Update existing contact with API data
-  //           ContactUser updatedContact = existingContact.copyWith(
-  //             isRegistered: true,
-  //             profilePicture: apiUser.profilePicture,
-  //             bio: apiUser.bio,
-  //             countryCode: apiUser.countryCode,
-  //             phone: apiUser.phone,
-  //             countryISOCode: apiUser.countryISOCode,
-  //             createdAt: apiUser.createdAt,
-  //             email: apiUser.email,
-  //             iV: apiUser.iV,
-  //             isOnline: apiUser.isOnline,
-  //             lastSeen: apiUser.lastSeen,
-  //             sId: apiUser.sId,
-  //             updatedAt: apiUser.updatedAt,
-  //             userName: apiUser.userName,
-  //           );
-  //           await dbHelper.updateContact(updatedContact);
-  //           updatedContacts.add(updatedContact);
-  //         } else {
-  //           // Insert new API user as a contact
-  //           ContactUser newContact = ContactUser(
-  //             phone: apiUser.phone,
-  //             name: apiUser.name,
-  //             isRegistered: true,
-  //             profilePicture: apiUser.profilePicture,
-  //           );
-  //           await dbHelper.insertContact(newContact);
-  //           updatedContacts.add(newContact);
-  //         }
-  //       }
-  //     }
-  //   } catch (e) {
-  //     showMessage("Error syncing API users: $e");
-  //   }
-  // }
 
   Future<List<ContactUser>> syncApiUsersWithContacts({
     required BuildContext context,

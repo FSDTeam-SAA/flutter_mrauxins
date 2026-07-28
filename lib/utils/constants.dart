@@ -70,7 +70,6 @@ class AppConstants {
 
   static const markMessageAsUnread = "mark_message_as_unread";
   static const groupSendPermissionUpdated = "group_send_permission_updated";
-  
 
 // static const markAsReadEmit  = "mark_message_as_read";
   //Error
@@ -319,12 +318,15 @@ class SvgAssets {
       "${svgImage}messageSentPending.svg";
 }
 
-class ImgAssets {
+abstract class ImgAssets {
   static const String image = "assets/image/";
   static const String splashBg = '${image}splash_bg.png';
   static const String logo = '${image}logo.png';
   static const String icGoogle = '${image}google.png';
   static const String icFacebook = '${image}facebook.png';
+  static const String bg = '${image}bg.png';
+  static const String updateRequiredBg = '${image}Update Required_bg.png';
+  static const String downloadIcon = "assets/icons/download_icon.png";
 }
 
 class SoundAssets {

@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:intl_phone_field/countries.dart';
 import 'package:intl_phone_field/phone_number.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
 

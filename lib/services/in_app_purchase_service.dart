@@ -47,7 +47,6 @@ class InAppPurchaseService {
       final product = _products.firstWhere(
         (p) => p.id == productId,
       );
-      if (product == null) return;
 
       final purchaseParam = PurchaseParam(productDetails: product);
       _iap.buyNonConsumable(purchaseParam: purchaseParam);
@@ -77,7 +76,8 @@ class InAppPurchaseService {
     try {
       await _iap.restorePurchases();
     } catch (e, st) {
-      showMessage("Error in InAppPurchaseService => restorePurchases: $e , $st");
+      showMessage(
+          "Error in InAppPurchaseService => restorePurchases: $e , $st");
     }
   }
 
@@ -101,92 +101,3 @@ class InAppPurchaseService {
     _subscription?.cancel();
   }
 }
-
-// class InAppPurchaseService {
-//   static final InAppPurchaseService _instance =
-//       InAppPurchaseService._internal();
-//   factory InAppPurchaseService() => _instance;
-//   InAppPurchaseService._internal();
-
-//   static const String _productId =
-//       'com.freshcodes.twoonetwomessenger.premium_no_ads';
-//   static const String _premiumKey = 'is_premium';
-
-//   final InAppPurchase _iap = InAppPurchase.instance;
-//   bool _available = false;
-//   List<ProductDetails> _products = [];
-//   StreamSubscription<List<PurchaseDetails>>? _subscription;
-
-//   Future<void> initialize() async {
-//     showMessage("InAppPurchaseService ==>initialize start");
-//     try {
-//       _available = await _iap.isAvailable();
-//       if (!_available) return;
-
-//       final response = await _iap.queryProductDetails({_productId});
-//       showMessage("InAppPurchaseService ==>initialize ${response.productDetails}");
-//       _products = response.productDetails;
-
-//       _subscription = _iap.purchaseStream.listen((purchases) {
-//         _handlePurchaseUpdates(purchases);
-//       });
-
-//       await _verifyPremiumStatus();
-//       showMessage("InAppPurchaseService ==>initialize end");
-//     } catch (e, st) {
-//       showMessage("Error in InAppPurchaseService ==>initialize $e , $st");
-//     }
-//   }
-
-//   List<ProductDetails> get availableProducts => _products;
-
-//   Future<void> buyPremium() async {
-//     showMessage("buyPremium _products==> $_products ");
-//     try {
-//       if (_products.isEmpty) return;
-
-//       final purchaseParam = PurchaseParam(productDetails: _products.first);
-//       _iap.buyNonConsumable(purchaseParam: purchaseParam);
-//     } catch (e, st) {
-//       showMessage("Error in InAppPurchaseService ==>buyPremium $e , $st");
-//     }
-//   }
-
-//   Future<void> _handlePurchaseUpdates(List<PurchaseDetails> purchases) async {
-//     try {
-//       for (var purchase in purchases) {
-//         if (purchase.productID == _productId &&
-//             purchase.status == PurchaseStatus.purchased) {
-//           await _savePremiumStatus(true);
-//         }
-//       }
-//     } catch (e, st) {
-//       showMessage("Error in InAppPurchaseService ==>_handlePurchaseUpdates $e , $st");
-//     }
-//   }
-
-//   Future<void> restorePurchases() async {
-//     try {
-//       await _iap
-//           .restorePurchases(); // ✅ FIXED: This is the correct method to restore past purchases
-//     } catch (e, st) {
-//       showMessage("Error in InAppPurchaseService ==>restorePurchases $e , $st");
-//     }
-//   }
-
-//   Future<bool> isAdFreeUser() async {
-//     return AppPreference.getBoolean(_premiumKey) ?? false;
-//   }
-
-//   Future<void> _savePremiumStatus(bool status) async {
-//     await AppPreference.setBoolean(_premiumKey, value: status);
-//   }
-
-//   Future<void> _verifyPremiumStatus() async {
-//     await restorePurchases(); // ✅ Automatically restore purchases on startup
-//   }
-
-//   void dispose() {
-//     _subscription?.cancel();
-//   }
-// }

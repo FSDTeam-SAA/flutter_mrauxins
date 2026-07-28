@@ -1,3 +1,13 @@
+// Some third-party plugins (agora_rtc_engine's bundled iris_method_channel
+// module, among others) read this shared property via their own
+// `safeExtGet('compileSdkVersion', 31)` fallback instead of Flutter's
+// `flutter.compileSdkVersion`. Without it they silently build against
+// SDK 31, which AGP's AAR metadata check now rejects since their androidx
+// transitives (fragment, lifecycle, core-ktx, etc.) require compileSdk 34+.
+ext {
+    compileSdkVersion = 36
+}
+
 allprojects {
     repositories {
         google()
@@ -16,6 +26,32 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+}
+
+// Different third-party plugins declare different (and mutually inconsistent)
+// Java/Kotlin compile targets - e.g. screen_protector pins javac to 17 but
+// leaves kotlinOptions unset (so Kotlin defaults to the host JDK's version),
+// while emoji_picker_flutter pins javac to 1.8. Forcing a single hardcoded
+// JavaCompile target for every module is unsafe: setting sourceCompatibility
+// == targetCompatibility makes javac switch to "--release" mode, which
+// discards AGP's Android SDK bootclasspath and breaks compilation for
+// library modules like agora_rtc_engine (cannot find View/Context/etc).
+// Instead, leave each module's own (correct) Java target alone and make its
+// Kotlin target follow it. Done in gradle.projectsEvaluated so it runs after
+// every module - and its own AGP compileOptions wiring - has finished
+// evaluating, and to avoid the "already evaluated" crash that afterEvaluate
+// hits here since Flutter's plugin loader can evaluate subprojects early.
+gradle.projectsEvaluated {
+    rootProject.subprojects.each { proj ->
+        def javaTasks = proj.tasks.withType(JavaCompile)
+        if (javaTasks.isEmpty()) return
+        def targetCompat = javaTasks.first().targetCompatibility
+        proj.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            kotlinOptions {
+                jvmTarget = targetCompat
+            }
+        }
+    }
 }
 
 tasks.register("clean", Delete) {

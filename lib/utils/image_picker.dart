@@ -147,24 +147,8 @@ Future<void> showCustomImageOptionPickerDialog(
 
 Future<void> customImagePickerwithoutMimeType(BuildContext context,
     ImageSource source, Function(XFile?) onImagePicked) async {
-  // PermissionStatus? status;
-
-  // if (source == ImageSource.camera) {
-  //   status = await Permission.camera.request();
-  // }
-
-  // if (status != null && !status.isGranted) {
-  //   await CustomAlertDialog(
-  //     context: context,
-  //     icon: Assets.icon.svg.settingsOutline,
-  //     title: 'Permission Required',
-  //     description: 'Please enable the Camera permission from the app settings',
-  //     buttonText: 'Open Settings',
-  //     onPressed: () => openAppSettings(),
-  //   );
-  // } else {
-  final pickedFile =
-      await ImagePicker().pickImage(source: source, imageQuality: 100);
+  final pickedFile = await ImagePicker().pickImage(
+      source: source, imageQuality: 80, maxWidth: 1280, maxHeight: 1280);
   if (pickedFile != null) {
     onImagePicked(XFile(pickedFile.path,
         name: pickedFile.name, mimeType: pickedFile.mimeType));
@@ -232,7 +216,6 @@ Future<void> customVideoWithCameraPicker(BuildContext context,
   } else {
     final pickedFile =
         await ImagePicker().pickVideo(source: ImageSource.camera);
-    ;
     if (pickedFile != null) {
       MimeType mimeType = Utils.getMimeType(pickedFile.path);
       onImagePicked(
@@ -283,18 +266,6 @@ Future<void> customFilePicker(
     FileType type,
     Function(XFile?, MimeType) onAudioPicked,
     {bool isMultiple = false}) async {
-  // final status = await Permission.storage.request();
-
-  // if (status.isDenied || status.isRestricted || status.isPermanentlyDenied) {
-  //   await CustomAlertDialog(
-  //     context: context,
-  //     icon: SvgAssets.icSettingsOutline,
-  //     title: 'Permission Required',
-  //     description: 'Please enable the Storage Permission from the app settings',
-  //     buttonText: 'Open Settings',
-  //     onPressed: () => openAppSettings(),
-  //   );
-  // } else {
   try {
     if (type == FileType.custom && customExtension == null) {
       Utils.showSnackBar(context, "Please give extension for type custom");

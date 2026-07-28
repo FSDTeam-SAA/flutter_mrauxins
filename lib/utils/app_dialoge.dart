@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:two_one_two_messenger/cubit/chat_cubit.dart';
 import 'package:two_one_two_messenger/cubit/chat_state.dart';
+import 'package:two_one_two_messenger/cubit/saved_messages_cubit.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
@@ -103,7 +104,7 @@ void buildMessageSaveAndDeleteDialog(
         onTap: () {
           showMessage("TempMessage==> ${message.toJson()}");
 
-          chatCubit.saveMessages(
+          context.read<SavedMessagesCubit>().saveMessages(
             chatId: message.chatId ?? "",
             context: context,
             isTempMessage: message.id == message.messageId,
@@ -468,10 +469,12 @@ void showDeleteMessageDialog(
                                     await NavigationService().goBack();
 
                                     if (isFromSavedMessage) {
-                                      chatCubit.deleteSavedMessages(
-                                          savedMessage?.id ?? '',
-                                          index,
-                                          context);
+                                      context
+                                          .read<SavedMessagesCubit>()
+                                          .deleteSavedMessages(
+                                              savedMessage?.id ?? '',
+                                              index,
+                                              context);
                                     } else {
                                       chatCubit.deleteChatMessages(
                                         messageId: message?.messageId ?? '',
@@ -749,7 +752,7 @@ void showEditMessageDialog(
   MessageModel message,
   String aesKey,
 ) {
-  final TextEditingController _controller =
+  final TextEditingController controller =
       TextEditingController(text: message.content);
   showDialog(
     context: context,
@@ -781,7 +784,7 @@ void showEditMessageDialog(
                   ),
                   16.h.s,
                   TextField(
-                    controller: _controller,
+                    controller: controller,
                     style: AppTextStyles.medium(
                       fontSize: 16.sp,
                       color: AppColors.white,
@@ -863,11 +866,11 @@ void showEditMessageDialog(
                         child: CustomButton(
                           onPressed: () async {
                             showMessage("editMessage onTap");
-                            if (_controller.text.trim().isNotEmpty) {
+                            if (controller.text.trim().isNotEmpty) {
                               chatCubit.editMessage(
                                 message: message,
                                 aesKey: aesKey,
-                                newText: _controller.text.trim(),
+                                newText: controller.text.trim(),
                                 callback: () async {
                                   await NavigationService().goBack();
                                   // Utils.showSnackBar(
@@ -934,7 +937,7 @@ void showEditSavedMessageDialog(
   SavedMessage savedMessage,
 ) {
   MessageModel message = savedMessage.messageDetails!;
-  final TextEditingController _controller =
+  final TextEditingController controller =
       TextEditingController(text: message.content);
   showDialog(
     context: context,
@@ -966,7 +969,7 @@ void showEditSavedMessageDialog(
                   ),
                   16.h.s,
                   TextField(
-                    controller: _controller,
+                    controller: controller,
                     style: AppTextStyles.medium(
                       fontSize: 16.sp,
                       color: AppColors.white,
@@ -1049,10 +1052,10 @@ void showEditSavedMessageDialog(
                         child: CustomButton(
                           onPressed: () async {
                             showMessage("editMessage onTap");
-                            if (_controller.text.trim().isNotEmpty) {
-                              chatCubit.editSavedMessage(
+                            if (controller.text.trim().isNotEmpty) {
+                              context.read<SavedMessagesCubit>().editSavedMessage(
                                 message: savedMessage,
-                                newText: _controller.text.trim(),
+                                newText: controller.text.trim(),
                                 callback: () async {
                                   await NavigationService().goBack();
                                   // Utils.showSnackBar(

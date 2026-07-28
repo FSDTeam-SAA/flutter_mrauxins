@@ -45,20 +45,4 @@ extension Validator on String {
     }
     return true;
   }
-
-  // bool isValidMobile(void Function(String message) showError) {
-  //   String universalMobilePattern = r'^\+?[1-9]\d{1,14}$';
-  //   RegExp regex = RegExp(universalMobilePattern);
-  //   if (isEmpty) {
-  //     showError(S.current.pleaseEnterYourmobileNumber);
-  //     return false;
-  //   } else if (!(length > 7 && length < 14)) {
-  //     showError(S.current.invalidMobileNumber);
-  //     return false;
-  //   } else if (!regex.hasMatch(this)) {
-  //     showError(S.current.invalidMobileNumber);
-  //     return false;
-  //   }
-  //   return true;
-  // }
 }

@@ -21,7 +21,8 @@ import 'package:intl_phone_field/phone_number.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:mime/mime.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:permission_handler/permission_handler.dart'
+    hide PermissionStatus;
 import 'package:two_one_two_messenger/database/local_db.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
@@ -63,25 +64,6 @@ extension DateTimeExtensions on DateTime {
   String toFormattedString() {
     return "$day-$month-$year";
   }
-
-  // String formatMessageTimestamp() {
-  //   final now = DateTime.now();
-  //   final difference = now.difference(this).inDays;
-
-  //   if (difference == 0) {
-  //     // Same day
-  //     return DateFormat().add_jm().format(this);
-  //   } else if (difference == 1) {
-  //     // Previous day
-  //     return 'Yesterday';
-  //   } else if (difference < 7) {
-  //     // Within the last week
-  //     return DateFormat('E').format(this); // Mon, Tue, etc.
-  //   } else {
-  //     // 1 week old or more
-  //     return DateFormat('dd/MM').format(this);
-  //   }
-  // }
 
   String formatMessageTimestamp() {
     final now = DateTime.now();
@@ -185,15 +167,7 @@ class Utils {
   static void showLoader() {
     EasyLoading.show(
       dismissOnTap: false,
-      // maskType: EasyLoadingMaskType.black,
-      // indicator: CustomLoadingWidget(
-      //   size: 45.h,
-      // )
     );
-    //     if (navigatorKey.currentContext != null) {
-    //   navigatorKey.currentContext!.loaderOverlay.show();
-
-    // }
   }
 
   /// Hide the global loader overlay.
@@ -232,8 +206,8 @@ class Utils {
 
   static Future<void> launchUrlHelper(String url, BuildContext context) async {
     try {
-      final Uri _url = Uri.parse(url);
-      if (!await launchUrl(_url)) {
+      final Uri url0 = Uri.parse(url);
+      if (!await launchUrl(url0)) {
         AppLogger.logs('Could not launch : Exception : $url');
         throw Exception('Could not launch $url');
       }
@@ -315,9 +289,9 @@ class Utils {
       }
       // iOS simulator has no APNs — getToken() hangs without a timeout
       String? token = await messaging.getToken().timeout(
-        const Duration(seconds: 8),
-        onTimeout: () => null,
-      );
+            const Duration(seconds: 8),
+            onTimeout: () => null,
+          );
       return token;
     } catch (e) {
       return null;
@@ -409,9 +383,7 @@ class Utils {
 
   static Future<Sender> currentUserToSender() async {
     UserData? user = userDataCubit.state;
-    if (user == null) {
-      user = await DatabaseHelper().getLoginData();
-    }
+    user ??= await DatabaseHelper().getLoginData();
     return Sender(
         id: user?.sId,
         profilePicture: user?.profilePicture,
@@ -449,7 +421,7 @@ class Utils {
   }
 
   static Future<List<String>> getLocalContacts() async {
-    if (await FlutterContacts.requestPermission()) {
+    if (await Utils.hasContactsPermission()) {
       // Step 2: Ask for additional in-app user consent before uploading
       bool? userConsent = AppPreference.isContactPermissionGrant();
       if (!userConsent) {
@@ -499,16 +471,6 @@ class Utils {
                 ),
                 onPressed: () => Navigator.pop(context, true),
               ),
-              // CustomButton(
-              //   child: Text(
-              //     S.current.lblContinue,
-              //     style: AppTextStyles.medium(
-              //       fontSize: 16.sp,
-              //       color: AppColors.white,
-              //     ),
-              //   ),
-              //   onPressed: () => Navigator.pop(context, true),
-              // ),
             ],
           ),
         );
@@ -516,8 +478,8 @@ class Utils {
             value: userConsent ?? false);
       }
       if (userConsent ?? false) {
-        List<Contact> contacts =
-            await FlutterContacts.getContacts(withProperties: true);
+        List<Contact> contacts = await FlutterContacts.getAll(
+            properties: {ContactProperty.name, ContactProperty.phone});
         showMessage("getLocalContacts==> $userConsent  ${contacts.length}");
         return contacts
             .map((c) => c.phones.isNotEmpty ? c.phones.first.number : "")
@@ -545,6 +507,13 @@ class Utils {
       );
     }
     return [];
+  }
+
+  static Future<bool> hasContactsPermission() async {
+    final status =
+        await FlutterContacts.permissions.request(PermissionType.readWrite);
+    return status == PermissionStatus.granted ||
+        status == PermissionStatus.limited;
   }
 
   static Future<bool> askContactPermission() async {
@@ -596,18 +565,6 @@ class Utils {
               ),
               onPressed: () => Navigator.pop(context, true),
             ),
-            // Expanded(
-            //   child: CustomButton(
-            //     child: Text(
-            //       S.current.lblContinue,
-            //       style: AppTextStyles.medium(
-            //         fontSize: 16.sp,
-            //         color: AppColors.white,
-            //       ),
-            //     ),
-            //     onPressed: () => Navigator.pop(context, true),
-            //   ),
-            // ),
           ],
         ),
       );

@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 // import 'package:google_sign_in/google_sign_in.dart';
@@ -26,7 +25,6 @@ import '../database/local_db.dart';
 import '../models/update_profile.dart';
 import '../services/api_client.dart';
 import '../utils/utils.dart';
-import '../widgets/intl_widget.dart';
 import 'profile_state.dart';
 
 // class ProfileCubit extends Cubit<ProfileState> {

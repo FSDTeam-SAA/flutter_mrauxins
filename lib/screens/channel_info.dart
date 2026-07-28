@@ -252,6 +252,16 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
                             ),
                             buildGroupPermission(
                               context,
+                              text: 'Private Channel',
+                              defaultValue: state.privateGroup,
+                              onChanged: (value) {
+                                homeCubit.togglePrivateGroup(value);
+                                homeCubit.updateGroupSetting(
+                                    context, widget.groupId, ChatType.channel);
+                              },
+                            ),
+                            buildGroupPermission(
+                              context,
                               text: S.of(context).lblShowProfilePhoto,
                               defaultValue: state.showProfilePhotoForGroup,
                               onChanged: (value) {
@@ -260,6 +270,36 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
                                     widget.groupId,
                                     value,
                                     ChatType.channel);
+                              },
+                            ),
+                            buildGroupPermission(
+                              context,
+                              text: 'Hide Subscribers Info',
+                              defaultValue: state.hideMembersInfo,
+                              onChanged: (value) {
+                                homeCubit.toggleHideMembersInfo(value);
+                                homeCubit.updateGroupSetting(
+                                    context, widget.groupId, ChatType.channel);
+                              },
+                            ),
+                            buildGroupPermission(
+                              context,
+                              text: 'Hide New Subscribers Message',
+                              defaultValue: state.hideNewMembersMessage,
+                              onChanged: (value) {
+                                homeCubit.toggleHideNewMembersMessage(value);
+                                homeCubit.updateGroupSetting(
+                                    context, widget.groupId, ChatType.channel);
+                              },
+                            ),
+                            buildGroupPermission(
+                              context,
+                              text: 'Restrict Content Sharing',
+                              defaultValue: state.restrictContentSharing,
+                              onChanged: (value) {
+                                homeCubit.toggleRestrictContentSharing(value);
+                                homeCubit.updateGroupSetting(
+                                    context, widget.groupId, ChatType.channel);
                               },
                             ),
                             buildGroupPermission(

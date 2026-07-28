@@ -1,6 +1,4 @@
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:loader_overlay/loader_overlay.dart';
-import '../main.dart';
 
 class Loader {
   static Future<void> show() async {

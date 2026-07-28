@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:easy_url_launcher/easy_url_launcher.dart';
@@ -6,13 +6,13 @@ import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
-import 'package:flutter_chat_reactions/model/menu_item.dart';
-import 'package:flutter_chat_reactions/utilities/hero_dialog_route.dart';
-import 'package:flutter_chat_reactions/widgets/stacked_reactions.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:two_one_two_messenger/cubit/saved_messages_cubit.dart';
+import 'package:two_one_two_messenger/database/local_db.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
@@ -34,6 +34,27 @@ import 'package:two_one_two_messenger/widgets/media_upload_progress.dart';
 import 'package:two_one_two_messenger/widgets/network_image.dart';
 import 'package:two_one_two_messenger/widgets/svg_images.dart';
 import 'package:voice_message_package/voice_message_package.dart';
+
+/// Shared across every message bubble on screen so `StackedReactions` (which
+/// reads live from a `ReactionsController`) stays in sync without threading a
+/// controller instance through every widget in the chat tree.
+final ReactionsController _reactionsController =
+    ReactionsController(currentUserId: AppPreference.getCurrentUserId());
+
+/// The backend only tracks per-user reaction attribution server-side; the
+/// wire format (and thus [MessageModel.reactions]) is a flat, unattributed
+/// list of emoji. These placeholder [Reaction]s exist only so `StackedReactions`
+/// can render the current emoji set - `userId` is never matched against the
+/// real current user, so `hasUserReacted`/toggle-off never fires, which is
+/// fine since the backend has no "remove reaction" capability either.
+List<Reaction> _synthesizeReactions(List<String>? emojis) {
+  if (emojis == null || emojis.isEmpty) return [];
+  final now = DateTime.now();
+  return [
+    for (var i = 0; i < emojis.length; i++)
+      Reaction(emoji: emojis[i], userId: 'unattributed-$i', timestamp: now),
+  ];
+}
 
 class ChatBubble extends StatefulWidget {
   final MessageModel message;
@@ -68,32 +89,33 @@ class ChatBubble extends StatefulWidget {
 }
 
 class _ChatBubbleState extends State<ChatBubble> {
-  Future<void> onContextMenuTap(MenuItem menuItem, Offset offset) async {
-    showMessage('Menu item: $menuItem');
-    // showMessage("saveMessage MY ==> ${widget.message.toJson()}");
-    // showMessage("saveMessage MYIDDDD ${widget.message.id.toString()}");
-    switch (menuItem.value) {
-      case "saveMessage":
-        chatCubit.saveMessages(
-          chatId: widget.message.chatId ?? "",
-          context: context,
-          isTempMessage: widget.message.id == widget.message.messageId,
-          messageId: widget.message.id ?? '',
-          callback: (response) {
-            Utils.showSnackBar(context, response.message ?? '', seconds: 3);
-          },
-        );
+  Offset _lastTapPosition = Offset.zero;
+
+  Future<void> onContextMenuTap(ChatMessageOption option) async {
+    showMessage('Menu item: $option');
+    final offset = _lastTapPosition;
+    switch (option) {
+      case ChatMessageOption.saveMessage:
+        context.read<SavedMessagesCubit>().saveMessages(
+              chatId: widget.message.chatId ?? "",
+              context: context,
+              isTempMessage: widget.message.id == widget.message.messageId,
+              messageId: widget.message.id ?? '',
+              callback: (response) {
+                Utils.showSnackBar(context, response.message ?? '', seconds: 3);
+              },
+            );
         break;
 
-      case "copy":
+      case ChatMessageOption.copy:
         if (widget.restrictContentSharing) return;
         Utils.copyToClipboard(context, widget.message.content ?? "");
 
         break;
-      case "edit":
+      case ChatMessageOption.edit:
         showEditMessageDialog(context, widget.message, widget.aesKey!);
         break;
-      case "pin":
+      case ChatMessageOption.pin:
         showMessage("TempMessage==> ${widget.message.toJson()}");
         if (widget.message.pinned ?? false) {
           chatCubit.unPinMessage(
@@ -105,7 +127,7 @@ class _ChatBubbleState extends State<ChatBubble> {
               chatId: widget.message.chatId ?? "");
         }
         break;
-      case "forward":
+      case ChatMessageOption.forward:
         if (widget.restrictContentSharing) return;
         if ((widget.aesKey ?? "").isNotEmpty) {
           showMessage("TempMessage==> ${widget.message.toJson()}");
@@ -119,7 +141,7 @@ class _ChatBubbleState extends State<ChatBubble> {
         }
         break;
 
-      case "deleteMessage":
+      case ChatMessageOption.deleteMessage:
         if (widget.isSender &&
             Utils.canEditOrDeleteMessage(
                 widget.message.createdAt ?? DateTime.now())) {
@@ -138,393 +160,190 @@ class _ChatBubbleState extends State<ChatBubble> {
               isFromSavedMessage: false);
         }
         break;
+      case ChatMessageOption.reply:
+      case ChatMessageOption.react:
+        break;
     }
   }
 
-  void showEmojiBottomSheet({
-    required MessageModel message,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return SizedBox(
-          height: 310,
-          child: Theme(
-            data: ThemeData.dark(),
-            child: EmojiPicker(
-              onEmojiSelected: ((category, emoji) {
-                // pop the bottom sheet
-                Navigator.pop(context);
+  Widget _buildEmojiPicker(
+      BuildContext context, void Function(String) onEmojiSelected) {
+    return SizedBox(
+      height: 310,
+      child: Theme(
+        data: ThemeData.dark(),
+        child: EmojiPicker(
+          onEmojiSelected: (category, emoji) => onEmojiSelected(emoji.emoji),
+        ),
+      ),
+    );
+  }
 
-                chatCubit.reactMessage(
-                  message: message,
-                  reaction: emoji.emoji,
-                );
-              }),
-            ),
-          ),
-        );
-      },
+  Widget _buildMenuItemRow(MenuItem item, Widget icon, VoidCallback onTap) {
+    final color = item.isDestructive ? AppColors.redColor : AppColors.white;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        child: Row(
+          children: [
+            IconTheme(data: IconThemeData(color: color), child: icon),
+            8.s,
+            Text(item.label, style: AppTextStyles.regular(color: color)),
+          ],
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    String id =
-        widget.message.id ?? DateTime.now().millisecondsSinceEpoch.toString();
-    return GestureDetector(
-      onLongPressStart: (details) {
-        if (widget.message.uploadStatus == MessageUploadStatus.failed) {
-          showDeleteMessageDialog(
-              context: context,
-              index: widget.index,
-              message: widget.message,
-              deleteForEveryOne: false,
-              isFromSavedMessage: false);
-        }
-        if (!(widget.message.isSent ?? true)) {
-          return;
-        }
-        Navigator.of(context).push(
-          HeroDialogRoute(builder: (context) {
-            return InkWell(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              child: Material(
-                color: Colors.black.withValues(alpha: 0.4),
-                child: Theme(
-                  data: ThemeData.dark().copyWith(
-                    // Apply a dark theme
-                    popupMenuTheme: PopupMenuThemeData(
-                        color: AppColors.dark, // Dark background
-                        textStyle: AppTextStyles.regular(),
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        shadowColor: Colors.transparent),
-                    dialogTheme: DialogThemeData(
-                        backgroundColor: AppColors
-                            .dark), // Background color of reaction dialog
-                  ),
-                  child: ReactionsDialogWidget(
-                    widgetAlignment: widget.isSender
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
-                    id: id, // unique id for message
-                    isAccessToMessageUtilities:
-                        widget.isAccessToMessageUtilities,
-                    messageWidget: MessageWidget(
-                        message: widget.message,
-                        isForDialog: true,
-                        isShowProfileImage: widget.isShowProfileImage,
-                        isSender: widget.isSender,
-                        index: widget.index,
-                        mainContext: widget.mainContext,
-                        isGroup: widget.isGroup,
-                        onSwipe: widget.onSwipe,
-                        onTapScroll: widget.onTapScroll,
-                        aesKey: widget.aesKey), // message widget
-                    onReactionTap: (reaction) {
-                      showMessage('reaction: $reaction');
+    final reactionMessageId =
+        widget.message.messageId ?? widget.message.id ?? '';
+    final bubbleChild = MessageWidget(
+        message: widget.message,
+        isSender: widget.isSender,
+        index: widget.index,
+        mainContext: widget.mainContext,
+        isGroup: widget.isGroup,
+        onSwipe: widget.onSwipe,
+        isForDialog: false,
+        isShowProfileImage: widget.isShowProfileImage,
+        onTapScroll: widget.onTapScroll,
+        aesKey: widget.aesKey);
 
-                      if (reaction == '➕') {
-                        showEmojiBottomSheet(message: widget.message);
-                      } else {
-                        chatCubit.reactMessage(
-                          message: widget.message,
-                          reaction: reaction,
-                        );
-                      }
-                    },
-                    menuItems: [
-                      // MenuItem(
-                      //   value: ChatMessageOption.react.name,
-                      //   icon: Icon(Icons.emoji_emotions_outlined,
-                      //       color: AppColors.white),
-                      //   label: S.of(context).react,
+    if (widget.message.uploadStatus == MessageUploadStatus.failed ||
+        !(widget.message.isSent ?? true)) {
+      return GestureDetector(
+        onLongPressStart: (details) {
+          if (widget.message.uploadStatus == MessageUploadStatus.failed) {
+            showDeleteMessageDialog(
+                context: context,
+                index: widget.index,
+                message: widget.message,
+                deleteForEveryOne: false,
+                isFromSavedMessage: false);
+          }
+        },
+        child: bubbleChild,
+      );
+    }
 
-                      //   // Row(
-                      //   //   children: [
+    _reactionsController.loadReactions(
+        reactionMessageId, _synthesizeReactions(widget.message.reactions));
 
-                      //   //     SizedBox(width: 8),
-                      //   //     Text(S.of(context).react, style: AppTextStyles.regular()),
-                      //   //   ],
-                      //   // ),
-                      // ),
+    final Map<MenuItem, (ChatMessageOption, Widget)> menuItemData = {};
+    void addMenuItem(ChatMessageOption option, String label,
+        IconData materialIcon, Widget renderedIcon,
+        {bool isDestructive = false}) {
+      final item = MenuItem(
+        label: label,
+        icon: materialIcon,
+        isDestructive: isDestructive,
+      );
+      menuItemData[item] = (option, renderedIcon);
+    }
 
-                      MenuItem(
-                        value: ChatMessageOption.saveMessage.name,
-                        icon: SvgImage(
-                          source: SvgAssets.icBookmarks,
-                          color: AppColors.white,
-                        ),
-                        label: S.current.saveMessage,
-                        // child: Row(
-                        //   children: [
-                        //     SvgImage(
-                        //       source: SvgAssets.icBookmarks,
-                        //       color: AppColors.white,
-                        //     ),
-                        //     8.s,
-                        //     Text(S.current.saveMessage, style: AppTextStyles.regular()),
-                        //   ],
-                        // ),
-                        // onTap: () {
-                        //   showMessage("TempMessage==> ${message.toJson()}");
-                        // },
-                      ),
-                      if (!widget.restrictContentSharing &&
-                          (widget.message.type == 'text' ||
-                              widget.message.type == 'mixed'))
-                        MenuItem(
-                          value: ChatMessageOption.copy.name,
-                          icon: Icon(
-                            Icons.copy,
-                            color: AppColors.white,
-                          ),
-                          label: S.current.copy,
-                          // child: Row(
-                          //   children: [
-                          //     Icon(
-                          //       Icons.copy,
-                          //       color: AppColors.white,
-                          //     ),
-                          //     // SvgImage(
-                          //     //   source: SvgAssets.copy,
-                          //     //   color: AppColors.white,
-                          //     // ),
-                          //     8.s,
-                          //     Text(S.current.copy, style: AppTextStyles.regular()),
-                          //   ],
-                          // ),
-                          // onTap: () {
-                          //   showMessage("TempMessage==> ${message.toJson()}");
-
-                          //   Utils.copyToClipboard(context, message.content ?? "");
-                          // },
-                        ),
-                      MenuItem(
-                        value: ChatMessageOption.pin.name,
-                        icon: Icon(
-                          (widget.message.pinned ?? false)
-                              ? CupertinoIcons.pin_slash_fill
-                              : CupertinoIcons.pin_fill,
-                          color: AppColors.white,
-                        ),
-                        label: (widget.message.pinned ?? false)
-                            ? S.current.unPin
-                            : S.current.pin,
-                        // child: Row(
-                        //   children: [
-                        //     Icon(
-                        //       (widget.message.pinned ?? false)
-                        //           ? CupertinoIcons.pin_slash_fill
-                        //           : CupertinoIcons.pin_fill,
-                        //       color: AppColors.white,
-                        //     ),
-                        //     // SvgImage(
-                        //     //   source: SvgAssets.copy,
-                        //     //   color: AppColors.white,
-                        //     // ),
-                        //     8.s,
-                        //     Text((message.pinned ?? false) ? S.current.unPined : S.current.pin,
-                        //         style: AppTextStyles.regular()),
-                        //   ],
-                        // ),
-                      ),
-                      if (widget.aesKey != null &&
-                          !widget.restrictContentSharing)
-                        MenuItem(
-                          value: ChatMessageOption.forward.name,
-                          icon: Transform(
-                            alignment: Alignment.center,
-                            transform: Matrix4.rotationY(math.pi),
-                            child: Icon(
-                              Icons.reply_outlined,
-                              color: AppColors.white,
-                            ),
-                          ),
-                          label: S.current.forward,
-                          // child: Row(
-                          //   children: [
-                          //     Transform(
-                          //       alignment: Alignment.center,
-                          //       transform: Matrix4.rotationY(math.pi),
-                          //       child: Icon(
-                          //         Icons.reply_outlined,
-                          //         color: AppColors.white,
-                          //       ),
-                          //     ),
-                          //     // SvgImage(
-                          //     //   source: SvgAssets.copy,
-                          //     //   color: AppColors.white,
-                          //     // ),
-                          //     8.s,
-                          //     Text(S.current.forward, style: AppTextStyles.regular()),
-                          //   ],
-                          // ),
-                          // onTap: () async {
-                          //   showMessage("TempMessage==> ${message.toJson()}");
-                          //   UserData? user = await homeCubit.dbHelper.getLoginData();
-                          //   NavigationService().navigateTo(ForwardMessageScreen(
-                          //       aesKey: aesKey, user: user, callback: () {}, message: message));
-                          // },
-                        ),
-
-                      if (widget.isSender) ...[
-                        if ((widget.message.type == 'text' ||
-                                widget.message.type == 'mixed') &&
-                            (widget.aesKey ?? "").isNotEmpty &&
-                            widget.isAccessToMessageUtilities &&
-                            Utils.canEditOrDeleteMessage(
-                                widget.message.createdAt ?? DateTime.now(),
-                                timeLimitInMinutes: 300))
-                          MenuItem(
-                            value: ChatMessageOption.edit.name,
-                            icon: SvgImage(
-                              source: SvgAssets.icEdit,
-                              color: AppColors.white.withValues(alpha: 0.6),
-                            ),
-                            label: S.current.edit,
-                            // child: Row(
-                            //   children: [
-                            //     SvgImage(
-                            //       source: SvgAssets.icEdit,
-                            //       color: AppColors.white.withValues(alpha: 0.6),
-                            //     ),
-                            //     8.s,
-                            //     Text(S.current.edit,
-                            //         style: AppTextStyles.regular()),
-                            //   ],
-                            // ),
-                            // onTap: () {
-                            //   showEditMessageDialog(context, widget.message, widget.aesKey!);
-                            // },
-                          ),
-                        if (Utils.canEditOrDeleteMessage(
-                            widget.message.createdAt ?? DateTime.now()))
-                          MenuItem(
-                              value: ChatMessageOption.deleteMessage.name,
-                              icon: SvgImage(
-                                source: SvgAssets.icTrash,
-                                color: AppColors.redColor,
-                              ),
-                              label: S.current.lblDeleteMessage,
-                              isDestuctive: true
-                              // child: Row(
-                              //   children: [
-                              //     SvgImage(
-                              //       source: SvgAssets.icTrash,
-                              //       color: AppColors.white.withValues(alpha: 0.6),
-                              //     ),
-                              //     8.s,
-                              //     Text(S.current.lblDeleteMessage, style: AppTextStyles.regular()),
-                              //   ],
-                              // ),
-                              // onTap: () {
-                              //   buildDeleteMessagePopup(
-                              //       context: context,
-                              //       index: index,
-                              //       offset: offset,
-                              //       isSender: isSender,
-                              //       message: message);
-                              // },
-                              )
-                        else
-                          MenuItem(
-                              value: ChatMessageOption.deleteMessage.name,
-                              icon: SvgImage(
-                                source: SvgAssets.icTrash,
-                                color: AppColors.redColor,
-                              ),
-                              label: S.current.deleteForMe,
-                              isDestuctive: true
-                              // child: Row(
-                              //   children: [
-                              //     SvgImage(
-                              //       source: SvgAssets.icTrash,
-                              //       color: AppColors.white.withValues(alpha: 0.6),
-                              //     ),
-                              //     8.s,
-                              //     Text(S.current.lblDeleteMessage, style: AppTextStyles.regular()),
-                              //   ],
-                              // ),
-                              // onTap: () {
-                              //   buildDeleteMessagePopup(
-                              //       context: context,
-                              //       index: index,
-                              //       offset: offset,
-                              //       isSender: isSender,
-                              //       message: message);
-                              // },
-                              ),
-                      ],
-
-                      if (!widget.isSender)
-                        MenuItem(
-                            value: ChatMessageOption.deleteMessage.name,
-                            icon: SvgImage(
-                              source: SvgAssets.icTrash,
-                              color: AppColors.redColor,
-                            ),
-                            label: S.current.deleteForMe,
-                            isDestuctive: true
-                            // child: Row(
-                            //   children: [
-                            //     SvgImage(
-                            //       source: SvgAssets.icTrash,
-                            //       color: AppColors.white.withValues(alpha: 0.6),
-                            //     ),
-                            //     8.s,
-                            //     Text(S.current.lblDeleteMessage, style: AppTextStyles.regular()),
-                            //   ],
-                            // ),
-                            // onTap: () {
-                            //   buildDeleteMessagePopup(
-                            //       context: context,
-                            //       index: index,
-                            //       offset: offset,
-                            //       isSender: isSender,
-                            //       message: message);
-                            // },
-                            ),
-                    ],
-                    onContextMenuTap: (menuItem) {
-                      showMessage('menu item: $menuItem');
-                      onContextMenuTap(menuItem, details.globalPosition);
-                    },
-                  ),
-                ),
-              ),
-            );
-          }),
+    addMenuItem(
+      ChatMessageOption.saveMessage,
+      S.current.saveMessage,
+      Icons.bookmark_outline,
+      SvgImage(source: SvgAssets.icBookmarks, color: AppColors.white),
+    );
+    if (!widget.restrictContentSharing &&
+        (widget.message.type == 'text' || widget.message.type == 'mixed')) {
+      addMenuItem(
+        ChatMessageOption.copy,
+        S.current.copy,
+        Icons.copy,
+        Icon(Icons.copy, color: AppColors.white),
+      );
+    }
+    addMenuItem(
+      ChatMessageOption.pin,
+      (widget.message.pinned ?? false) ? S.current.unPin : S.current.pin,
+      Icons.push_pin,
+      Icon(
+        (widget.message.pinned ?? false)
+            ? CupertinoIcons.pin_slash_fill
+            : CupertinoIcons.pin_fill,
+        color: AppColors.white,
+      ),
+    );
+    if (widget.aesKey != null && !widget.restrictContentSharing) {
+      addMenuItem(
+        ChatMessageOption.forward,
+        S.current.forward,
+        Icons.reply,
+        Transform(
+          alignment: Alignment.center,
+          transform: Matrix4.rotationY(math.pi),
+          child: Icon(Icons.reply_outlined, color: AppColors.white),
+        ),
+      );
+    }
+    if (widget.isSender) {
+      if ((widget.message.type == 'text' || widget.message.type == 'mixed') &&
+          (widget.aesKey ?? "").isNotEmpty &&
+          widget.isAccessToMessageUtilities &&
+          Utils.canEditOrDeleteMessage(
+              widget.message.createdAt ?? DateTime.now(),
+              timeLimitInMinutes: 300)) {
+        addMenuItem(
+          ChatMessageOption.edit,
+          S.current.edit,
+          Icons.edit,
+          SvgImage(
+              source: SvgAssets.icEdit,
+              color: AppColors.white.withValues(alpha: 0.6)),
         );
+      }
+      addMenuItem(
+        ChatMessageOption.deleteMessage,
+        Utils.canEditOrDeleteMessage(widget.message.createdAt ?? DateTime.now())
+            ? S.current.lblDeleteMessage
+            : S.current.deleteForMe,
+        Icons.delete,
+        SvgImage(source: SvgAssets.icTrash, color: AppColors.redColor),
+        isDestructive: true,
+      );
+    } else {
+      addMenuItem(
+        ChatMessageOption.deleteMessage,
+        S.current.deleteForMe,
+        Icons.delete,
+        SvgImage(source: SvgAssets.icTrash, color: AppColors.redColor),
+        isDestructive: true,
+      );
+    }
 
-        // Navigator.push(context, MaterialPageRoute(builder: builder))
-
-        // buildMessageSaveAndDeleteDialog(
-        //     aesKey: widget.aesKey,
-        //     context: widget.mainContext,
-        //     offset: details.globalPosition,
-        //     isSender: widget.isSender,
-        //     index: widget.index,
-        //     message: widget.message);
-      },
-      child: Hero(
-        tag: id,
-        child: MessageWidget(
-            message: widget.message,
-            isSender: widget.isSender,
-            index: widget.index,
-            mainContext: widget.mainContext,
-            isGroup: widget.isGroup,
-            onSwipe: widget.onSwipe,
-            isForDialog: false,
-            isShowProfileImage: widget.isShowProfileImage,
-            onTapScroll: widget.onTapScroll,
-            aesKey: widget.aesKey),
+    return Listener(
+      onPointerDown: (event) => _lastTapPosition = event.position,
+      child: ChatMessageWrapper(
+        messageId: reactionMessageId,
+        controller: _reactionsController,
+        alignment:
+            widget.isSender ? Alignment.centerRight : Alignment.centerLeft,
+        config: ChatReactionsConfig(
+          dialogBackgroundColor: AppColors.dark,
+          dialogBorderRadius: BorderRadius.circular(12),
+          menuItems: menuItemData.keys.toList(),
+          customMenuItemBuilder: (item, onTap) {
+            final icon = menuItemData[item]?.$2 ?? const SizedBox.shrink();
+            return _buildMenuItemRow(item, icon, onTap);
+          },
+          emojiPickerBuilder: _buildEmojiPicker,
+        ),
+        onReactionAdded: (emoji) {
+          showMessage('reaction: $emoji');
+          chatCubit.reactMessage(message: widget.message, reaction: emoji);
+        },
+        onMenuItemTapped: (menuItem) {
+          showMessage('menu item: $menuItem');
+          final option = menuItemData[menuItem]?.$1;
+          if (option != null) onContextMenuTap(option);
+        },
+        child: bubbleChild,
       ),
     );
   }
@@ -613,25 +432,6 @@ class _MessageWidgetState extends State<MessageWidget> {
                                 color: AppColors.white.withValues(alpha: 0.65)),
                           ),
                         ),
-                      // if (widget.message.createdAt != null && widget.isSender)
-                      //   Column(
-                      //     mainAxisAlignment: MainAxisAlignment.end,
-                      //     children: [
-                      //       Padding(
-                      //         padding:
-                      //             const EdgeInsets.symmetric(horizontal: 4.0),
-                      //         child: Text(
-                      //           DateFormat.jm().format(
-                      //               (widget.message.createdAt ??
-                      //                   DateTime.now())),
-                      //           style: AppTextStyles.regular(
-                      //               fontSize: 12.sp,
-                      //               color: AppColors.white.withValues(alpha:0.65)),
-                      //         ),
-                      //       ),
-                      //     ],
-                      //   ),
-
                       if (widget.isSender &&
                           (widget.message.uploadStatus ==
                                   MessageUploadStatus.failed ||
@@ -672,7 +472,6 @@ class _MessageWidgetState extends State<MessageWidget> {
                             color: AppColors.redColor,
                           ),
                         ),
-
                       Stack(
                         alignment: Alignment.center,
                         children: [
@@ -940,15 +739,8 @@ class _MessageWidgetState extends State<MessageWidget> {
                                   ),
                                 )
                               ] else if (((widget.message.type == 'image') &&
-                                      (widget.message.files != null &&
-                                          widget.message.files!.isNotEmpty))
-                                  // &&
-                                  //     (widget.message.files?.first.url?.endsWith('.png') == true ||
-                                  //         widget.message.files?.first.url?.endsWith('.jpg') ==
-                                  //             true ||
-                                  //         widget.message.files?.first.url?.endsWith('.jpeg') ==
-                                  //             true)
-                                  ) ...[
+                                  (widget.message.files != null &&
+                                      widget.message.files!.isNotEmpty))) ...[
                                 Container(
                                   width: context.w * 0.65,
                                   padding: EdgeInsets.all(10),
@@ -1381,20 +1173,9 @@ class _MessageWidgetState extends State<MessageWidget> {
                                   ),
                                 )
                               ] else if (((widget.message.type == 'document' ||
-                                          widget.message.type == 'pdf') &&
-                                      (widget.message.files != null &&
-                                          widget.message.files!.isNotEmpty))
-                                  //         &&
-                                  // (widget.message.files?.first.url
-                                  //             ?.endsWith('.pdf') ==
-                                  //         true ||
-                                  //     widget.message.files?.first.url
-                                  //             ?.endsWith('.doc') ==
-                                  //         true ||
-                                  //     widget.message.files?.first.url
-                                  //             ?.endsWith('.docx') ==
-                                  //         true)
-                                  ) ...[
+                                      widget.message.type == 'pdf') &&
+                                  (widget.message.files != null &&
+                                      widget.message.files!.isNotEmpty))) ...[
                                 Container(
                                   // width: context.w,
                                   padding: EdgeInsets.all(10),
@@ -1496,9 +1277,10 @@ class _MessageWidgetState extends State<MessageWidget> {
                               children: [
                                 if ((widget.message.reactions ?? []).isNotEmpty)
                                   StackedReactions(
-                                    // reactions widget
-                                    reactions: widget.message.reactions ??
-                                        [], // list of reaction strings
+                                    messageId: widget.message.messageId ??
+                                        widget.message.id ??
+                                        '',
+                                    controller: _reactionsController,
                                     size: 8,
                                     stackedValue:
                                         4.0, // Value used to calculate the horizontal offset of each reaction
@@ -1583,24 +1365,6 @@ class _MessageWidgetState extends State<MessageWidget> {
                                 color: AppColors.white.withValues(alpha: 0.65)),
                           ),
                         ),
-                      // if (widget.message.createdAt != null && (!widget.isSender))
-                      //   Column(
-                      //     mainAxisAlignment: MainAxisAlignment.end,
-                      //     children: [
-                      //       Padding(
-                      //         padding:
-                      //             const EdgeInsets.symmetric(horizontal: 4.0),
-                      //         child: Text(
-                      //           DateFormat.jm().format(
-                      //               widget.message.createdAt ?? DateTime.now()),
-                      //           style: AppTextStyles.regular(
-                      //               fontSize: 12.sp,
-                      //               color: AppColors.white.withValues(alpha:0.65)),
-                      //         ),
-                      //       ),
-                      //     ],
-                      //   ),
-
                       if (!widget.isSender &&
                           (widget.message.uploadStatus ==
                                   MessageUploadStatus.failed ||
@@ -1661,21 +1425,6 @@ class _MessageWidgetState extends State<MessageWidget> {
                     ),
                   ),
                 ),
-              // if (!(widget.message.isSent ?? true))
-              //   Align(
-              //     alignment: widget.isSender
-              //         ? Alignment.centerRight
-              //         : Alignment.centerLeft,
-              //     child: Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              //       child: Text(
-              //         "Sending..",
-              //         style: AppTextStyles.regular(
-              //             fontSize: 12.sp,
-              //             color: AppColors.white.withValues(alpha:0.65)),
-              //       ),
-              //     ),
-              //   ),
             ],
           ),
         ),
@@ -1710,46 +1459,34 @@ class ChatBubbleForSavedMessage extends StatefulWidget {
 }
 
 class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
-  Future<void> onContextMenuTap(MenuItem menuItem, Offset offset) async {
-    showMessage('Menu item: $menuItem');
+  Future<void> onContextMenuTap(ChatMessageOption option) async {
+    showMessage('Menu item: $option');
 
-    switch (menuItem.value) {
-      // case "saveMessage":
-      //   chatCubit.saveMessages(
-      //     chatId: widget.message.chatId ?? "",
-      //     context: context,
-      //     isTempMessage: widget.message.id == widget.message.messageId,
-      //     messageId: widget.message.id ?? '',
-      //     callback: (response) {
-      //       Utils.showSnackBar(context, response.message ?? '', seconds: 3);
-      //     },
-      //   );
-      //   break;
-
-      case "copy":
+    switch (option) {
+      case ChatMessageOption.copy:
         Utils.copyToClipboard(
             context, widget.message.messageDetails?.content ?? "");
 
         break;
-      case "edit":
+      case ChatMessageOption.edit:
         showEditSavedMessageDialog(
           context,
           widget.message,
         );
         break;
-      case "pin":
+      case ChatMessageOption.pin:
         showMessage("TempMessage==> ${widget.message.toJson()}");
         if (widget.message.messageDetails?.pinned ?? false) {
-          chatCubit.unPinSavedMessage(
+          context.read<SavedMessagesCubit>().unPinSavedMessage(
               messageId: widget.message.messageId ?? "",
               userId: widget.currentUserId ?? "");
         } else {
-          chatCubit.pinSavedMessage(
+          context.read<SavedMessagesCubit>().pinSavedMessage(
               messageId: widget.message.messageId ?? "",
               userId: widget.currentUserId ?? "");
         }
         break;
-      case "forward":
+      case ChatMessageOption.forward:
         showMessage("TempMessage==> ${widget.message.toJson()}");
         UserData? user = await homeCubit.dbHelper.getLoginData();
         NavigationService().navigateTo(ForwardMessageScreen(
@@ -1761,7 +1498,7 @@ class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
 
         break;
 
-      case "deleteMessage":
+      case ChatMessageOption.deleteMessage:
         showDeleteMessageDialog(
             context: context,
             index: widget.index,
@@ -1770,594 +1507,153 @@ class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
             deleteForEveryOne: false,
             isFromSavedMessage: true);
         break;
+      case ChatMessageOption.reply:
+      case ChatMessageOption.react:
+      case ChatMessageOption.saveMessage:
+        break;
     }
   }
 
-  void showEmojiBottomSheet({
-    required SavedMessage message,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return SizedBox(
-          height: 310,
-          child: Theme(
-            data: ThemeData.dark(),
-            child: EmojiPicker(
-              onEmojiSelected: ((category, emoji) {
-                // pop the bottom sheet
-                Navigator.pop(context);
+  Widget _buildEmojiPicker(
+      BuildContext context, void Function(String) onEmojiSelected) {
+    return SizedBox(
+      height: 310,
+      child: Theme(
+        data: ThemeData.dark(),
+        child: EmojiPicker(
+          onEmojiSelected: (category, emoji) => onEmojiSelected(emoji.emoji),
+        ),
+      ),
+    );
+  }
 
-                chatCubit.reactSavedMessage(
-                  message: message,
-                  reaction: emoji.emoji,
-                );
-              }),
-            ),
-          ),
-        );
-      },
+  Widget _buildMenuItemRow(MenuItem item, Widget icon, VoidCallback onTap) {
+    final color = item.isDestructive ? AppColors.redColor : AppColors.white;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        child: Row(
+          children: [
+            IconTheme(data: IconThemeData(color: color), child: icon),
+            8.s,
+            Text(item.label, style: AppTextStyles.regular(color: color)),
+          ],
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    String id =
-        widget.message.id ?? DateTime.now().millisecondsSinceEpoch.toString();
-    return GestureDetector(
-      onLongPressStart: (details) {
-        if (!(widget.message.messageDetails?.isSent ?? true)) {
-          return;
-        }
-        showMessage("GestureDetector==>onLongPress");
-        Navigator.of(context).push(
-          HeroDialogRoute(
-            builder: (context) {
-              return InkWell(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Material(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  child: Theme(
-                    data: ThemeData.dark().copyWith(
-                      // Apply a dark theme
-                      popupMenuTheme: PopupMenuThemeData(
-                          color: AppColors.dark, // Dark background
-                          textStyle: AppTextStyles.regular(),
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          shadowColor: Colors.transparent),
-                      dialogTheme: DialogThemeData(
-                          backgroundColor: AppColors
-                              .dark), // Background color of reaction dialog
-                    ),
-                    child: ReactionsDialogWidget(
-                      widgetAlignment: widget.isSender
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      id: id, // unique id for message
+    final reactionMessageId =
+        widget.message.messageId ?? widget.message.id ?? '';
+    final bubbleChild = SavedMessageWidget(
+        message: widget.message,
+        isForDialog: false,
+        isSender: widget.isSender,
+        index: widget.index,
+        mainContext: widget.mainContext,
+        onTapScroll: widget.onTapScroll,
+        isGroup: widget.isGroup);
 
-                      messageWidget: SavedMessageWidget(
-                          message: widget.message,
-                          isSender: widget.isSender,
-                          index: widget.index,
-                          mainContext: widget.mainContext,
-                          onTapScroll: () {},
-                          isForDialog: true,
-                          isGroup: widget.isGroup), // message widget
-                      onReactionTap: (reaction) {
-                        showMessage('reaction: $reaction');
+    if (!(widget.message.messageDetails?.isSent ?? true)) {
+      return bubbleChild;
+    }
 
-                        if (reaction == '➕') {
-                          showEmojiBottomSheet(message: widget.message);
-                        } else {
-                          chatCubit.reactSavedMessage(
-                            message: widget.message,
-                            reaction: reaction,
-                          );
-                        }
-                      },
-                      menuItems: [
-                        // MenuItem(
-                        //   value: ChatMessageOption.react.name,
-                        //   icon: Icon(Icons.emoji_emotions_outlined,
-                        //       color: AppColors.white),
-                        //   label: S.of(context).react,
+    _reactionsController.loadReactions(reactionMessageId,
+        _synthesizeReactions(widget.message.messageDetails?.reactions));
 
-                        //   // Row(
-                        //   //   children: [
+    final Map<MenuItem, (ChatMessageOption, Widget)> menuItemData = {};
+    void addMenuItem(ChatMessageOption option, String label,
+        IconData materialIcon, Widget renderedIcon,
+        {bool isDestructive = false}) {
+      final item = MenuItem(
+        label: label,
+        icon: materialIcon,
+        isDestructive: isDestructive,
+      );
+      menuItemData[item] = (option, renderedIcon);
+    }
 
-                        //   //     SizedBox(width: 8),
-                        //   //     Text(S.of(context).react, style: AppTextStyles.regular()),
-                        //   //   ],
-                        //   // ),
-                        // ),
+    if (widget.message.messageDetails?.type == 'text' ||
+        widget.message.messageDetails?.type == 'mixed') {
+      addMenuItem(
+        ChatMessageOption.copy,
+        S.current.copy,
+        Icons.copy,
+        Icon(Icons.copy, color: AppColors.white),
+      );
+    }
+    addMenuItem(
+      ChatMessageOption.pin,
+      (widget.message.messageDetails?.pinned ?? false)
+          ? S.current.unPin
+          : S.current.pin,
+      Icons.push_pin,
+      Icon(
+        (widget.message.messageDetails?.pinned ?? false)
+            ? CupertinoIcons.pin_slash_fill
+            : CupertinoIcons.pin_fill,
+        color: AppColors.white,
+      ),
+    );
+    addMenuItem(
+      ChatMessageOption.forward,
+      S.current.forward,
+      Icons.reply,
+      Transform(
+        alignment: Alignment.center,
+        transform: Matrix4.rotationY(math.pi),
+        child: Icon(Icons.reply_outlined, color: AppColors.white),
+      ),
+    );
+    if (widget.isSender &&
+        (widget.message.messageDetails?.type == 'text' ||
+            widget.message.messageDetails?.type == 'mixed')) {
+      addMenuItem(
+        ChatMessageOption.edit,
+        S.current.edit,
+        Icons.edit,
+        SvgImage(
+            source: SvgAssets.icEdit,
+            color: AppColors.white.withValues(alpha: 0.6)),
+      );
+    }
+    addMenuItem(
+      ChatMessageOption.deleteMessage,
+      S.current.lblDeleteMessage,
+      Icons.delete,
+      SvgImage(source: SvgAssets.icTrash, color: AppColors.redColor),
+      isDestructive: true,
+    );
 
-                        if (widget.message.messageDetails?.type == 'text' ||
-                            widget.message.messageDetails?.type == 'mixed')
-                          MenuItem(
-                            value: ChatMessageOption.copy.name,
-                            icon: Icon(
-                              Icons.copy,
-                              color: AppColors.white,
-                            ),
-                            label: S.current.copy,
-                            // child: Row(
-                            //   children: [
-                            //     Icon(
-                            //       Icons.copy,
-                            //       color: AppColors.white,
-                            //     ),
-                            //     // SvgImage(
-                            //     //   source: SvgAssets.copy,
-                            //     //   color: AppColors.white,
-                            //     // ),
-                            //     8.s,
-                            //     Text(S.current.copy, style: AppTextStyles.regular()),
-                            //   ],
-                            // ),
-                            // onTap: () {
-                            //   showMessage("TempMessage==> ${message.toJson()}");
-
-                            //   Utils.copyToClipboard(context, message.content ?? "");
-                            // },
-                          ),
-
-                        MenuItem(
-                          value: ChatMessageOption.pin.name,
-                          icon: Icon(
-                            (widget.message.messageDetails?.pinned ?? false)
-                                ? CupertinoIcons.pin_slash_fill
-                                : CupertinoIcons.pin_fill,
-                            color: AppColors.white,
-                          ),
-                          label:
-                              (widget.message.messageDetails?.pinned ?? false)
-                                  ? S.current.unPin
-                                  : S.current.pin,
-                          // child: Row(
-                          //   children: [
-                          //     Icon(
-                          //       (widget.message.pinned ?? false)
-                          //           ? CupertinoIcons.pin_slash_fill
-                          //           : CupertinoIcons.pin_fill,
-                          //       color: AppColors.white,
-                          //     ),
-                          //     // SvgImage(
-                          //     //   source: SvgAssets.copy,
-                          //     //   color: AppColors.white,
-                          //     // ),
-                          //     8.s,
-                          //     Text((message.pinned ?? false) ? S.current.unPined : S.current.pin,
-                          //         style: AppTextStyles.regular()),
-                          //   ],
-                          // ),
-                        ),
-                        // if (widget.aesKey != null)
-                        MenuItem(
-                          value: ChatMessageOption.forward.name,
-                          icon: Transform(
-                            alignment: Alignment.center,
-                            transform: Matrix4.rotationY(math.pi),
-                            child: Icon(
-                              Icons.reply_outlined,
-                              color: AppColors.white,
-                            ),
-                          ),
-                          label: S.current.forward,
-                          // child: Row(
-                          //   children: [
-                          //     Transform(
-                          //       alignment: Alignment.center,
-                          //       transform: Matrix4.rotationY(math.pi),
-                          //       child: Icon(
-                          //         Icons.reply_outlined,
-                          //         color: AppColors.white,
-                          //       ),
-                          //     ),
-                          //     // SvgImage(
-                          //     //   source: SvgAssets.copy,
-                          //     //   color: AppColors.white,
-                          //     // ),
-                          //     8.s,
-                          //     Text(S.current.forward, style: AppTextStyles.regular()),
-                          //   ],
-                          // ),
-                          // onTap: () async {
-                          //   showMessage("TempMessage==> ${message.toJson()}");
-                          //   UserData? user = await homeCubit.dbHelper.getLoginData();
-                          //   NavigationService().navigateTo(ForwardMessageScreen(
-                          //       aesKey: aesKey, user: user, callback: () {}, message: message));
-                          // },
-                        ),
-
-                        if (widget.isSender) ...[
-                          if ((widget.message.messageDetails?.type == 'text' ||
-                                  widget.message.messageDetails?.type ==
-                                      'mixed')
-                              //      &&
-                              // (widget.aesKey ?? "").isNotEmpty
-                              )
-                            MenuItem(
-                              value: ChatMessageOption.edit.name,
-                              icon: SvgImage(
-                                source: SvgAssets.icEdit,
-                                color: AppColors.white.withValues(alpha: 0.6),
-                              ),
-                              label: S.current.edit,
-                              // child: Row(
-                              //   children: [
-                              //     SvgImage(
-                              //       source: SvgAssets.icEdit,
-                              //       color: AppColors.white.withValues(alpha: 0.6),
-                              //     ),
-                              //     8.s,
-                              //     Text(S.current.edit,
-                              //         style: AppTextStyles.regular()),
-                              //   ],
-                              // ),
-                              // onTap: () {
-                              //   showEditMessageDialog(context, widget.message, widget.aesKey!);
-                              // },
-                            ),
-                        ],
-
-                        MenuItem(
-                            value: ChatMessageOption.deleteMessage.name,
-                            icon: SvgImage(
-                              source: SvgAssets.icTrash,
-                              color: AppColors.redColor,
-                            ),
-                            label: S.current.lblDeleteMessage,
-                            isDestuctive: true
-                            // child: Row(
-                            //   children: [
-                            //     SvgImage(
-                            //       source: SvgAssets.icTrash,
-                            //       color: AppColors.white.withValues(alpha: 0.6),
-                            //     ),
-                            //     8.s,
-                            //     Text(S.current.lblDeleteMessage, style: AppTextStyles.regular()),
-                            //   ],
-                            // ),
-                            // onTap: () {
-                            //   buildDeleteMessagePopup(
-                            //       context: context,
-                            //       index: index,
-                            //       offset: offset,
-                            //       isSender: isSender,
-                            //       message: message);
-                            // },
-                            ),
-                      ],
-                      onContextMenuTap: (menuItem) {
-                        showMessage('menu item: $menuItem');
-                        onContextMenuTap(menuItem, details.globalPosition);
-                      },
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        );
-
-        //  buildMessageDeleteForSavedMessageDialog(
-        //                         context: widget.mainContext,
-        //                         offset: details.globalPosition,
-        //                         isSender: widget.isSender,
-        //                         index: widget.index,
-        //                         message: widget.message);
+    return ChatMessageWrapper(
+      messageId: reactionMessageId,
+      controller: _reactionsController,
+      alignment: widget.isSender ? Alignment.centerRight : Alignment.centerLeft,
+      config: ChatReactionsConfig(
+        dialogBackgroundColor: AppColors.dark,
+        dialogBorderRadius: BorderRadius.circular(12),
+        menuItems: menuItemData.keys.toList(),
+        customMenuItemBuilder: (item, onTap) {
+          final icon = menuItemData[item]?.$2 ?? const SizedBox.shrink();
+          return _buildMenuItemRow(item, icon, onTap);
+        },
+        emojiPickerBuilder: _buildEmojiPicker,
+      ),
+      onReactionAdded: (emoji) {
+        showMessage('reaction: $emoji');
+        context
+            .read<SavedMessagesCubit>()
+            .reactSavedMessage(message: widget.message, reaction: emoji);
       },
-      child: Hero(
-          tag: id,
-          child: SavedMessageWidget(
-              message: widget.message,
-              isForDialog: false,
-              isSender: widget.isSender,
-              index: widget.index,
-              mainContext: widget.mainContext,
-              onTapScroll: widget.onTapScroll,
-              isGroup: widget.isGroup)
-
-          // Stack(
-          //   children: [
-          //     Padding(
-          //       padding: const EdgeInsets.symmetric(vertical: 4),
-          //       child: Align(
-          //         alignment:
-          //             widget.isSender ? Alignment.centerRight : Alignment.centerLeft,
-          //         child: Row(
-          //           mainAxisSize: MainAxisSize.min,
-          //           children: [
-          //             if (!widget.isSender && widget.isGroup) ...[
-          //               AvatarWidgets(
-          //                 userPic: widget.message.senderDetails?.profilePicture ?? "",
-          //                 height: 40.h,
-          //                 width: 40.h,
-          //               ),
-          //               10.s
-          //             ],
-          //             GestureDetector(
-          //               onLongPressStart: (details) =>
-          //                   buildMessageDeleteForSavedMessageDialog(
-          //                       context: widget.mainContext,
-          //                       offset: details.globalPosition,
-          //                       isSender: widget.isSender,
-          //                       index: widget.index,
-          //                       message: widget.message),
-          //               child: Column(
-          //                 children: [
-          //                   if (widget.message.messageDetails?.type == 'text' ||
-          //                       widget.message.messageDetails?.type == 'mixed') ...[
-          //                     Container(
-          //                       constraints: BoxConstraints(
-          //                           maxWidth:
-          //                               MediaQuery.of(context).size.width * 0.75),
-          //                       margin: EdgeInsets.symmetric(vertical: 5.h),
-          //                       padding: EdgeInsets.all(12.w),
-          //                       decoration: BoxDecoration(
-          //                         color: widget.isSender
-          //                             ? AppColors.primaryColor
-          //                             : AppColors.darkInputFill,
-          //                         borderRadius: BorderRadius.only(
-          //                           topLeft: widget.isSender
-          //                               ? Radius.circular(14.r)
-          //                               : Radius.circular(0.r),
-          //                           topRight: Radius.circular(14.r),
-          //                           bottomLeft: Radius.circular(14.r),
-          //                           bottomRight: widget.isSender
-          //                               ? Radius.circular(0.r)
-          //                               : Radius.circular(14.r),
-          //                         ),
-          //                       ),
-          //                       child: Text(
-          //                         widget.message.messageDetails?.content ?? '',
-          //                         style: AppTextStyles.regular(
-          //                           fontSize: 14.sp,
-          //                           color: widget.isSender
-          //                               ? AppColors.white
-          //                               : AppColors.white,
-          //                         ),
-          //                       ),
-          //                     )
-          //                   ] else if (((widget.message.messageDetails?.type == 'image' || widget.message.messageDetails?.type == 'gif') && (widget.message.messageDetails?.files != null && widget.message.messageDetails!.files!.isNotEmpty)) && widget.message.messageDetails?.files?.first.url?.endsWith('.png') == true ||
-          //                       widget.message.messageDetails?.files?.first.url?.endsWith('.jpg') ==
-          //                           true ||
-          //                       widget.message.messageDetails?.files?.first.url?.endsWith('.jpeg') ==
-          //                           true ||
-          //                       widget.message.messageDetails?.files?.first.url?.endsWith('.gif') ==
-          //                           true) ...[
-          //                     MaterialButton(
-          //                       onPressed: () {
-          //                         Navigator.of(context).push(MaterialPageRoute(
-          //                             builder: (context) => ImageViewPage(
-          //                                 title: widget.message.messageDetails?.files!
-          //                                         .first.fileName ??
-          //                                     'Image',
-          //                                 imageUrl:
-          //                                     '${Urls.mediaUrl}${widget.message.messageDetails?.files!.first.url}')));
-          //                       },
-          //                       padding: EdgeInsets.zero,
-          //                       child: Container(
-          //                         width: context.w,
-          //                         padding: EdgeInsets.all(10),
-          //                         decoration: BoxDecoration(
-          //                           color: widget.isSender
-          //                               ? AppColors.primaryColor
-          //                               : AppColors.darkInputFill,
-          //                           borderRadius: BorderRadius.only(
-          //                             topLeft: widget.isSender
-          //                                 ? Radius.circular(14.r)
-          //                                 : Radius.circular(0.r),
-          //                             topRight: Radius.circular(14.r),
-          //                             bottomLeft: Radius.circular(14.r),
-          //                             bottomRight: widget.isSender
-          //                                 ? Radius.circular(0.r)
-          //                                 : Radius.circular(14.r),
-          //                           ),
-          //                         ),
-          //                         constraints: BoxConstraints(
-          //                             maxWidth: context.w * 0.75,
-          //                             maxHeight: context.h * 0.5),
-          //                         margin: EdgeInsets.symmetric(vertical: 5.h),
-          //                         child: Row(
-          //                           children: [
-          //                             Container(
-          //                               width: 74.h,
-          //                               height: 74.h,
-          //                               decoration: BoxDecoration(
-          //                                   borderRadius: BorderRadius.circular(9)),
-          //                               child: ClipRRect(
-          //                                 borderRadius: BorderRadius.circular(9),
-          //                                 child: CachedNetworkImage(
-          //                                   fit: BoxFit.cover,
-          //                                   imageUrl:
-          //                                       '${Urls.mediaUrl}${widget.message.messageDetails?.files!.first.url}',
-          //                                   placeholder: (context, url) => Center(
-          //                                       child: CustomLoadingWidget(
-          //                                     color: AppColors.white,
-          //                                   )),
-          //                                   errorWidget: (context, url, error) =>
-          //                                       const Icon(Icons.error),
-          //                                 ),
-          //                               ),
-          //                             ),
-          //                             SizedBox(
-          //                               width: 10.w,
-          //                             ),
-          //                             Expanded(
-          //                               child: Column(
-          //                                 mainAxisSize: MainAxisSize.min,
-          //                                 crossAxisAlignment:
-          //                                     CrossAxisAlignment.start,
-          //                                 children: [
-          //                                   Text(
-          //                                     "${widget.message.messageDetails?.files!.first.fileName}",
-          //                                     style: AppTextStyles.regular(
-          //                                       fontSize: 14.sp,
-          //                                       color: widget.isSender
-          //                                           ? AppColors.white
-          //                                           : AppColors.white,
-          //                                     ).copyWith(height: 1.36),
-          //                                   ),
-          //                                   SizedBox(
-          //                                     height: 3.h,
-          //                                   ),
-          //                                   Text(
-          //                                     Utils.formatFileSize(widget
-          //                                             .message
-          //                                             .messageDetails
-          //                                             ?.files!
-          //                                             .first
-          //                                             .fileSize ??
-          //                                         0),
-          //                                     style: AppTextStyles.regular(
-          //                                       fontSize: 14.sp,
-          //                                       color: widget.isSender
-          //                                           ? AppColors.white
-          //                                           : AppColors.white,
-          //                                     ).copyWith(height: 1.36),
-          //                                   ),
-          //                                 ],
-          //                               ),
-          //                             )
-          //                           ],
-          //                         ),
-          //                       ),
-          //                     )
-          //                   ] else if ((widget.message.messageDetails?.type == 'video' && widget.message.messageDetails?.files != null && widget.message.messageDetails!.files!.isNotEmpty) && widget.message.messageDetails?.files?.first.url?.endsWith('.mp4') == true ||
-          //                       widget.message.messageDetails?.files?.first.url?.endsWith('.mov') ==
-          //                           true ||
-          //                       widget.message.messageDetails?.files?.first.url?.endsWith('.avi') ==
-          //                           true) ...[
-          //                     MaterialButton(
-          //                       onPressed: () {
-          //                         if (widget.message.messageDetails?.files
-          //                                 ?.isNotEmpty !=
-          //                             null) {
-          //                           EasyLauncher.url(
-          //                               url:
-          //                                   '${Urls.mediaUrl}${widget.message.messageDetails?.files?.first.url}',
-          //                               mode: Mode.inAppBrowser);
-          //                         }
-          //                       },
-          //                       padding: EdgeInsets.zero,
-          //                       child: Container(
-          //                         width: context.w,
-          //                         constraints: BoxConstraints(
-          //                             maxWidth: context.w * 0.75,
-          //                             maxHeight: context.h * 0.7),
-          //                         margin: EdgeInsets.symmetric(vertical: 5.h),
-          //                         padding: EdgeInsets.all(10),
-          //                         decoration: BoxDecoration(
-          //                             color: Colors.black.withValues(alpha:0.1),
-          //                             borderRadius: BorderRadius.circular(10)),
-          //                         child: Row(
-          //                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //                           children: [
-          //                             Text('Video',
-          //                                 style: AppTextStyles.medium(
-          //                                   color: AppColors.white,
-          //                                 ),
-          //                                 textScaler: const TextScaler.linear(0.9)),
-          //                             SizedBox(height: 10.h),
-          //                             SvgImage(
-          //                               source: SvgAssets.icVideoOutline,
-          //                               color: AppColors.white,
-          //                               height: 20.h,
-          //                               width: 20.w,
-          //                             ),
-          //                           ],
-          //                         ),
-          //                       ),
-          //                     )
-          //                   ] else if ((widget.message.messageDetails?.type == 'audio' && widget.message.messageDetails?.files != null && widget.message.messageDetails!.files!.isNotEmpty) && widget.message.messageDetails?.files?.first.url?.endsWith('.mp3') == true ||
-          //                       widget.message.messageDetails?.files?.first.url?.endsWith('.aac') ==
-          //                           true) ...[
-          //                     Container(
-          //                       margin: EdgeInsets.symmetric(vertical: 5.h),
-          //                       child: VoiceMessageView(
-          //                         controller: VoiceController(
-          //                             audioSrc:
-          //                                 "${Urls.mediaUrl}${widget.message.messageDetails?.files?.first.url}",
-          //                             maxDuration: Duration(minutes: 5),
-          //                             isFile: false,
-          //                             onComplete: () {},
-          //                             onPause: () {},
-          //                             onPlaying: () {}),
-          //                       ),
-          //                     )
-          //                   ] else if (((widget.message.messageDetails?.type == 'document' || widget.message.messageDetails?.type == 'pdf') &&
-          //                               (widget.message.messageDetails?.files != null &&
-          //                                   widget.message.messageDetails!.files!.isNotEmpty)) &&
-          //                           widget.message.messageDetails?.files?.first.url?.endsWith('.pdf') == true ||
-          //                       widget.message.messageDetails?.files?.first.url?.endsWith('.doc') == true ||
-          //                       widget.message.messageDetails?.files?.first.url?.endsWith('.docx') == true) ...[
-          //                     MaterialButton(
-          //                       onPressed: () {
-          //                         EasyLauncher.url(
-          //                             url:
-          //                                 "${Urls.mediaUrl}${widget.message.messageDetails?.files?.first.url}",
-          //                             mode: Mode.inAppBrowser);
-          //                       },
-          //                       padding: EdgeInsets.zero,
-          //                       child: Container(
-          //                         // width: context.w,
-          //                         constraints:
-          //                             BoxConstraints(maxWidth: context.w * 0.7),
-          //                         padding: EdgeInsets.all(10),
-          //                         decoration: BoxDecoration(
-          //                             color: Colors.black.withValues(alpha:0.1),
-          //                             borderRadius: BorderRadius.circular(10)),
-          //                         child: Row(
-          //                           mainAxisSize: MainAxisSize.min,
-          //                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //                           children: [
-          //                             Text(S.of(context).document,
-          //                                 style: AppTextStyles.medium(
-          //                                   color: AppColors.white,
-          //                                 ),
-          //                                 textScaler: const TextScaler.linear(0.9)),
-          //                             SizedBox(width: 20.w),
-          //                             SvgImage(
-          //                               source: SvgAssets.icDocumentOutline,
-          //                               color: AppColors.white,
-          //                               height: 20.h,
-          //                               width: 20.w,
-          //                             ),
-          //                           ],
-          //                         ),
-          //                       ),
-          //                     )
-          //                   ]
-          //                 ],
-          //               ),
-          //             ),
-          //           ],
-          //         ),
-          //       ),
-          //     ),
-          //     if (widget.isSender)
-          //       Positioned(
-          //         bottom: 0,
-          //         right: 5,
-          //         child: SvgImage(
-          //           source: (true)
-          //               ? SvgAssets.messageDoubleTick
-          //               : SvgAssets.messageSingleTick,
-          //           // width: 20,
-          //           // height: 20,
-          //           fit: BoxFit.cover,
-          //         ),
-          //       ),
-          //   ],
-          // ),
-
-          ),
+      onMenuItemTapped: (menuItem) {
+        showMessage('menu item: $menuItem');
+        final option = menuItemData[menuItem]?.$1;
+        if (option != null) onContextMenuTap(option);
+      },
+      child: bubbleChild,
     );
   }
 }
@@ -3279,10 +2575,9 @@ class SavedMessageWidget extends StatelessWidget {
                                 if ((message.messageDetails?.reactions ?? [])
                                     .isNotEmpty)
                                   StackedReactions(
-                                    // reactions widget
-                                    reactions:
-                                        message.messageDetails?.reactions ??
-                                            [], // list of reaction strings
+                                    messageId:
+                                        message.messageId ?? message.id ?? '',
+                                    controller: _reactionsController,
                                     size: 8,
                                     stackedValue:
                                         4.0, // Value used to calculate the horizontal offset of each reaction

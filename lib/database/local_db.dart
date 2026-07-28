@@ -495,7 +495,7 @@ class DatabaseHelper {
   // Insert LoginResponse into the database
   Future<int> insertLoginData(UserData user) async {
     final db = await database;
-    var data;
+    Map<String, dynamic> data;
     try {
       AppPreference.setPrivateKey(user.privateKey ?? "");
       AppPreference.setPublicKey(user.publicKey ?? "");
@@ -647,7 +647,7 @@ class DatabaseHelper {
   Future<void> updateLocalContact(String phone, String name) async {
     final db = await database;
     await db.update('contacts', {'name': name},
-        where: 'phone LIKE ?', whereArgs: ['%${phone}']);
+        where: 'phone LIKE ?', whereArgs: ['%$phone']);
   }
 
   Future<void> updateContact(ContactUser contact) async {
@@ -962,7 +962,7 @@ class AppPreference {
   static Future setEmailVerify() async {
     final currentDate = DateTime.now().toIso8601String();
     showMessage(
-        "shouldShowVerificationPromptFor setEmailVerify ${currentDate}");
+        "shouldShowVerificationPromptFor setEmailVerify $currentDate");
     await _prefs.setString(LocalDbConstants.emailVerify, currentDate);
   }
 
@@ -980,7 +980,7 @@ class AppPreference {
     // Calculate the difference in days
     final difference = currentDate.difference(savedDate).inDays;
     showMessage(
-        "shouldShowVerificationPromptForPhone $difference ${savedDateString}");
+        "shouldShowVerificationPromptForPhone $difference $savedDateString");
     // Show prompt if 30 days have passed
     return difference >= 30;
   }
@@ -999,7 +999,7 @@ class AppPreference {
     // Calculate the difference in days
     final difference = currentDate.difference(savedDate).inDays;
     showMessage(
-        "shouldShowVerificationPromptForEmail $difference ${savedDateString}");
+        "shouldShowVerificationPromptForEmail $difference $savedDateString");
     // Show prompt if 30 days have passed
     return difference >= 30;
   }
@@ -1019,6 +1019,7 @@ final class LocalDbConstants {
   static final String publicKey = '_publicKey';
   static final String privateKey = '_privateKey';
   static final String firebaseToken = 'fcmToken';
+  static final String voipToken = 'voipToken';
   static final String languageKey = 'LanguageKey';
   static final String phoneVerify = 'phoneVerify';
   static final String emailVerify = 'emailVerify';
@@ -1028,6 +1029,7 @@ final class LocalDbConstants {
   static final String refreshToken = 'refreshToken';
   static final String pendingInviteChatId = 'pendingInviteChatId';
   static final String pendingInviteLink = 'pendingInviteLink';
+  static final String fcmRegistrationPending = 'fcmRegistrationPending';
 }
 
 

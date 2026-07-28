@@ -16,7 +16,7 @@ class NavigationService {
   }
 
   NavigationService._internal();
-  bool _isNavigating = false;
+  final bool _isNavigating = false;
   Completer<void>? _navigationCompleter;
   // final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   bool _isNavigatingToChat = false;

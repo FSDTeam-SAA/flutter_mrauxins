@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,13 +6,7 @@ import 'package:two_one_two_messenger/generated/l10n.dart';
 
 import '../cubit/create_stories_cubit.dart';
 import '../cubit/create_stories_state.dart';
-import '../utils/colors.dart';
-import '../utils/constants.dart';
-import '../utils/text_style.dart';
-import '../utils/utils.dart';
 import '../widgets/appbar.dart';
-import '../widgets/buttons.dart';
-import '../widgets/svg_images.dart';
 
 class CreateStoriesScreen extends StatefulWidget {
   const CreateStoriesScreen({super.key});

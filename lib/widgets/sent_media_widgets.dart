@@ -4,19 +4,18 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get_thumbnail_video/video_thumbnail.dart';
 import 'package:giphy_get/giphy_get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart';
 import 'package:record/record.dart';
+import 'package:two_one_two_messenger/cubit/saved_messages_cubit.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/main.dart';
 import 'package:two_one_two_messenger/models/chat_message_model.dart';
-import 'package:two_one_two_messenger/services/language_change_provider.dart';
 import 'package:two_one_two_messenger/utils/colors.dart';
 import 'package:two_one_two_messenger/utils/constants.dart';
 import 'package:two_one_two_messenger/utils/image_picker.dart';
@@ -64,7 +63,6 @@ void buildBottomSheet({
                         : AppConstants.androidGiphyApiKey, //Required.
                     // lang: selectedLanguage, //Optional - Language for query.
                     showEmojis: false,
-                    bgColor: AppColors.dialogBg,
                     tabColor:
                         AppColors.white, // Optional- default accent color.
                     debounceTimeInMilliseconds:
@@ -77,7 +75,7 @@ void buildBottomSheet({
 
                     await NavigationService().goBack();
                     isFromSavedMessage
-                        ? chatCubit.sentSaveMessage(
+                        ? context.read<SavedMessagesCubit>().sentSaveMessage(
                             context,
                             // chatId: chatId ?? '',
                             mediaType: 1,
@@ -111,7 +109,7 @@ void buildBottomSheet({
                   //     (xFile, mimeType) async {
                   //   await NavigationService().goBack();
                   //   isFromSavedMessage
-                  //       ? chatCubit.sentSaveMessage(
+                  //       ? context.read<SavedMessagesCubit>().sentSaveMessage(
                   //           context,
                   //           // chatId: chatId ?? '',
                   //           mediaType: 1,
@@ -149,7 +147,7 @@ void buildBottomSheet({
                   //       (xFile, mimeType) async {
                   //     await NavigationService().goBack();
                   //     isFromSavedMessage
-                  //         ? chatCubit.sentSaveMessage(
+                  //         ? context.read<SavedMessagesCubit>().sentSaveMessage(
                   //             context,
                   //             // chatId: chatId ?? '',
                   //             content: "Image",
@@ -184,7 +182,7 @@ void buildBottomSheet({
                         (xFile, mimeType) async {
                       await NavigationService().goBack();
                       isFromSavedMessage
-                          ? chatCubit.sentSaveMessage(
+                          ? context.read<SavedMessagesCubit>().sentSaveMessage(
                               context,
                               // chatId: chatId ?? '',
                               content: "Image",
@@ -236,7 +234,7 @@ void buildBottomSheet({
                       (xFile, mimeType) async {
                     await NavigationService().goBack();
                     isFromSavedMessage
-                        ? chatCubit.sentSaveMessage(
+                        ? context.read<SavedMessagesCubit>().sentSaveMessage(
                             context,
                             content: "Video",
                             mediaType: 6,
@@ -272,7 +270,7 @@ void buildBottomSheet({
                         FileType.custom, (xFile, mimeType) async {
                       await NavigationService().goBack();
                       isFromSavedMessage
-                          ? chatCubit.sentSaveMessage(
+                          ? context.read<SavedMessagesCubit>().sentSaveMessage(
                               context,
                               content: "Document",
                               mediaType: 4,
@@ -306,7 +304,7 @@ void buildBottomSheet({
                       onSend: (xFile, mimeType) async {
                         await NavigationService().goBack();
                         isFromSavedMessage
-                            ? chatCubit.sentSaveMessage(
+                            ? context.read<SavedMessagesCubit>().sentSaveMessage(
                                 context,
                                 content: "Audio",
                                 mediaType: 5,
@@ -396,7 +394,7 @@ Future<void> buildCameraOptionDialog({
                                 (xFile, mimeType) async {
                               await NavigationService().goBack();
                               isFromSavedMessage
-                                  ? chatCubit.sentSaveMessage(
+                                  ? context.read<SavedMessagesCubit>().sentSaveMessage(
                                       navigatorKey.currentContext ?? context,
                                       content: "Image",
                                       mediaType: 2,
@@ -452,7 +450,7 @@ Future<void> buildCameraOptionDialog({
                                 (xFile, mimeType) async {
                               await NavigationService().goBack();
                               isFromSavedMessage
-                                  ? chatCubit.sentSaveMessage(
+                                  ? context.read<SavedMessagesCubit>().sentSaveMessage(
                                       navigatorKey.currentContext ?? context,
                                       content: "Video",
                                       mediaType: 6,

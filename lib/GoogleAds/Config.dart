@@ -1,4 +1,3 @@
-import 'package:two_one_two_messenger/GoogleAds/config_model.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 
 class Config {
@@ -77,7 +76,7 @@ class Config {
   // }
 
   adsShow() async {
-   
+
         await adConfigCubit.getConfigFromSharedPreferences();
 
     return adConfigCubit.state.configModel?.adsShow??"on";

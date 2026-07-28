@@ -1,63 +1,3 @@
-// Custom linkifier to detect URLs without protocols
-// import 'package:flutter_linkify/flutter_linkify.dart';
-
-// class CustomLinkifier extends Linkifier {
-//   const CustomLinkifier();
-
-//   @override
-//   List<LinkifyElement> parse(
-//     List<LinkifyElement> elements,
-//     LinkifyOptions options,
-//   ) {
-//     final list = <LinkifyElement>[];
-
-//     for (final element in elements) {
-//       if (element is TextElement) {
-//         // Modified regex to match URLs without protocols
-//         final urlRegex = RegExp(
-//           r'(?:(?:https?|ftp):\/\/)?' // Optional protocol
-//           r'[\w/\-?=%.]+\.[\w/\-?=%.]+' // Domain and TLD
-//           r'(?:\/[^\s]*)?' // Optional path
-//           r'(?:\?[^\s]*)?' // Optional query string
-//         );
-
-//         final match = urlRegex.firstMatch(element.text);
-//         if (match == null) {
-//           list.add(element);
-//           continue;
-//         }
-
-//         final text = element.text;
-//         final urlMatch = match.group(0)!;
-
-//         final url = urlMatch.contains('://')
-//             ? urlMatch
-//             : 'https://$urlMatch';
-
-//         // Add text before URL
-//         if (match.start > 0) {
-//           list.add(TextElement(text.substring(0, match.start)));
-//         }
-
-//         // Add URL element
-//         list.add(UrlElement(
-//           urlMatch,
-//           url,
-//         ));
-
-//         // Add text after URL
-//         if (match.end < text.length) {
-//           list.add(TextElement(text.substring(match.end)));
-//         }
-//       } else {
-//         list.add(element);
-//       }
-//     }
-
-//     return list;
-//   }
-// }
-import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 
 class CustomLinkifier extends Linkifier {
@@ -72,26 +12,6 @@ class CustomLinkifier extends Linkifier {
 
     for (final element in elements) {
       if (element is TextElement) {
-        // Production-quality URL regex that:
-        // 1. Properly validates domain structure
-        // 2. Won't match random dot-separated words
-        // 3. Handles common TLDs and new gTLDs
-        // final urlRegex = RegExp(
-        //   r'(?:(?:https?|ftp):\/\/)?' // optional scheme
-        //   r'(?:www\.)?' // optional www
-        //   r'(?:' // start domain group
-        //   r'[a-z0-9-]+' // first domain part
-        //   r'(?:\.[a-z0-9-]+)*' // optional subdomains
-        //   r'\.' // dot before TLD
-        //   r'(?:[a-z]{2,}|[a-z]{2}\.[a-z]{2})' // TLD or ccTLD
-        //   r')' // end domain group
-        //   r'(?::\d+)?' // optional port
-        //   r'(?:\/[^\s]*)?' // optional path
-        //   r'(?:\?[^\s]*)?' // optional query
-
-        //   r'(?:#[^\s]*)?', // optional fragment
-        //   caseSensitive: false,
-        // );
         final urlRegex = RegExp(
           r'(?:(?:https?|ftp):\/\/)?' // optional scheme
           r'(?:www\.)?' // optional www
@@ -108,23 +28,6 @@ class CustomLinkifier extends Linkifier {
           r')' // end domain group
           r'(?::\d+)?' // optional port
           r'(?:\/[^\s?#]*)?' // optional path
-          r'(?:\?[^\s#]*)?' // optional query
-          r'(?:#[^\s]*)?', // optional fragment
-          caseSensitive: false,
-        );
-        final urlRegex2 = RegExp(
-          r'(?:(?:https?|ftp):\/\/)?' // optional scheme
-          r'(?:(?:[A-Z0-9-]+\.)+)' // subdomains
-          r'(?:' // main domain parts
-          r'[A-Z0-9-]+' // domain name
-          r'\.' // dot
-          r'(?:[A-Z]{2,}' // standard TLDs
-          r'|aero|asia|biz|cat|com|coop|edu|gov|info|int|jobs|mil|mobi|museum|name|net|org|pro|tel|travel|xxx' // generic TLDs
-          r'|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cu|cv|cx|cy|cz|de|dj|dk|dm|do|dz|ec|ee|eg|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|sk|sl|sm|sn|so|sr|st|su|sv|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|za|zm|zw' // country code TLDs
-          r'|co\.uk|com\.au|com\.br|com\.cn|com\.mx|com\.sg|com\.tw|co\.nz|co\.za|co\.in|co\.jp|co\.kr|ne\.jp|or\.kr|ac\.kr|go\.kr|pe\.kr|re\.kr|or\.at|ac\.at|co\.at|gv\.at|or\.us|co\.us|ca\.us|tx\.us|fl\.us|ak\.us|al\.us|ar\.us|az\.us|ct\.us|de\.us|ga\.us|hi\.us|ia\.us|id\.us|il\.us|in\.us|ks\.us|ky\.us|la\.us|ma\.us|md\.us|me\.us|mi\.us|mn\.us|mo\.us|ms\.us|mt\.us|nc\.us|nd\.us|ne\.us|nh\.us|nj\.us|nm\.us|nv\.us|ny\.us|oh\.us|ok\.us|pa\.us|ri\.us|sc\.us|sd\.us|tn\.us|ut\.us|vt\.us|va\.us|wa\.us|wi\.us|wv\.us|wy\.us' // second-level domains
-          r'))' // end TLDs
-          r'(?::\d+)?' // optional port
-          r'(?:\/(?:[^\s?#]*))?' // optional path
           r'(?:\?[^\s#]*)?' // optional query
           r'(?:#[^\s]*)?', // optional fragment
           caseSensitive: false,

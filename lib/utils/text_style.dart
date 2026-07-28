@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:two_one_two_messenger/utils/colors.dart';
 
-import 'utils.dart';
 
 class AppTextStyles {
   static const String fontFamily = 'NotoSans';

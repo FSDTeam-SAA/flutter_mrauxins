@@ -19,3 +19,9 @@
 }
 
 -keep class com.hiennv.flutter_callkit_incoming.** { *; }
+
+# Flutter's embedding references Play Core split-install APIs for deferred
+# components (dynamic feature delivery). This app doesn't use that, and the
+# play-core artifact isn't on the classpath, so R8 can't resolve these -
+# safe to ignore since the referencing code path is never exercised.
+-dontwarn com.google.android.play.core.**

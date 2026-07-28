@@ -5,6 +5,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:two_one_two_messenger/cubit/chat_cubit.dart';
 import 'package:two_one_two_messenger/cubit/chat_state.dart';
+import 'package:two_one_two_messenger/cubit/saved_messages_cubit.dart';
+import 'package:two_one_two_messenger/cubit/saved_messages_state.dart';
 import 'package:two_one_two_messenger/cubit/user_data_cubit.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
@@ -38,11 +40,13 @@ class _SavedMessagesState extends State<SavedMessages> {
   final scrollController = ScrollController();
   UserData? userData;
   final SocketService _socketService = SocketService();
+  late final SavedMessagesCubit _savedMessagesCubit;
   @override
   void initState() {
     super.initState();
     // _chatStreamController = StreamController<List<ChatData>>.broadcast();
     userData = context.read<UserDataCubit>().state;
+    _savedMessagesCubit = context.read<SavedMessagesCubit>();
 
     init();
   }
@@ -53,9 +57,9 @@ class _SavedMessagesState extends State<SavedMessages> {
     scrollController.addListener(_onScroll);
     _socketService.onSavedMessage(
       (message) {
-        showMessage("updateSavedMessageList==>outer===>${message}");
+        showMessage("updateSavedMessageList==>outer===>$message");
         if (message["messageId"] != null && message["message"] != null) {
-          chatCubit.updateSavedMessageList(message);
+          _savedMessagesCubit.updateSavedMessageList(message);
         }
       },
     );
@@ -63,7 +67,7 @@ class _SavedMessagesState extends State<SavedMessages> {
       (message) {
         showMessage("onEditSavedMessage>> Data::::$message");
         if (message["messageId"] != null) {
-          chatCubit.onEditSaveMessage(message);
+          _savedMessagesCubit.onEditSaveMessage(message);
         }
       },
     );
@@ -71,7 +75,7 @@ class _SavedMessagesState extends State<SavedMessages> {
       (message) {
         showMessage("onReactSavedMessageEvent>> Data::::$message");
         if (message["messageId"] != null) {
-          chatCubit.onReactSavedMessage(message);
+          _savedMessagesCubit.onReactSavedMessage(message);
         }
       },
     );
@@ -79,12 +83,12 @@ class _SavedMessagesState extends State<SavedMessages> {
     _socketService.onPinnedSavedMessage((data) {
       showMessage(
           ":: onPinnedMessage==> $data ${mounted && chatCubit.chatId == data["pinMessage"]}");
-      chatCubit.onPinnedSavedMessage(
+      _savedMessagesCubit.onPinnedSavedMessage(
           messageId: data["pinMessage"]["messageId"]);
     });
     _socketService.onUnPinnedSavedMessage((data) {
       showMessage(":: onUnPinnedMessage==> $data  ");
-      chatCubit.onUnPinnedSavedMessage(
+      _savedMessagesCubit.onUnPinnedSavedMessage(
           messageId: data["pinMessage"]["messageId"]);
     });
     //   _socketService.onPinnedMessage((data) {
@@ -105,13 +109,14 @@ class _SavedMessagesState extends State<SavedMessages> {
   }
 
   Future<void> fetchSavedMessages() async {
-    chatCubit.getSaveMessages(context, isLoadMore: false, searchQuery: "");
+    _savedMessagesCubit.getSaveMessages(context,
+        isLoadMore: false, searchQuery: "");
   }
 
   Future<void> _onScroll() async {
     if (scrollController.position.pixels ==
         scrollController.position.maxScrollExtent) {
-      await chatCubit.getSaveMessages(context,
+      await _savedMessagesCubit.getSaveMessages(context,
           isLoadMore: true, searchQuery: searchController.text.trim());
     }
   }
@@ -181,12 +186,13 @@ class _SavedMessagesState extends State<SavedMessages> {
               color: AppColors.white),
         ),
         titleSpacing: 0.w,
-        title: BlocBuilder<ChatCubit, ChatState>(builder: (context, state) {
+        title: BlocBuilder<SavedMessagesCubit, SavedMessagesState>(
+            builder: (context, state) {
           return state.isSearchSavedMessages
               ? TextFormField(
                   controller: searchController,
                   onChanged: (query) {
-                    chatCubit.onSearchSavedMessages(context, query);
+                    _savedMessagesCubit.onSearchSavedMessages(context, query);
                   },
                   autofocus: true,
                   decoration: InputDecoration(
@@ -236,13 +242,14 @@ class _SavedMessagesState extends State<SavedMessages> {
         actions: [
           GestureDetector(
             onTap: () {
-              chatCubit.handleSearchSavedMessage(
+              _savedMessagesCubit.handleSearchSavedMessage(
                 context,
                 () => searchController.clear(),
               );
             },
             behavior: HitTestBehavior.translucent,
-            child: BlocBuilder<ChatCubit, ChatState>(builder: (context, state) {
+            child: BlocBuilder<SavedMessagesCubit, SavedMessagesState>(
+                builder: (context, state) {
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: state.isSearchSavedMessages
@@ -283,7 +290,7 @@ class _SavedMessagesState extends State<SavedMessages> {
         child: Column(
           children: [
             Expanded(
-              child: BlocBuilder<ChatCubit, ChatState>(
+              child: BlocBuilder<SavedMessagesCubit, SavedMessagesState>(
                 builder: (contextChat, state) {
                   if (state.savedMessageLoadingState == LoadingState.loading) {
                     return Center(
@@ -443,7 +450,9 @@ class _SavedMessagesState extends State<SavedMessages> {
                                   sort: false,
                                   groupBy: (element) {
                                     if (element.messageDetails?.createdAt ==
-                                        null) return "";
+                                        null) {
+                                      return "";
+                                    }
                                     return Utils.getFormattedDate(
                                         (element.messageDetails?.createdAt ??
                                                 DateTime.now())
@@ -921,7 +930,7 @@ class _SavedMessagesState extends State<SavedMessages> {
                   onTap: () {
                     try {
                       if (messageCon.text.trim().isNotEmpty) {
-                        chatCubit
+                        _savedMessagesCubit
                             .sentSaveMessage(
                           context,
                           mediaType: 0,
@@ -1031,7 +1040,7 @@ class _SavedMessagesState extends State<SavedMessages> {
                             child: CustomButton(
                               onPressed: () async {
                                 await NavigationService().goBack();
-                                chatCubit.clearAllSavedMessages(
+                                _savedMessagesCubit.clearAllSavedMessages(
                                   context,
                                   callback: (response) {
                                     Utils.showSnackBar(
@@ -1074,8 +1083,8 @@ class PinnedMessagesWidget extends StatefulWidget {
     required this.onViewMessage,
     required this.onUnpin,
     required this.currentUserId,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   _PinnedMessagesWidgetState createState() => _PinnedMessagesWidgetState();
@@ -1184,7 +1193,9 @@ class _PinnedMessagesWidgetState extends State<PinnedMessagesWidget> {
             Column(
               children: [
                 TextButton(
-                    onPressed: () => chatCubit.unPinSavedMessage(
+                    onPressed: () => context
+                        .read<SavedMessagesCubit>()
+                        .unPinSavedMessage(
                         userId: widget.currentUserId,
                         messageId: currentMessage.messageId ?? ""),
                     child: Text(
