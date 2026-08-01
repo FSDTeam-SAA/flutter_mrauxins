@@ -1,0 +1,1 @@
+enum GroupInfoTab { members, admins }
