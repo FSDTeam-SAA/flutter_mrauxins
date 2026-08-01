@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:two_one_two_messenger/cubit/home_cubit.dart';
-import 'package:two_one_two_messenger/cubit/home_state.dart';
+import 'package:two_one_two_messenger/cubit/group_cubit.dart';
+import 'package:two_one_two_messenger/cubit/group_state.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
@@ -42,7 +42,7 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
   }
 
   Future<void> onInit() async {
-    homeCubit.getGroupInfobyId(context, widget.groupId);
+    groupCubit.getGroupInfobyId(context, widget.groupId);
 // user??= await homeCubit.dbHelper.getLoginData();
   }
 
@@ -56,7 +56,7 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
       ),
       body: SafeArea(
         child:
-            BlocBuilder<HomeCubit, HomeState>(builder: (contextProfile, state) {
+            BlocBuilder<GroupCubit, GroupState>(builder: (contextProfile, state) {
           if (state.groupLoadingState == LoadingState.loading) {
             return Center(child: CustomLoadingWidget());
           } else if (state.groupLoadingState == LoadingState.error) {
@@ -74,7 +74,7 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
                 20.s,
                 CustomButton(
                     onPressed: () {
-                      homeCubit.getGroupInfobyId(context, widget.groupId);
+                      groupCubit.getGroupInfobyId(context, widget.groupId);
                     },
                     child: Text(
                       S.of(context).refresh,

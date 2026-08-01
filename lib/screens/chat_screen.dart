@@ -380,7 +380,7 @@ class _ChatScreenState extends State<ChatScreen> {
           chatCubit.handleWhenUserAddedToGroup(data);
           setState(() {
             widget.isSendMessage =
-                homeCubit.state.groupData?.isSendMessage ?? true;
+                groupCubit.state.groupData?.isSendMessage ?? true;
           });
         }
       }
@@ -389,7 +389,7 @@ class _ChatScreenState extends State<ChatScreen> {
       log(":: onAssignOrRemoveFromAdminToGroup==> $data ${widget.userId} ${mounted && chatCubit.chatId == data["chatId"]}");
       if (widget.chatType == ChatType.group) {
         if (mounted && chatCubit.chatId == data["chatId"]) {
-          if (!(homeCubit.state.groupData?.isSendMessage ?? true)) {
+          if (!(groupCubit.state.groupData?.isSendMessage ?? true)) {
             setState(() {
               widget.isSendMessage = data["isAdmin"];
               log(":: onAssignOrRemoveFromAdminToGroup111111==> $data ${widget.isSendMessage} ");
@@ -477,7 +477,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (widget.chatType != ChatType.one_to_one && userData != null) {
       if (widget.chatType == ChatType.group ||
           widget.chatType == ChatType.channel) {
-        homeCubit.cleanGroupDataInfo();
+        groupCubit.cleanGroupDataInfo();
       }
     }
 
@@ -540,7 +540,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (widget.chatType != ChatType.one_to_one && userData != null) {
       if (widget.chatType == ChatType.group ||
           widget.chatType == ChatType.channel) {
-        homeCubit.getGroupInfobyId(context, widget.chatId);
+        groupCubit.getGroupInfobyId(context, widget.chatId);
       }
     }
   }

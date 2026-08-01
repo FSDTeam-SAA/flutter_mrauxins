@@ -68,7 +68,7 @@ class ChannelAvatarPicker extends StatelessWidget {
             child: GestureDetector(
               onTap: () {
                 showCustomImageOptionPickerDialog(
-                    context: context, onImagePicked: homeCubit.selectGroupImage);
+                    context: context, onImagePicked: groupCubit.selectGroupImage);
               },
               child: CircleAvatar(
                 radius: 15.r,

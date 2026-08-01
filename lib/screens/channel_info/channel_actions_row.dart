@@ -34,7 +34,7 @@ class ChannelActionsRow extends StatelessWidget {
               child: CustomButton(
                   onPressed: () async {
                     if (formKey.currentState!.validate()) {
-                      homeCubit.updateGroup(context, groupId, ChatType.channel);
+                      groupCubit.updateGroup(context, groupId, ChatType.channel);
                     }
                   },
                   child: Text(
@@ -56,7 +56,7 @@ class ChannelActionsRow extends StatelessWidget {
                       subTitle: S.of(context).lblDeleteChannelSubTitle,
                       submitBtnText: S.of(context).delete,
                       onSubmit: () =>
-                          homeCubit.deleteGroup(context, groupId),
+                          groupCubit.deleteGroup(context, groupId),
                     );
                   } else {
                     showCommonAlertDialog(
@@ -65,7 +65,7 @@ class ChannelActionsRow extends StatelessWidget {
                       subTitle: S.of(context).lblLeaveChannelSubTitle,
                       submitBtnText: S.of(context).yes,
                       onSubmit: () =>
-                          homeCubit.leaveGroup(context, groupId),
+                          groupCubit.leaveGroup(context, groupId),
                     );
                   }
                 },

@@ -96,8 +96,8 @@ class _GroupInviteSectionState extends State<GroupInviteSection> {
       _customLinkStatus = null;
     });
     _linkCheckDebounce = Timer(const Duration(milliseconds: 500), () async {
-      final available = await homeCubit.apiClient
-          .checkGroupInviteName(cleaned, widget.groupId);
+      final available =
+          await groupCubit.repository.checkGroupInviteName(cleaned, widget.groupId);
       if (!mounted) return;
       setState(() {
         _customLinkChecking = false;
@@ -113,14 +113,14 @@ class _GroupInviteSectionState extends State<GroupInviteSection> {
     final customName = _customLinkController.text.trim().toLowerCase();
     // Store as a proper deep link so the existing join handler can parse chatId + customName
     final newLink = 'messenger212://join/$chatId/$customName';
-    homeCubit.apiClient.updateGroup(
+    groupCubit.repository.updateGroup(
       context,
       groupId: chatId,
       inputData: {"inviteLink": newLink, "chatType": "group"},
       files: null,
     ).then((_) {
       if (!mounted) return;
-      homeCubit.getGroupInfobyId(context, chatId);
+      groupCubit.getGroupInfobyId(context, chatId);
       Utils.showSnackBar(context, 'Share link updated.');
     });
   }
@@ -461,7 +461,7 @@ class _GroupInviteSectionState extends State<GroupInviteSection> {
                         borderColor: const Color(0xFFDF3340),
                         onPressed: () {
                           Navigator.pop(dialogContext);
-                          homeCubit.revokeGroupInviteLink(
+                          groupCubit.revokeGroupInviteLink(
                               context, widget.groupId);
                         },
                       ),

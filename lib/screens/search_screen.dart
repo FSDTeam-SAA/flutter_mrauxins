@@ -57,7 +57,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _searchDatabase(String query) {
     setState(() => _databaseLoading = true);
-    homeCubit.apiClient.searchDatabase(search: query).then((results) {
+    groupCubit.repository.searchDatabase(search: query).then((results) {
       if (mounted) {
         final q = query.toLowerCase();
         final all = results.cast<Map<String, dynamic>>();

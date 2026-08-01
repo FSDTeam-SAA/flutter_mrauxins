@@ -52,7 +52,7 @@ class ChannelMembersList extends StatelessWidget {
                         admins: participants,
                         isGroup: false,
                         onSubmit: () =>
-                            homeCubit.addMembersToGroup(context, groupId),
+                            groupCubit.addMembersToGroup(context, groupId),
                       ));
                     },
                     child: Text(
@@ -161,7 +161,7 @@ class ChannelMembersList extends StatelessWidget {
 
 Future<void> _createAdmin(
     BuildContext context, String groupId, String userId) async {
-  await homeCubit.assignAdminToGroup(
+  await groupCubit.assignAdminToGroup(
     context,
     {"chatId": groupId, "userId": userId, "removeFromAdmin": false},
   );
@@ -169,7 +169,7 @@ Future<void> _createAdmin(
 
 Future<void> _removeAdmin(
     BuildContext context, String groupId, String userId) async {
-  await homeCubit.assignAdminToGroup(
+  await groupCubit.assignAdminToGroup(
     context,
     {"chatId": groupId, "userId": userId, "removeFromAdmin": true},
   );
@@ -177,7 +177,7 @@ Future<void> _removeAdmin(
 
 Future<void> _removeMember(BuildContext context, String groupId,
     String userId, String name, bool isGroup) async {
-  await homeCubit.removeMemberFromGroup(
+  await groupCubit.removeMemberFromGroup(
       context,
       {
         "chatId": groupId,

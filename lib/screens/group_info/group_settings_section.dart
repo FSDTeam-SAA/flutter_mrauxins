@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:two_one_two_messenger/cubit/home_cubit.dart';
-import 'package:two_one_two_messenger/cubit/home_state.dart';
+import 'package:two_one_two_messenger/cubit/group_cubit.dart';
+import 'package:two_one_two_messenger/cubit/group_state.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
@@ -38,7 +38,7 @@ class _GroupSettingsSectionState extends State<GroupSettingsSection> {
   }
 
   Future<void> _saveSettings(BuildContext context) async {
-    await homeCubit.updateGroup(context, widget.groupId, ChatType.group,
+    await groupCubit.updateGroup(context, widget.groupId, ChatType.group,
         showSuccessMessage: true);
     if (mounted) setState(() => _settingsDirty = false);
   }
@@ -53,7 +53,7 @@ class _GroupSettingsSectionState extends State<GroupSettingsSection> {
           onTap: widget.onToggleExpanded,
         ),
         if (widget.expanded)
-          BlocBuilder<HomeCubit, HomeState>(builder: (context, state) {
+          BlocBuilder<GroupCubit, GroupState>(builder: (context, state) {
             return Padding(
               padding:
                   EdgeInsets.symmetric(horizontal: 16.w).copyWith(top: 10.h),
@@ -74,7 +74,7 @@ class _GroupSettingsSectionState extends State<GroupSettingsSection> {
                       defaultValue: state.privateGroup,
                       onChanged: widget.isAdmin
                           ? (value) {
-                              homeCubit.togglePrivateGroup(value);
+                              groupCubit.togglePrivateGroup(value);
                               _markSettingsDirty();
                             }
                           : null,
@@ -85,7 +85,7 @@ class _GroupSettingsSectionState extends State<GroupSettingsSection> {
                       defaultValue: state.showProfilePhotoForGroup,
                       onChanged: widget.isAdmin
                           ? (value) {
-                              homeCubit.toggleShowProfilePhoto(value);
+                              groupCubit.toggleShowProfilePhoto(value);
                               _markSettingsDirty();
                             }
                           : null,
@@ -96,7 +96,7 @@ class _GroupSettingsSectionState extends State<GroupSettingsSection> {
                       defaultValue: state.showGroupProfilePhoto,
                       onChanged: widget.isAdmin
                           ? (value) {
-                              homeCubit.toggleShowGroupProfilePhoto(value);
+                              groupCubit.toggleShowGroupProfilePhoto(value);
                               _markSettingsDirty();
                             }
                           : null,
@@ -107,7 +107,7 @@ class _GroupSettingsSectionState extends State<GroupSettingsSection> {
                       defaultValue: state.sendMessageForGroup,
                       onChanged: widget.isAdmin
                           ? (value) {
-                              homeCubit.toggleSendMessage(value);
+                              groupCubit.toggleSendMessage(value);
                               _markSettingsDirty();
                             }
                           : null,
@@ -118,7 +118,7 @@ class _GroupSettingsSectionState extends State<GroupSettingsSection> {
                       defaultValue: state.hideMembersInfo,
                       onChanged: widget.isAdmin
                           ? (value) {
-                              homeCubit.toggleHideMembersInfo(value);
+                              groupCubit.toggleHideMembersInfo(value);
                               _markSettingsDirty();
                             }
                           : null,
@@ -129,7 +129,7 @@ class _GroupSettingsSectionState extends State<GroupSettingsSection> {
                       defaultValue: state.hideNewMembersMessage,
                       onChanged: widget.isAdmin
                           ? (value) {
-                              homeCubit.toggleHideNewMembersMessage(value);
+                              groupCubit.toggleHideNewMembersMessage(value);
                               _markSettingsDirty();
                             }
                           : null,
@@ -140,7 +140,7 @@ class _GroupSettingsSectionState extends State<GroupSettingsSection> {
                       defaultValue: state.restrictContentSharing,
                       onChanged: widget.isAdmin
                           ? (value) {
-                              homeCubit.toggleRestrictContentSharing(value);
+                              groupCubit.toggleRestrictContentSharing(value);
                               _markSettingsDirty();
                             }
                           : null,

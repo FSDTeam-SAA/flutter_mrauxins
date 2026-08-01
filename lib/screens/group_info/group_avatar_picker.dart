@@ -77,9 +77,9 @@ class GroupAvatarPicker extends StatelessWidget {
                 showCustomImageOptionPickerDialog(
                     context: context,
                     onImagePicked: (image) {
-                      homeCubit.selectGroupImage(image);
+                      groupCubit.selectGroupImage(image);
                       if (formKey.currentState?.validate() ?? false) {
-                        homeCubit.updateGroup(
+                        groupCubit.updateGroup(
                             context, groupId, ChatType.group);
                       }
                     });

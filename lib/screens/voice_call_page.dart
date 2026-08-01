@@ -1053,60 +1053,6 @@ Future<void> getCameraAndMicrophonePermission(
 
     await Permission.camera.request();
     await Permission.microphone.request();
-
-    // while(true){
-    //   final permission = await Permission.camera.request();
-    //   if(permission == PermissionStatus.granted || permission == PermissionStatus.limited){
-    //     break;
-    //   }
-    //   Loader.hide();
-    //   if(permission == PermissionStatus.permanentlyDenied) {
-    //     await CustomAlertDialog(
-    //       context: context,
-    //       icon: Assets.icon.svg.cameraOutline,
-    //       title: 'Permission Required',
-    //       description: 'Camera permission is required to call.',
-    //       buttonText: 'Enable Permission',
-    //       onPressed: openAppSettings
-    //     );
-    //     Loader.show();
-    //     await Future.delayed(Duration(seconds: 1));
-    //     final isCamera = await Permission.camera.request().isGranted;
-    //     if(isCamera) {
-    //       break;
-    //     }
-    //   } else{
-    //     await Permission.camera.request();
-    //     Loader.show();
-    //   }
-    // }
-    //
-    // while(true){
-    //   final permission = await Permission.microphone.request();
-    //   if(permission == PermissionStatus.granted || permission == PermissionStatus.limited){
-    //     break;
-    //   }
-    //   Loader.hide();
-    //   if(permission == PermissionStatus.permanentlyDenied) {
-    //     await CustomAlertDialog(
-    //       context: context,
-    //       icon: Assets.icon.svg.microphoneCircleOutline,
-    //       title: 'Permission Required',
-    //       description: 'Microphone permission is required to call.',
-    //       buttonText: 'Enable Permission',
-    //       onPressed: openAppSettings
-    //     );
-    //     Loader.show();
-    //     await Future.delayed(Duration(seconds: 1));
-    //     final isCamera = await Permission.microphone.request().isGranted;
-    //     if(isCamera) {
-    //       break;
-    //     }
-    //   } else{
-    //     await Permission.microphone.request();
-    //     Loader.show();
-    //   }
-    // }
   } catch (e) {
     showMessage('$e');
   } finally {

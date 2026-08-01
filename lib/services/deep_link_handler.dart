@@ -80,7 +80,7 @@ class DeepLinkHandler {
 
     try {
       Utils.showLoader();
-      final response = await homeCubit.apiClient.joinGroupByInvite(
+      final response = await groupCubit.repository.joinGroupByInvite(
         chatId: chatId,
         inviteLink: inviteLink,
       );

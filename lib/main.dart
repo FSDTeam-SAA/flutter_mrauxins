@@ -31,6 +31,7 @@ import 'package:two_one_two_messenger/widgets/annotated_region.dart';
 import 'cubit/call_cubit.dart';
 import 'cubit/chat_cubit.dart';
 import 'cubit/create_stories_cubit.dart';
+import 'cubit/group_cubit.dart';
 import 'cubit/home_cubit.dart';
 import 'cubit/new_group_cubit.dart';
 import 'cubit/nickname_cubit.dart';
@@ -46,9 +47,11 @@ import 'cubit/user_data_cubit.dart';
 import 'cubit/version_check_cubit.dart';
 import 'cubit/view_stories_cubit.dart';
 import 'database/local_db.dart';
+import 'repository/group_repository.dart';
 import 'screens/splash_screen.dart';
 import 'services/api_client.dart';
 import 'services/deep_link_handler.dart';
+import 'services/group_client.dart';
 import 'services/push_notifications.dart';
 import 'utils/constants.dart';
 import 'utils/theme.dart';
@@ -135,6 +138,10 @@ void main() async {
           BlocProvider(
             create: (context) => HomeCubit(apiClient, dbHelper,
                 ContactService(apiClient: apiClient, dbHelper: dbHelper)),
+          ),
+          BlocProvider(
+            create: (context) =>
+                GroupCubit(GroupRepository(GroupClient(apiClient))),
           ),
           BlocProvider(
             create: (context) => ChatCubit(apiClient, dbHelper),

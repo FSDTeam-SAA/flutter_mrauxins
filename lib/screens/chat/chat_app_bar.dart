@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:two_one_two_messenger/cubit/chat_cubit.dart';
 import 'package:two_one_two_messenger/cubit/chat_state.dart';
-import 'package:two_one_two_messenger/cubit/home_cubit.dart';
-import 'package:two_one_two_messenger/cubit/home_state.dart';
+import 'package:two_one_two_messenger/cubit/group_cubit.dart';
+import 'package:two_one_two_messenger/cubit/group_state.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/date_format.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
@@ -106,7 +106,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
                   );
                 }
               },
-              child: BlocBuilder<HomeCubit, HomeState>(
+              child: BlocBuilder<GroupCubit, GroupState>(
                   builder: (contextChat, state) {
                 final hideGroupPhoto = (data.chatType == ChatType.channel ||
                         data.chatType == ChatType.group) &&
@@ -130,7 +130,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                BlocBuilder<HomeCubit, HomeState>(
+                BlocBuilder<GroupCubit, GroupState>(
                     builder: (contextChat, state) {
                   return Text(
                     (data.chatType == ChatType.channel ||
@@ -159,7 +159,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
                           color: AppColors.white.withValues(alpha: 0.5)),
                     );
                   }
-                  return BlocBuilder<HomeCubit, HomeState>(
+                  return BlocBuilder<GroupCubit, GroupState>(
                       builder: (contextChat, state) {
                     if (state.groupData?.participants == null) {
                       return SizedBox();
@@ -193,7 +193,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
       ),
       actions: [
         if (data.chatType != ChatType.channel)
-          BlocBuilder<HomeCubit, HomeState>(builder: (contextHome, homeState) {
+          BlocBuilder<GroupCubit, GroupState>(builder: (contextHome, homeState) {
             final bool isGroup = data.chatType == ChatType.group;
             final int memberCount =
                 homeState.groupData?.participants?.length ?? 0;
@@ -265,7 +265,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
             });
           }),
         if (data.chatType != ChatType.channel)
-          BlocBuilder<HomeCubit, HomeState>(builder: (contextHome, homeState) {
+          BlocBuilder<GroupCubit, GroupState>(builder: (contextHome, homeState) {
             final bool isGroup = data.chatType == ChatType.group;
             final int memberCount =
                 homeState.groupData?.participants?.length ?? 0;

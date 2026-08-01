@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:two_one_two_messenger/cubit/home_cubit.dart';
-import 'package:two_one_two_messenger/cubit/home_state.dart';
+import 'package:two_one_two_messenger/cubit/group_cubit.dart';
+import 'package:two_one_two_messenger/cubit/group_state.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
@@ -45,7 +45,7 @@ class _NewGroupScreenState extends State<NewGroupScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            BlocBuilder<HomeCubit, HomeState>(
+            BlocBuilder<GroupCubit, GroupState>(
                 builder: (contextNewGroup, state) {
               return CustomButton(
                   onPressed: () async {
@@ -65,7 +65,7 @@ class _NewGroupScreenState extends State<NewGroupScreen> {
                             ? S.of(context).newGroup
                             : S.of(context).newChannel,
                         isGroup: widget.isGroup,
-                        onSubmit: () => homeCubit.createGroup(context,
+                        onSubmit: () => groupCubit.createGroup(context,
                             widget.isGroup ? ChatType.group : ChatType.channel),
                       ));
                     }
@@ -88,7 +88,7 @@ class _NewGroupScreenState extends State<NewGroupScreen> {
       ),
       body: SafeArea(
         child:
-            BlocBuilder<HomeCubit, HomeState>(builder: (contextProfile, state) {
+            BlocBuilder<GroupCubit, GroupState>(builder: (contextProfile, state) {
           return Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
             child: Form(
@@ -223,7 +223,7 @@ class _NewGroupScreenState extends State<NewGroupScreen> {
                           onTap: () {
                             showCustomImageOptionPickerDialog(
                                 context: context,
-                                onImagePicked: homeCubit.selectGroupImage);
+                                onImagePicked: groupCubit.selectGroupImage);
                           },
                           child: CircleAvatar(
                             radius: 15.r,
@@ -269,7 +269,7 @@ class _NewGroupScreenState extends State<NewGroupScreen> {
                     ),
                   ),
                   16.s,
-                  BlocBuilder<HomeCubit, HomeState>(builder: (context, state) {
+                  BlocBuilder<GroupCubit, GroupState>(builder: (context, state) {
                     return Column(
                       children: [
                         buildGroupPermission(
@@ -279,7 +279,7 @@ class _NewGroupScreenState extends State<NewGroupScreen> {
                               : 'Private Channel',
                           defaultValue: state.privateGroup,
                           onChanged: (value) {
-                            homeCubit.togglePrivateGroup(value);
+                            groupCubit.togglePrivateGroup(value);
                           },
                         ),
                         buildGroupPermission(
@@ -287,7 +287,7 @@ class _NewGroupScreenState extends State<NewGroupScreen> {
                           text: S.of(context).lblShowProfilePhoto,
                           defaultValue: state.showProfilePhotoForGroup,
                           onChanged: (value) {
-                            homeCubit.toggleShowProfilePhoto(value);
+                            groupCubit.toggleShowProfilePhoto(value);
                           },
                         ),
                         if (widget.isGroup)
@@ -296,7 +296,7 @@ class _NewGroupScreenState extends State<NewGroupScreen> {
                             text: S.of(context).allowMembersToSendMessage,
                             defaultValue: state.sendMessageForGroup,
                             onChanged: (value) {
-                              homeCubit.toggleSendMessage(value);
+                              groupCubit.toggleSendMessage(value);
                             },
                           ),
                         buildGroupPermission(
@@ -306,7 +306,7 @@ class _NewGroupScreenState extends State<NewGroupScreen> {
                               : 'Hide Subscribers Info',
                           defaultValue: state.hideMembersInfo,
                           onChanged: (value) {
-                            homeCubit.toggleHideMembersInfo(value);
+                            groupCubit.toggleHideMembersInfo(value);
                           },
                         ),
                         buildGroupPermission(
@@ -316,7 +316,7 @@ class _NewGroupScreenState extends State<NewGroupScreen> {
                               : 'Hide New Subscribers Message',
                           defaultValue: state.hideNewMembersMessage,
                           onChanged: (value) {
-                            homeCubit.toggleHideNewMembersMessage(value);
+                            groupCubit.toggleHideNewMembersMessage(value);
                           },
                         ),
                         buildGroupPermission(
@@ -324,7 +324,7 @@ class _NewGroupScreenState extends State<NewGroupScreen> {
                           text: 'Restrict Content Sharing',
                           defaultValue: state.restrictContentSharing,
                           onChanged: (value) {
-                            homeCubit.toggleRestrictContentSharing(value);
+                            groupCubit.toggleRestrictContentSharing(value);
                           },
                         ),
                       ],

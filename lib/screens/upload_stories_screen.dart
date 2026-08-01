@@ -101,93 +101,6 @@ class _UploadStoriesScreenState extends State<UploadStoriesScreen> {
                       ),
                     ),
                   );
-                  // final image =
-                  //     await Utils.fileToUint8List(cubit.selectedFile!);
-                  // final editedImage = await Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => ImageEditor(
-                  //       image: image, // <-- Uint8List of image
-                  //       // appBarColor: Colors.blue,
-                  //       // bottomBarColor: Colors.blue,
-                  //     ),
-                  //   ),
-                  // );
-                  // if (editedImage != null) {
-                  //   File file = await Utils.uint8ListToFile(editedImage,
-                  //       DateTime.now().millisecondsSinceEpoch.toString());
-                  //   cubit.setImageFile(file);
-                  //   setState(() {});
-                  // }
-                  // NavigationService().navigateTo(
-                  //   ImageEditorScreen(
-                  //     selectedFile: cubit.selectedFile!,
-                  //     onImageEdited: (File editedFile) {
-                  //       cubit.setImageFile(editedFile);
-                  //       if (mounted) {
-                  //         setState(() {});
-                  //       }
-                  //     },
-                  //   ),
-                  //   // ImageEditorScreen
-                  //   // Scaffold(
-                  //   // body: ProImageEditor.file(cubit.selectedFile!,
-                  //   //     callbacks: ProImageEditorCallbacks(
-                  //   //       onImageEditingComplete: (editedImage) async {
-                  //   //         if (editedImage != null) {
-                  //   //           File file = await Utils.uint8ListToFile(
-                  //   //               editedImage,
-                  //   //               DateTime.now()
-                  //   //                   .millisecondsSinceEpoch
-                  //   //                   .toString());
-                  //   //           cubit.setImageFile(file);
-                  //   //           Navigator.pop(context);
-                  //   //           if (mounted) {
-                  //   //             setState(() {});
-                  //   //           }
-                  //   //         }
-                  //   //       },
-                  //   //       onCloseEditor: () => Navigator.pop(context),
-                  //   //     )),
-                  //   // )
-                  // );
-
-//new
-
-                  //   String filePath = cubit.selectedFile!.path.split("/").last;
-                  // debugPrint("filePath===> $filePath");
-                  // final image =
-                  //     await Utils.fileToUint8List(cubit.selectedFile!);
-
-                  // img.Image? originalImage = img.decodeImage(image);
-
-                  // if (originalImage == null) {
-                  //   debugPrint("Error: Unable to decode the original image.");
-                  //   return;
-                  // }
-
-                  // int originalWidth = originalImage.width;
-                  // int originalHeight = originalImage.height;
-                  // final editedImage = await Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => ImageEditor(
-                  //       image: image, // <-- Uint8List of image
-                  //       // appBarColor: Colors.blue,
-                  //       // bottomBarColor: Colors.blue,
-                  //     ),
-                  //   ),
-                  // );
-                  // if (editedImage != null) {
-                  //   // File file = await Utils.uint8ListToFile(editedImage,
-                  //   //     DateTime.now().millisecondsSinceEpoch.toString());
-                  //   File file = await Utils.fixEditedImageSize(
-                  //       editedImage, originalWidth, originalHeight);
-                  //   debugPrint("Edited Image Path: ${file.path}");
-
-                  //   cubit.setImageFile(file);
-                  //   setState(() {});
-                  // }
                 },
                 behavior: HitTestBehavior.translucent,
                 child: Padding(
@@ -260,44 +173,6 @@ class _UploadStoriesScreenState extends State<UploadStoriesScreen> {
                 right: 0,
                 child: Column(
                   children: [
-                    // if (cubit.mimeType == MimeType.image)
-                    //   Padding(
-                    //     padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    //     child: CustomButton(
-                    //       onPressed: () async {
-                    //         String filePath =
-                    //             cubit.selectedFile!.path.split("/").last;
-                    //         debugPrint("filePath===> $filePath");
-                    //         final image = await Utils.fileToUint8List(
-                    //             cubit.selectedFile!);
-                    //         final editedImage = await Navigator.push(
-                    //           context,
-                    //           MaterialPageRoute(
-                    //             builder: (context) => ImageEditor(
-                    //               image: image, // <-- Uint8List of image
-                    //               // appBarColor: Colors.blue,
-                    //               // bottomBarColor: Colors.blue,
-                    //             ),
-                    //           ),
-                    //         );
-                    //         if (editedImage != null) {
-                    //           File file = await Utils.uint8ListToFile(
-                    //               editedImage, filePath);
-                    //           cubit.setImageFile(file);
-                    //           setState(() {});
-                    //         }
-                    //       },
-                    //       child: Center(
-                    //         child: Text(
-                    //           S.of(context).editImage,
-                    //           style: AppTextStyles.medium(
-                    //             fontSize: 16.sp,
-                    //             color: AppColors.white,
-                    //           ),
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   ),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16.w),
                       child: CustomTextField(

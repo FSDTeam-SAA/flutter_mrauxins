@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:two_one_two_messenger/cubit/group_state.dart';
 import 'package:two_one_two_messenger/cubit/home_state.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/models/conversation_model.dart';
@@ -11,7 +12,8 @@ import 'search_widgets.dart';
 import 'add_member_widgets.dart';
 
 class AddMemberRecentChatsBody extends StatelessWidget {
-  final HomeState state;
+  final HomeState homeState;
+  final GroupState groupState;
   final Function(UserData, bool) onContactTap;
   final String searchQuery;
   final String currentUserId;
@@ -19,7 +21,8 @@ class AddMemberRecentChatsBody extends StatelessWidget {
 
   const AddMemberRecentChatsBody({
     super.key,
-    required this.state,
+    required this.homeState,
+    required this.groupState,
     required this.onContactTap,
     required this.searchQuery,
     required this.currentUserId,
@@ -44,7 +47,7 @@ class AddMemberRecentChatsBody extends StatelessWidget {
       items: filtered,
       nameOf: _displayName,
       tileBuilder: (user) {
-        final isSelected = state.selectedUserForGroup.any(
+        final isSelected = groupState.selectedUserForGroup.any(
           (element) => element.id == user.sId,
         );
         return AddMemberContactTile(
@@ -63,7 +66,7 @@ class AddMemberRecentChatsBody extends StatelessWidget {
   }
 
   List<UserData> _recentChatUsers() {
-    final conversations = state.conversationModel?.data ?? [];
+    final conversations = homeState.conversationModel?.data ?? [];
     return conversations
         .where((chat) => chat.type == ChatType.one_to_one)
         .expand((chat) => chat.participantDetails ?? <ParticipantDetail>[])

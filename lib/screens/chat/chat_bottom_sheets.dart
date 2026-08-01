@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:two_one_two_messenger/cubit/home_cubit.dart';
-import 'package:two_one_two_messenger/cubit/home_state.dart';
+import 'package:two_one_two_messenger/cubit/group_cubit.dart';
+import 'package:two_one_two_messenger/cubit/group_state.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/extension/sizebox.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
@@ -42,7 +42,7 @@ void showDraggableBottomSheet({
           padding: EdgeInsets.symmetric(
             horizontal: 16.0.w,
           ),
-          child: BlocBuilder<HomeCubit, HomeState>(
+          child: BlocBuilder<GroupCubit, GroupState>(
               builder: (contextChat, state) {
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -59,7 +59,7 @@ void showDraggableBottomSheet({
                           currentUser: data.userData!,
                         ));
                         onRestrictContentSharingChanged(
-                            homeCubit.state.restrictContentSharing);
+                            groupCubit.state.restrictContentSharing);
                       } else if (data.chatType == ChatType.channel) {
                         Navigator.pop(context);
                         await NavigationService().navigateTo(ChannelInfoScreen(
@@ -67,7 +67,7 @@ void showDraggableBottomSheet({
                           currentUser: data.userData!,
                         ));
                         onRestrictContentSharingChanged(
-                            homeCubit.state.restrictContentSharing);
+                            groupCubit.state.restrictContentSharing);
                       }
                     }
                   },
@@ -221,7 +221,7 @@ void showDraggableBottomSheet({
                             : S.of(context).lblLeaveChannelSubTitle,
                         submitBtnText: S.of(context).yes,
                         onSubmit: () =>
-                            homeCubit.leaveGroup(context, data.chatId),
+                            groupCubit.leaveGroup(context, data.chatId),
                       );
                     },
                     child: Column(
@@ -270,7 +270,7 @@ void showDraggableBottomSheet({
                             : S.of(context).lblDeleteChannelSubTitle,
                         submitBtnText: S.of(context).delete,
                         onSubmit: () =>
-                            homeCubit.deleteGroup(context, data.chatId),
+                            groupCubit.deleteGroup(context, data.chatId),
                       );
                     },
                     child: Column(
@@ -320,7 +320,7 @@ void showDraggableBottomSheet({
                             : S.of(context).lblDeleteChannelSubTitle,
                         submitBtnText: S.of(context).delete,
                         onSubmit: () =>
-                            homeCubit.deleteGroup(context, data.chatId),
+                            groupCubit.deleteGroup(context, data.chatId),
                       );
                     },
                     child: Column(

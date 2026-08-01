@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:two_one_two_messenger/cubit/home_cubit.dart';
-import 'package:two_one_two_messenger/cubit/home_state.dart';
+import 'package:two_one_two_messenger/cubit/group_cubit.dart';
+import 'package:two_one_two_messenger/cubit/group_state.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
 import 'package:two_one_two_messenger/generated/l10n.dart';
 import 'package:two_one_two_messenger/utils/colors.dart';
@@ -25,7 +25,7 @@ class ChannelPermissionsSection extends StatelessWidget {
       ignoring: !isAdmin,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 16.w),
-        child: BlocBuilder<HomeCubit, HomeState>(builder: (context, state) {
+        child: BlocBuilder<GroupCubit, GroupState>(builder: (context, state) {
           return Column(
             children: [
               _buildGroupPermission(
@@ -33,8 +33,8 @@ class ChannelPermissionsSection extends StatelessWidget {
                 text: 'Private Channel',
                 defaultValue: state.privateGroup,
                 onChanged: (value) {
-                  homeCubit.togglePrivateGroup(value);
-                  homeCubit.updateGroupSetting(
+                  groupCubit.togglePrivateGroup(value);
+                  groupCubit.updateGroupSetting(
                       context, groupId, ChatType.channel);
                 },
               ),
@@ -43,7 +43,7 @@ class ChannelPermissionsSection extends StatelessWidget {
                 text: S.of(context).lblShowProfilePhoto,
                 defaultValue: state.showProfilePhotoForGroup,
                 onChanged: (value) {
-                  homeCubit.toggleShowProfilePhotoForUpdate(
+                  groupCubit.toggleShowProfilePhotoForUpdate(
                       context, groupId, value, ChatType.channel);
                 },
               ),
@@ -52,8 +52,8 @@ class ChannelPermissionsSection extends StatelessWidget {
                 text: 'Hide Subscribers Info',
                 defaultValue: state.hideMembersInfo,
                 onChanged: (value) {
-                  homeCubit.toggleHideMembersInfo(value);
-                  homeCubit.updateGroupSetting(
+                  groupCubit.toggleHideMembersInfo(value);
+                  groupCubit.updateGroupSetting(
                       context, groupId, ChatType.channel);
                 },
               ),
@@ -62,8 +62,8 @@ class ChannelPermissionsSection extends StatelessWidget {
                 text: 'Hide New Subscribers Message',
                 defaultValue: state.hideNewMembersMessage,
                 onChanged: (value) {
-                  homeCubit.toggleHideNewMembersMessage(value);
-                  homeCubit.updateGroupSetting(
+                  groupCubit.toggleHideNewMembersMessage(value);
+                  groupCubit.updateGroupSetting(
                       context, groupId, ChatType.channel);
                 },
               ),
@@ -72,8 +72,8 @@ class ChannelPermissionsSection extends StatelessWidget {
                 text: 'Restrict Content Sharing',
                 defaultValue: state.restrictContentSharing,
                 onChanged: (value) {
-                  homeCubit.toggleRestrictContentSharing(value);
-                  homeCubit.updateGroupSetting(
+                  groupCubit.toggleRestrictContentSharing(value);
+                  groupCubit.updateGroupSetting(
                       context, groupId, ChatType.channel);
                 },
               ),

@@ -417,7 +417,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                         final groupId =
                                             notification.groupInfo?.id ?? "";
                                         if (groupId.isNotEmpty) {
-                                          homeCubit.leaveGroup(
+                                          groupCubit.leaveGroup(
                                               context, groupId);
                                         }
                                       },

@@ -54,7 +54,7 @@ class _ChannelInviteSectionState extends State<ChannelInviteSection> {
     if (!_customLinkValid) return;
     final customName = _customLinkController.text.trim().toLowerCase();
     final newLink = 'messenger212://join/$chatId/$customName';
-    homeCubit.apiClient
+    groupCubit.repository
         .updateGroup(
       context,
       groupId: chatId,
@@ -63,7 +63,7 @@ class _ChannelInviteSectionState extends State<ChannelInviteSection> {
     )
         .then((_) {
       if (!mounted) return;
-      homeCubit.getGroupInfobyId(context, chatId);
+      groupCubit.getGroupInfobyId(context, chatId);
       Utils.showSnackBar(context, 'Share link updated.');
     });
   }

@@ -341,7 +341,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
             buildNewItem(
                 context: context,
                 onTap: () {
-                  homeCubit.cleanGroupData();
+                  groupCubit.cleanGroupData();
                   NavigationService().navigateTo(NewGroupScreen(
                     isGroup: true,
                   ));
@@ -358,7 +358,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
             buildNewItem(
                 context: context,
                 onTap: () {
-                  homeCubit.cleanGroupData();
+                  groupCubit.cleanGroupData();
                   NavigationService().navigateTo(NewGroupScreen(
                     isGroup: false,
                   ));

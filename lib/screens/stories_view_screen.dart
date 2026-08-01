@@ -88,12 +88,6 @@ class _StoriesViewScreenState extends State<StoriesViewScreen>
           return const SizedBox();
         }),
       ),
-
-      //  CommonAppBar(
-      //   isBackShow: true,
-      //   isActionsShow: false,
-
-      // ),
       body: BlocBuilder<StoriesCubit, StoriesState>(
           builder: (contextStories, state) {
         final storiesCubit = contextStories.read<StoriesCubit>();

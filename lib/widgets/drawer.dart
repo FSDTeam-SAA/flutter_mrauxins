@@ -203,7 +203,7 @@ class CustomDrawerState extends State<CustomDrawer> {
                     image: SvgAssets.icNewGroup,
                     text: S.of(context).newGroup,
                     onTap: () async {
-                      homeCubit.cleanGroupData();
+                      groupCubit.cleanGroupData();
                       NavigationService().navigateTo(NewGroupScreen(
                         isGroup: true,
                       ));
@@ -214,7 +214,7 @@ class CustomDrawerState extends State<CustomDrawer> {
                     image: SvgAssets.megaphone,
                     text: S.of(context).newChannel,
                     onTap: () async {
-                      homeCubit.cleanGroupData();
+                      groupCubit.cleanGroupData();
                       NavigationService().navigateTo(NewGroupScreen(
                         isGroup: false,
                       ));

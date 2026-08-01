@@ -222,70 +222,6 @@ class _ViewStoriesScreenState extends State<ViewStoriesScreen> {
                       )
                     ],
                   ),
-
-                  // Stack(
-                  //   children: [
-                  //     (Utils.getMediaType(data.mediaType!) == MimeType.image)
-                  //         ? Positioned.fill(
-                  //       child: AppNetworkImage(
-                  //         imageUrl: '${Urls.mediaUrl}${data.mediaUrl!}',
-                  //         fit: BoxFit.fill,
-                  //       ),
-                  //     )
-                  //         : Positioned.fill(
-                  //       child: Stack(
-                  //         children: [
-                  //           if(cubit.chewieController != null)
-                  //             Chewie(
-                  //               controller: cubit.chewieController!,
-                  //             )
-                  //           // cubit.videoController != null &&
-                  //           //         cubit.videoController!.value
-                  //           //             .isInitialized
-                  //           //     ? Center(
-                  //           //         child: AspectRatio(
-                  //           //           aspectRatio: cubit.videoController!
-                  //           //               .value.aspectRatio,
-                  //           //           child: VideoPlayer(
-                  //           //               cubit.videoController!),
-                  //           //         ),
-                  //           //       )
-                  //           //     : cubit.videoThumbnail == null ? Container() : Image.file(
-                  //           //         cubit.videoThumbnail!,
-                  //           //       ),
-                  //           /*if(cubit.flickManager != null)
-                  //             FlickVideoPlayer(
-                  //               flickManager: cubit.flickManager!,
-                  //               flickVideoWithControls: FlickVideoWithControls(
-                  //                 closedCaptionTextStyle: TextStyle(fontSize: 8),
-                  //                 controls: FlickPortraitControls(),
-                  //               ),
-                  //               flickVideoWithControlsFullscreen: FlickVideoWithControls(
-                  //                 controls: FlickLandscapeControls(),
-                  //               ),
-                  //             ),*/
-                  //           // Center(
-                  //           //   child: IconButton(
-                  //           //     onPressed: () => cubit.togglePlayPause(),
-                  //           //     icon: Icon(
-                  //           //       cubit.videoController != null &&
-                  //           //               cubit.videoController!.value
-                  //           //                   .isPlaying
-                  //           //           ? Icons.pause_circle_filled
-                  //           //           : state is VideoPlayerCompleted
-                  //           //               ? Icons.play_circle_fill_rounded
-                  //           //               : Icons
-                  //           //                   .play_circle_fill_rounded,
-                  //           //       size: 50.w,
-                  //           //       color: AppColors.white,
-                  //           //     ),
-                  //           //   ),
-                  //           // ),
-                  //         ],
-                  //       ),
-                  //     ),
-                  //   ],
-                  // )
                 );
               } else {
                 return Padding(
@@ -660,11 +596,6 @@ class _ViewStoriesScreenState extends State<ViewStoriesScreen> {
                         ),
                       )),
                 ],
-                // buildListTile(
-                //   image: '',
-                //   name: 'Abram Passaquindici Arcand',
-                //   onTap: () {},
-                // )
               ],
             ),
           );
@@ -939,64 +870,6 @@ class _ViewStoriesScreenState extends State<ViewStoriesScreen> {
       },
     )
 
-        //  Row(
-        //   crossAxisAlignment: CrossAxisAlignment.start,
-        //   children: <Widget>[
-        //     // GestureDetector(
-        //     //   onTap: () async {
-        //     //     // if (data != null) {
-        //     //     //   controller.pause();
-        //     //     //   await NavigationService().navigateTo(UserProfileScreen(
-        //     //     //     user: data.userDetails!,
-        //     //     //   ));
-        //     //     //   controller.play();
-        //     //     // }
-        //     //   },
-        //     //   child: AvatarWidgets(
-        //     //     userPic: data.mediaUrl ?? "",
-        //     //     height: 50,
-        //     //     width: 50,
-        //     //   ),
-        //     //   // Container(
-        //     //   //   width: 50.w,
-        //     //   //   height: 50.w,
-        //     //   //   decoration: BoxDecoration(
-        //     //   //     color: AppColors.darkInputFill,
-        //     //   //     shape: BoxShape.circle,
-        //     //   //   ),
-        //     //   //   child: ClipOval(
-        //     //   //     child: AvatarWidgets(
-        //     //   //         imageUrl:
-        //     //   //             '${Urls.mediaUrl}${data.userDetails?.profilePicture}'),
-        //     //   //   ),
-        //     //   // ),
-        //     // ),
-        //     // SizedBox(
-        //     //   width: 5,
-        //     // ),
-        //     Expanded(
-        //       child: Column(
-        //         crossAxisAlignment: CrossAxisAlignment.start,
-        //         mainAxisAlignment: MainAxisAlignment.start,
-        //         children: <Widget>[
-        //           // Text(
-        //           //   data. ?? '',
-        //           //   maxLines: 1,
-        //           //   style: AppTextStyles.medium(),
-        //           // ),
-        //           // SizedBox(height: 10),
-        //           ValueListenableBuilder<int>(
-        //             valueListenable: currentStoryIndex,
-        //             builder: (context, value, child) {
-        //               final date = data[value].createdAt;
-        //               return Text(date?.storyTime ?? "");
-        //             },
-        //           )
-        //         ],
-        //       ),
-        //     )
-        //   ],
-        // ),
         );
   }
 }

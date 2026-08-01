@@ -90,17 +90,6 @@ class ChatClient {
         sizeForGIF: sizeForGIF,
       );
 
-  Future<dynamic> createGroup(
-    BuildContext context, {
-    required Map<String, dynamic> inputData,
-    required List<XFile>? files,
-  }) =>
-      _apiClient.createGroup(
-        context,
-        inputData: inputData,
-        files: files,
-      );
-
   Future<dynamic> deleteChat({required String chatId}) =>
       _apiClient.deleteChat(chatId: chatId);
 

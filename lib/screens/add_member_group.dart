@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:two_one_two_messenger/cubit/group_cubit.dart';
+import 'package:two_one_two_messenger/cubit/group_state.dart';
 import 'package:two_one_two_messenger/cubit/home_cubit.dart';
 import 'package:two_one_two_messenger/cubit/home_state.dart';
 import 'package:two_one_two_messenger/extension/bloc.dart';
@@ -47,7 +49,7 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
   @override
   void initState() {
     super.initState();
-    homeCubit.clearSelectedGroupUsers();
+    groupCubit.clearSelectedGroupUsers();
     fetchAllUsers();
     _loadCurrentUserId();
     Future.microtask(() {
@@ -94,7 +96,7 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
   }
 
   void _onContactTap(UserData user, bool isSelected) {
-    if (!homeCubit.addToGroup(user, isSelected, widget.admins.length)) {
+    if (!groupCubit.addToGroup(user, isSelected, widget.admins.length)) {
       Utils.showSnackBar(
           context, S.of(context).groupMembersLimitrichMessage);
     }
@@ -118,63 +120,70 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
         subTitle: 'Up to $_memberLimit Members',
       ),
       body: SafeArea(
-        child: BlocBuilder<HomeCubit, HomeState>(
-          builder: (context, state) {
-            final selected = state.selectedUserForGroup.toList();
+        child: BlocBuilder<GroupCubit, GroupState>(
+          builder: (context, groupState) {
+            final selected = groupState.selectedUserForGroup.toList();
 
-            return Column(
-              children: [
-                AddMemberTopActionRow(
-                  selectedCount: selected.length,
-                  memberLimit: _memberLimit,
-                  onClose: () => NavigationService().goBack(),
-                  onSubmit: widget.onSubmit,
-                ),
-                AddMemberTabSwitcher(
-                  selectedTab: _selectedTab,
-                  onTabChanged: (tab) {
-                    setState(() => _selectedTab = tab);
-                    if (tab == AddPeopleTab.contacts) {
-                      fetchAllUsers(name: searchController.text.trim());
-                    }
-                  },
-                ),
-                AddMemberSearchField(
-                  controller: searchController,
-                  onChanged: _onSearchChanged,
-                  hintText: _selectedTab == AddPeopleTab.contacts
-                      ? 'Search contacts...'
-                      : 'Search recent chats...',
-                  onClear: () {
-                    _onSearchChanged('');
-                    setState(() {});
-                  },
-                ),
-                if (selected.isNotEmpty)
-                  SelectedPeopleStrip(
-                    selected: selected,
-                    onRemove: (id) => homeCubit.removeSelectedGroupUser(id),
-                  ),
-                Expanded(
-                  child: _selectedTab == AddPeopleTab.recentChats
-                      ? AddMemberRecentChatsBody(
-                          state: state,
-                          onContactTap: _onContactTap,
-                          searchQuery: searchController.text,
-                          currentUserId: _currentUserId ?? '',
-                          admins: widget.admins,
-                        )
-                      : AddMemberContactsBody(
-                          state: state,
-                          scrollController: scrollController,
-                          onScrollNearEnd: _onScrollNearEnd,
-                          onContactTap: _onContactTap,
-                          searchQuery: searchController.text,
-                          currentUserId: _currentUserId ?? '',
-                          admins: widget.admins,
-                        ),
-                ),
-              ],
+            return BlocBuilder<HomeCubit, HomeState>(
+              builder: (context, homeState) {
+                return Column(
+                  children: [
+                    AddMemberTopActionRow(
+                      selectedCount: selected.length,
+                      memberLimit: _memberLimit,
+                      onClose: () => NavigationService().goBack(),
+                      onSubmit: widget.onSubmit,
+                    ),
+                    AddMemberTabSwitcher(
+                      selectedTab: _selectedTab,
+                      onTabChanged: (tab) {
+                        setState(() => _selectedTab = tab);
+                        if (tab == AddPeopleTab.contacts) {
+                          fetchAllUsers(name: searchController.text.trim());
+                        }
+                      },
+                    ),
+                    AddMemberSearchField(
+                      controller: searchController,
+                      onChanged: _onSearchChanged,
+                      hintText: _selectedTab == AddPeopleTab.contacts
+                          ? 'Search contacts...'
+                          : 'Search recent chats...',
+                      onClear: () {
+                        _onSearchChanged('');
+                        setState(() {});
+                      },
+                    ),
+                    if (selected.isNotEmpty)
+                      SelectedPeopleStrip(
+                        selected: selected,
+                        onRemove: (id) =>
+                            groupCubit.removeSelectedGroupUser(id),
+                      ),
+                    Expanded(
+                      child: _selectedTab == AddPeopleTab.recentChats
+                          ? AddMemberRecentChatsBody(
+                              homeState: homeState,
+                              groupState: groupState,
+                              onContactTap: _onContactTap,
+                              searchQuery: searchController.text,
+                              currentUserId: _currentUserId ?? '',
+                              admins: widget.admins,
+                            )
+                          : AddMemberContactsBody(
+                              homeState: homeState,
+                              groupState: groupState,
+                              scrollController: scrollController,
+                              onScrollNearEnd: _onScrollNearEnd,
+                              onContactTap: _onContactTap,
+                              searchQuery: searchController.text,
+                              currentUserId: _currentUserId ?? '',
+                              admins: widget.admins,
+                            ),
+                    ),
+                  ],
+                );
+              },
             );
           },
         ),
