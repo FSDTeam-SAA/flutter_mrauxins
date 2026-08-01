@@ -48,7 +48,10 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
   void _validateCustomLink(String value) {
     final cleaned = value.trim().toLowerCase();
     if (cleaned.isEmpty) {
-      setState(() { _customLinkStatus = null; _customLinkValid = false; });
+      setState(() {
+        _customLinkStatus = null;
+        _customLinkValid = false;
+      });
       return;
     }
     final valid = RegExp(r'^[a-z0-9_]{5,}$').hasMatch(cleaned);
@@ -64,12 +67,14 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
     if (!_customLinkValid) return;
     final customName = _customLinkController.text.trim().toLowerCase();
     final newLink = 'messenger212://join/$chatId/$customName';
-    homeCubit.apiClient.updateGroup(
+    homeCubit.apiClient
+        .updateGroup(
       context,
       groupId: chatId,
       inputData: {"inviteLink": newLink, "chatType": "channel"},
       files: null,
-    ).then((_) {
+    )
+        .then((_) {
       if (!mounted) return;
       homeCubit.getGroupInfobyId(context, chatId);
       Utils.showSnackBar(context, 'Share link updated.');
@@ -252,16 +257,6 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
                             ),
                             buildGroupPermission(
                               context,
-                              text: 'Private Channel',
-                              defaultValue: state.privateGroup,
-                              onChanged: (value) {
-                                homeCubit.togglePrivateGroup(value);
-                                homeCubit.updateGroupSetting(
-                                    context, widget.groupId, ChatType.channel);
-                              },
-                            ),
-                            buildGroupPermission(
-                              context,
                               text: S.of(context).lblShowProfilePhoto,
                               defaultValue: state.showProfilePhotoForGroup,
                               onChanged: (value) {
@@ -270,36 +265,6 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
                                     widget.groupId,
                                     value,
                                     ChatType.channel);
-                              },
-                            ),
-                            buildGroupPermission(
-                              context,
-                              text: 'Hide Subscribers Info',
-                              defaultValue: state.hideMembersInfo,
-                              onChanged: (value) {
-                                homeCubit.toggleHideMembersInfo(value);
-                                homeCubit.updateGroupSetting(
-                                    context, widget.groupId, ChatType.channel);
-                              },
-                            ),
-                            buildGroupPermission(
-                              context,
-                              text: 'Hide New Subscribers Message',
-                              defaultValue: state.hideNewMembersMessage,
-                              onChanged: (value) {
-                                homeCubit.toggleHideNewMembersMessage(value);
-                                homeCubit.updateGroupSetting(
-                                    context, widget.groupId, ChatType.channel);
-                              },
-                            ),
-                            buildGroupPermission(
-                              context,
-                              text: 'Restrict Content Sharing',
-                              defaultValue: state.restrictContentSharing,
-                              onChanged: (value) {
-                                homeCubit.toggleRestrictContentSharing(value);
-                                homeCubit.updateGroupSetting(
-                                    context, widget.groupId, ChatType.channel);
                               },
                             ),
                             buildGroupPermission(
@@ -379,10 +344,12 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
                                 height: 45.h,
                                 padding: EdgeInsets.only(left: 14.w),
                                 decoration: BoxDecoration(
-                                  color: AppColors.white.withValues(alpha: 0.05),
+                                  color:
+                                      AppColors.white.withValues(alpha: 0.05),
                                   borderRadius: BorderRadius.circular(8.r),
                                   border: Border.all(
-                                    color: AppColors.white.withValues(alpha: 0.12),
+                                    color:
+                                        AppColors.white.withValues(alpha: 0.12),
                                   ),
                                 ),
                                 child: Row(
@@ -441,9 +408,9 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
                                   child: SizedBox(
                                     height: 46.h,
                                     child: ElevatedButton(
-                                      onPressed: () =>
-                                          Utils.copyToClipboard(context,
-                                              state.groupData?.inviteLink ?? ''),
+                                      onPressed: () => Utils.copyToClipboard(
+                                          context,
+                                          state.groupData?.inviteLink ?? ''),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: AppColors.white
                                             .withValues(alpha: 0.12),
