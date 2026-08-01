@@ -4,11 +4,15 @@ class AppConstants {
   static const String inviteLinkForIos =
       "Hey! Check out this amazing app: https://apps.apple.com/app/";
 
-  // TODO: replace with the real domain once hosting for App Links/Universal
-  // Links is decided (see /join landing page + .well-known files). Must
-  // match the host registered in AndroidManifest.xml's autoVerify
-  // intent-filter and Runner.entitlements' associated-domains entry.
-  static const String inviteLinkDomain = "212messenger.app";
+  // Dedicated subdomain of the212.me for invite links (decided over
+  // 212messenger.app placeholder / whatsthe212.me site-migration options —
+  // see project discussion). Must match the host registered in
+  // AndroidManifest.xml's autoVerify intent-filter and Runner.entitlements'
+  // associated-domains entry. Not live yet — deep_link_handler.dart already
+  // accepts this host, but link *generation* stays on the messenger212://
+  // custom scheme until hosting/.well-known files/landing page are deployed
+  // and verified, so sharing doesn't break in the meantime.
+  static const String inviteLinkDomain = "invite.the212.me";
 
   static const String appName = '212 Messenger';
   static const String messenger = 'Messenger';
