@@ -3,6 +3,13 @@ class AppConstants {
       "Hey! Check out this amazing app: https://play.google.com/store/apps/details?id=com.freshcodes.twoonetwomessenger";
   static const String inviteLinkForIos =
       "Hey! Check out this amazing app: https://apps.apple.com/app/";
+
+  // TODO: replace with the real domain once hosting for App Links/Universal
+  // Links is decided (see /join landing page + .well-known files). Must
+  // match the host registered in AndroidManifest.xml's autoVerify
+  // intent-filter and Runner.entitlements' associated-domains entry.
+  static const String inviteLinkDomain = "212messenger.app";
+
   static const String appName = '212 Messenger';
   static const String messenger = 'Messenger';
   static const String iosGiphyApiKey = "U0uXHjc7ykXaDDWYknZywVTktrXsqIJA";

@@ -4,5 +4,17 @@
 <dict>
 	<key>aps-environment</key>
 	<string>development</string>
+	<!-- Universal Links for invite-link sharing. Requires the "Associated
+	     Domains" capability to be enabled for this app's App ID in the Apple
+	     Developer portal (and the provisioning profile regenerated after),
+	     or Xcode will fail to sign the build with this entitlement present.
+	     Domain must match AppConstants.inviteLinkDomain in
+	     lib/utils/constants.dart, and only actually resolves once
+	     https://<domain>/.well-known/apple-app-site-association is live
+	     with this app's Team ID + Bundle ID. -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:212messenger.app</string>
+	</array>
 </dict>
 </plist>

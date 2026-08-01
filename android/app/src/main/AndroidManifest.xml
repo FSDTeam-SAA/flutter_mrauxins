@@ -85,6 +85,22 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="messenger212"/>
             </intent-filter>
+            <!-- Android App Links for invite-link sharing (tappable in WhatsApp/SMS/etc,
+                 unlike the custom scheme above). android:host MUST match
+                 AppConstants.inviteLinkDomain in lib/utils/constants.dart, and this only
+                 actually verifies once https://<host>/.well-known/assetlinks.json is live
+                 with this app's package name + signing cert SHA-256 fingerprint. Until then
+                 Android silently falls back to showing a disambiguation dialog instead of
+                 opening the app directly. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="212messenger.app"
+                    android:pathPrefix="/join"/>
+            </intent-filter>
         </activity>
          <service
             android:name="com.hiennv.flutter_callkit_incoming.CallkitIncomingBackgroundService"

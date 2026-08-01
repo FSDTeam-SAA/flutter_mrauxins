@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -31,22 +33,51 @@ class _ChannelInviteSectionState extends State<ChannelInviteSection> {
   final TextEditingController _customLinkController = TextEditingController();
   String? _customLinkStatus;
   bool _customLinkValid = false;
+  bool _customLinkChecking = false;
+  Timer? _linkCheckDebounce;
+
+  @override
+  void dispose() {
+    _linkCheckDebounce?.cancel();
+    _customLinkController.dispose();
+    super.dispose();
+  }
 
   void _validateCustomLink(String value) {
+    _linkCheckDebounce?.cancel();
     final cleaned = value.trim().toLowerCase();
     if (cleaned.isEmpty) {
       setState(() {
         _customLinkStatus = null;
         _customLinkValid = false;
+        _customLinkChecking = false;
       });
       return;
     }
-    final valid = RegExp(r'^[a-z0-9_]{5,}$').hasMatch(cleaned);
+    if (!RegExp(r'^[a-z0-9_]{20,}$').hasMatch(cleaned)) {
+      setState(() {
+        _customLinkValid = false;
+        _customLinkStatus = null;
+        _customLinkChecking = false;
+      });
+      return;
+    }
+    // Regex passes — debounce the backend availability check
     setState(() {
-      _customLinkValid = valid;
-      _customLinkStatus = valid
-          ? '$cleaned is available.'
-          : 'Use a-z, 0-9 and underscores. Minimum 5 characters.';
+      _customLinkChecking = true;
+      _customLinkValid = false;
+      _customLinkStatus = null;
+    });
+    _linkCheckDebounce = Timer(const Duration(milliseconds: 500), () async {
+      final available = await groupCubit.repository
+          .checkGroupInviteName(cleaned, widget.groupId);
+      if (!mounted) return;
+      setState(() {
+        _customLinkChecking = false;
+        _customLinkValid = available;
+        _customLinkStatus =
+            available ? '$cleaned is available.' : '$cleaned is already taken.';
+      });
     });
   }
 
@@ -66,6 +97,110 @@ class _ChannelInviteSectionState extends State<ChannelInviteSection> {
       groupCubit.getGroupInfobyId(context, chatId);
       Utils.showSnackBar(context, 'Share link updated.');
     });
+  }
+
+  void _showRevokeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: const Color(0xFF1E1D22),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14.r),
+            side: BorderSide(
+              color: const Color(0xFF8E1322).withValues(alpha: 0.8),
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 44.w,
+                  height: 44.w,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.white.withValues(alpha: 0.35),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.info_outline,
+                    color: AppColors.white,
+                    size: 22.sp,
+                  ),
+                ),
+                18.s,
+                Text('Revoke Link', style: AppTextStyles.medium(fontSize: 20.sp)),
+                14.s,
+                Text(
+                  'Are you sure you want to revoke this link? Once revoked, it can no longer be used to join.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.regular(
+                    fontSize: 15.sp,
+                    color: AppColors.white.withValues(alpha: 0.72),
+                  ),
+                ),
+                22.s,
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 46.h,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(dialogContext),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                AppColors.white.withValues(alpha: 0.14),
+                            foregroundColor: AppColors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24.r),
+                            ),
+                          ),
+                          child: Text('Cancel',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.medium(fontSize: 15.sp)),
+                        ),
+                      ),
+                    ),
+                    12.s,
+                    Expanded(
+                      child: SizedBox(
+                        height: 46.h,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(dialogContext);
+                            groupCubit.revokeGroupInviteLink(
+                                context, widget.groupId);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF930C17),
+                            foregroundColor: AppColors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24.r),
+                              side: const BorderSide(color: Color(0xFFDF3340)),
+                            ),
+                          ),
+                          child: Text('Revoke',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.medium(fontSize: 15.sp)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -141,13 +276,30 @@ class _ChannelInviteSectionState extends State<ChannelInviteSection> {
                         ),
                       ),
                     ),
-                    if (_customLinkValid)
+                    if (_customLinkChecking)
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.w),
+                        child: SizedBox(
+                          width: 16.w,
+                          height: 16.w,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.5,
+                            color: AppColors.white.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      )
+                    else if (_customLinkValid)
                       IconButton(
                         onPressed: () =>
                             _saveCustomLink(context, widget.groupId),
                         icon: Icon(Icons.check_circle,
                             color: Colors.green, size: 22.sp),
                       ),
+                    IconButton(
+                      onPressed: () => _showRevokeDialog(context),
+                      icon: Icon(Icons.more_vert,
+                          color: AppColors.white, size: 20.sp),
+                    ),
                   ],
                 ),
               ),
@@ -161,6 +313,14 @@ class _ChannelInviteSectionState extends State<ChannelInviteSection> {
                   ),
                 ),
               ],
+              8.s,
+              Text(
+                'Use a-z, 0-9 and underscores. Minimum 20 characters.',
+                style: AppTextStyles.regular(
+                  fontSize: 13.sp,
+                  color: AppColors.white.withValues(alpha: 0.5),
+                ),
+              ),
               12.s,
             ],
             Row(

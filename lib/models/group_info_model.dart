@@ -68,6 +68,9 @@ class GroupData extends Equatable {
   final String? privacy;
   final String? inviteLink;
   final int? participantCount;
+  // "group" or "channel". Nullable because older/unpatched backend responses
+  // may not send it yet — callers must treat null as "unknown", not "group".
+  final String? chatType;
   const GroupData({
     this.groupId,
     this.groupName,
@@ -86,6 +89,7 @@ class GroupData extends Equatable {
     this.inviteLink,
     this.privacy,
     this.participantCount,
+    this.chatType,
   });
 
   GroupData copyWith({
@@ -106,6 +110,7 @@ class GroupData extends Equatable {
     String? privacy,
     String? inviteLink,
     int? participantCount,
+    String? chatType,
   }) =>
       GroupData(
           groupId: groupId ?? this.groupId,
@@ -127,7 +132,8 @@ class GroupData extends Equatable {
           isCreatedBy: isCreatedBy ?? this.isCreatedBy,
           privacy: privacy ?? this.privacy,
           inviteLink: inviteLink ?? this.inviteLink,
-          participantCount: participantCount ?? this.participantCount);
+          participantCount: participantCount ?? this.participantCount,
+          chatType: chatType ?? this.chatType);
 
   factory GroupData.fromJson(Map<String, dynamic> json) => GroupData(
         groupId: json["groupId"],
@@ -155,6 +161,7 @@ class GroupData extends Equatable {
         privacy: json["privacy"],
         inviteLink: json["inviteLink"],
         participantCount: json["participantCount"],
+        chatType: json["chatType"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -177,7 +184,8 @@ class GroupData extends Equatable {
         "isGroupProfilePhoto": isGroupProfilePhoto,
         "isCreatedBy": isCreatedBy,
         "privacy": privacy,
-        "inviteLink": inviteLink
+        "inviteLink": inviteLink,
+        "chatType": chatType,
       };
   @override
   List<Object?> get props => [
@@ -197,6 +205,7 @@ class GroupData extends Equatable {
         privacy,
         inviteLink,
         participantCount,
+        chatType,
       ];
 }
 
