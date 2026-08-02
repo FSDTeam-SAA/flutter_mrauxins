@@ -10,6 +10,7 @@ import 'package:two_one_two_messenger/utils/text_style.dart';
 
 import '../utils/colors.dart';
 import '../widgets/appbar.dart';
+import '../widgets/keyboard_safe_scaffold.dart';
 import 'search/contacts_body.dart';
 import 'search/database_body.dart';
 import 'search/search_tab.dart';
@@ -100,7 +101,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return KeyboardSafeScaffold(
       appBar: CommonAppBar(
         isBackShow: true,
         title: S.of(context).lblSearchUser,

@@ -21,6 +21,7 @@ import '../widgets/buttons.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
 import '../utils/text_style.dart';
+import '../widgets/keyboard_safe_scaffold.dart';
 import '../widgets/svg_images.dart';
 import '../widgets/text_fields.dart';
 import '../utils/utils.dart';
@@ -57,7 +58,7 @@ class LoginFormState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return KeyboardSafeScaffold(
       bottomNavigationBar: Padding(
         padding: EdgeInsets.only(
             left: 32.w, right: 32.w, bottom: Platform.isIOS ? 32.h : 16.h),

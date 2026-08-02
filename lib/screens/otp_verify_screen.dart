@@ -21,6 +21,7 @@ import '../utils/colors.dart';
 import '../utils/constants.dart';
 import '../utils/text_style.dart';
 import '../utils/utils.dart';
+import '../widgets/keyboard_safe_scaffold.dart';
 import '../widgets/svg_images.dart';
 import 'home_screen.dart';
 
@@ -111,7 +112,7 @@ class OtpVerifyFormState extends State<OtpVerifyScreen> {
         }
         context.dismissKeyboard();
       },
-      child: Scaffold(
+      child: KeyboardSafeScaffold(
         appBar: AppBar(
             automaticallyImplyLeading: false,
             backgroundColor: AppColors.dark,

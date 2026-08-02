@@ -18,6 +18,7 @@ import '../utils/constants.dart';
 import '../utils/navigation.dart';
 import '../utils/text_style.dart';
 import '../widgets/buttons.dart';
+import '../widgets/keyboard_safe_scaffold.dart';
 import '../widgets/text_fields.dart';
 
 class UploadStoriesScreen extends StatefulWidget {
@@ -49,7 +50,7 @@ class _UploadStoriesScreenState extends State<UploadStoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return KeyboardSafeScaffold(
       appBar: AppBar(
         backgroundColor: AppColors.dark,
         leading: IconButton(

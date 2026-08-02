@@ -28,6 +28,7 @@ import 'package:two_one_two_messenger/services/socket_service.dart';
 import 'package:two_one_two_messenger/utils/colors.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
 import 'package:two_one_two_messenger/widgets/annotated_region.dart';
+import 'package:two_one_two_messenger/widgets/keyboard_safe_scaffold.dart';
 import 'cubit/call_cubit.dart';
 import 'cubit/chat_cubit.dart';
 import 'cubit/create_stories_cubit.dart';
@@ -287,8 +288,23 @@ class MyApp extends StatelessWidget {
                           return CustomAnnotatedRegions(
                             child: Scaffold(
                               resizeToAvoidBottomInset: false,
-                              body: SafeArea(
-                                top: false,
+                              body: ValueListenableBuilder<int>(
+                                valueListenable: activeSelfManagedInsetScreens,
+                                builder:
+                                    (context, selfManagedCount, safeAreaChild) {
+                                  return SafeArea(
+                                    top: false,
+                                    // Screens using KeyboardSafeScaffold
+                                    // reserve this space themselves, in
+                                    // lockstep with their own keyboard-close
+                                    // animation. Also reserving it here would
+                                    // double-reserve it on a different
+                                    // timeline and reintroduce the
+                                    // keyboard-close hairline seam.
+                                    bottom: selfManagedCount == 0,
+                                    child: safeAreaChild!,
+                                  );
+                                },
                                 child: GestureDetector(
                                   onTap: () {
                                     Utils.hideKeyboardInApp(context);

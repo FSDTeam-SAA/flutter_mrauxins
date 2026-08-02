@@ -18,6 +18,7 @@ import 'package:two_one_two_messenger/services/socket_service.dart';
 import 'package:two_one_two_messenger/utils/navigation.dart';
 import 'package:two_one_two_messenger/widgets/app_check_box.dart';
 import 'package:two_one_two_messenger/widgets/buttons.dart';
+import 'package:two_one_two_messenger/widgets/keyboard_safe_scaffold.dart';
 import 'package:two_one_two_messenger/widgets/chat_bubble.dart';
 import 'package:two_one_two_messenger/widgets/custom_loading_widget.dart';
 import 'package:two_one_two_messenger/widgets/refresh_indicator%20copy.dart';
@@ -296,7 +297,7 @@ class _ForwardMessageScreenState extends State<ForwardMessageScreen> {
   @override
   Widget build(BuildContext context) {
     showMessage("forwarded Message==> ${widget.message.type}");
-    return Scaffold(
+    return KeyboardSafeScaffold(
       appBar: CommonAppBar(
         isBackShow: true,
         title: S.of(context).forwardTo,

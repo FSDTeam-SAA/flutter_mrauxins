@@ -9,6 +9,7 @@ import 'package:two_one_two_messenger/utils/colors.dart';
 import 'package:two_one_two_messenger/utils/text_style.dart';
 import 'package:two_one_two_messenger/widgets/appbar.dart';
 import 'package:two_one_two_messenger/widgets/buttons.dart';
+import 'package:two_one_two_messenger/widgets/keyboard_safe_scaffold.dart';
 import 'package:two_one_two_messenger/widgets/text_fields.dart';
 
 class ReportUserPage extends StatefulWidget {
@@ -40,7 +41,7 @@ class _ReportUserPageState extends State<ReportUserPage> {
       {"key": "Hate Speech", "label": S.of(context).reportReasonHateSpeech},
       {"key": "other", "label": S.of(context).other}
     ];
-    return Scaffold(
+    return KeyboardSafeScaffold(
       appBar: CommonAppBar(
         isActionsShow: false,
         isBackShow: true,
