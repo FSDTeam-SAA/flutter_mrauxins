@@ -42,7 +42,7 @@ class DatabaseBody extends StatelessWidget {
       emptyState: Center(
         child: Text(
           searchQuery.isEmpty
-              ? 'Search for public users, groups & channels'
+              ? 'Search for public users, groups, and channels.'
               : S.of(context).noContactsFound,
           style: AppTextStyles.regular(
               fontSize: 14.sp, color: AppColors.white.withValues(alpha: 0.5)),
@@ -119,8 +119,12 @@ class _DatabaseResultTile extends StatelessWidget {
       }
       return '';
     }
-    final memberCount = item['memberCount'] ?? 0;
-    return '${type == 'channel' ? 'Channel' : 'Group'} · $memberCount members';
+    final memberCount = int.tryParse('${item['memberCount'] ?? 0}') ?? 0;
+    final label = type == 'channel' ? S.of(context).channel : S.of(context).group;
+    final count = type == 'channel'
+        ? S.of(context).noOfSubscriber(memberCount)
+        : S.of(context).noOfMember(memberCount);
+    return '$label · $count';
   }
 
   Future<void> _onDatabaseItemTap(

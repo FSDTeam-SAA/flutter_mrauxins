@@ -79,6 +79,11 @@ class _ChatScreenState extends State<ChatScreen> {
   // setting from the info screen while this chat is open beneath it.
   bool _restrictContentSharing = false;
 
+  // True only when isSendMessage just flipped to false via the live socket
+  // push (not on fresh screen entry) — drives which "can't send" notice
+  // ChatInputBar shows. Reset whenever the screen re-syncs from a fetch.
+  bool _permissionJustRevokedLive = false;
+
   final scrollController = ScrollController();
   final _scrollController = AutoScrollController(
     axis: Axis.vertical,
@@ -402,11 +407,18 @@ class _ChatScreenState extends State<ChatScreen> {
       if (widget.chatType != ChatType.one_to_one &&
           mounted &&
           chatCubit.chatId == data["chatId"]) {
+        final updated = data["isSendMessage"] ?? true;
         setState(() {
-          widget.isSendMessage = data["isSendMessage"] ?? true;
+          widget.isSendMessage = updated;
+          _permissionJustRevokedLive = !updated;
         });
       }
     });
+    // Safety net for a missed/dropped permission-update event (e.g. socket
+    // briefly disconnected while an admin toggled the setting): whenever the
+    // socket (re)connects, re-fetch the group's current isSendMessage so a
+    // stale input-bar state self-heals instead of requiring leave/re-enter.
+    _socketService.onConnectionChange = _onSocketConnectionChange;
     _socketService.onPinnedMessage((data) {
       showMessage(
           ":: onPinnedMessage==> $data ${widget.userId} ${mounted && chatCubit.chatId == data["chatId"]}");
@@ -434,7 +446,34 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  void _onSocketConnectionChange(bool connected) {
+    if (connected) _reconcileSendPermission();
+  }
+
+  Future<void> _reconcileSendPermission() async {
+    if (!mounted ||
+        widget.chatType == ChatType.one_to_one ||
+        widget.chatId.isEmpty) {
+      return;
+    }
+    await groupCubit.getGroupInfobyId(context, widget.chatId,
+        isLoaderVisible: false);
+    if (!mounted) return;
+    final latest = groupCubit.state.groupData?.isSendMessage;
+    // A reconciliation fetch reflects whatever is currently persisted, not
+    // an event that "just happened" — always show the generic notice for it.
+    if (latest != null && latest != widget.isSendMessage) {
+      setState(() {
+        widget.isSendMessage = latest;
+        _permissionJustRevokedLive = false;
+      });
+    }
+  }
+
   void disposeAllEvents() {
+    if (identical(_socketService.onConnectionChange, _onSocketConnectionChange)) {
+      _socketService.onConnectionChange = null;
+    }
     _socketService.off(AppConstants.updateMessageStatus);
     _socketService.off(AppConstants.socketUserOnline);
     _socketService.off(AppConstants.userBlockedyou);
@@ -557,6 +596,7 @@ class _ChatScreenState extends State<ChatScreen> {
       aesKey: widget.aesKey,
       sender: widget.sender,
       isSendMessage: widget.isSendMessage,
+      permissionJustRevokedLive: _permissionJustRevokedLive,
       isDeletedUser: widget.isDeletedUser,
       isShowProfileImage: widget.isShowProfileImage,
       restrictContentSharing: _restrictContentSharing,
@@ -582,34 +622,52 @@ class _ChatScreenState extends State<ChatScreen> {
         bottom: false,
         child: Scaffold(
           backgroundColor: AppColors.scaffoldBgDark,
+          // The outer Scaffold in main.dart already sets
+          // resizeToAvoidBottomInset: false. Matching it here avoids two
+          // Scaffolds independently reacting to raw per-frame keyboard-inset
+          // updates — that mismatch was producing a tearing/pixelated seam
+          // between the message list and input bar on keyboard close. The
+          // AnimatedPadding below drives a single, smooth transition instead.
+          resizeToAvoidBottomInset: false,
           appBar: ChatAppBar(
             data: chatData,
             onNickNameStatusChanged: _onNickNameStatusChanged,
             onNickNameChanged: _onNickNameChanged,
             onRestrictContentSharingChanged: _syncRestrictContentSharing,
           ),
-          body: Column(
-            children: [
-              Expanded(
-                child: ChatMessageList(
-                  data: chatData,
-                  messageKeys: messageKeys,
-                  highlightedMessageId: highlightedMessageId,
-                  scrollController: _scrollController,
-                  onHighlightMessage: onHighlightMessage,
-                  onMessageListChanged: (list) => messageList = list,
-                  onDisappearingMessagesTimeChanged: (time) =>
-                      disAppearingMessagesTime = time,
-                  onRefresh: () => getMessages(widget.chatId, widget.aesKey),
+          body: AnimatedPadding(
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom),
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            child: Column(
+              children: [
+                Expanded(
+                  child: RepaintBoundary(
+                    child: ChatMessageList(
+                      data: chatData,
+                      messageKeys: messageKeys,
+                      highlightedMessageId: highlightedMessageId,
+                      scrollController: _scrollController,
+                      onHighlightMessage: onHighlightMessage,
+                      onMessageListChanged: (list) => messageList = list,
+                      onDisappearingMessagesTimeChanged: (time) =>
+                          disAppearingMessagesTime = time,
+                      onRefresh: () =>
+                          getMessages(widget.chatId, widget.aesKey),
+                    ),
+                  ),
                 ),
-              ),
-              SizedBox(height: 16.h),
-              ChatInputBar(
-                data: chatData,
-                messageCon: messageCon,
-                focusNode: _focusNode,
-              ),
-            ],
+                Padding(
+                  padding: EdgeInsets.only(top: 16.h),
+                  child: ChatInputBar(
+                    data: chatData,
+                    messageCon: messageCon,
+                    focusNode: _focusNode,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

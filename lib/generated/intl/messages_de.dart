@@ -48,9 +48,11 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m10(MemberName, group) =>
       "${MemberName} wurde aus der ${group} entfernt.";
 
-  static String m11(value) => "${value} Mitglieder";
+  static String m11(value) =>
+      "${Intl.plural(value, one: '${value} Mitglied', other: '${value} Mitglieder')}";
 
-  static String m12(value) => "${value} Abonnent";
+  static String m12(value) =>
+      "${Intl.plural(value, one: '${value} Abonnent', other: '${value} Abonnenten')}";
 
   static String m13(number) => "${number} archivierte Chats verfügbar";
 
@@ -96,6 +98,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Abonnenten hinzufügen",
     ),
     "admin": MessageLookupByLibrary.simpleMessage("Administrator"),
+    "adminDisabledGroupMessages": MessageLookupByLibrary.simpleMessage(
+      "Ein Administrator hat Nachrichten von Gruppenmitgliedern deaktiviert.",
+    ),
     "allowMembersToSendMessage": MessageLookupByLibrary.simpleMessage(
       "Mitgliedern erlauben, Nachrichten zu senden",
     ),

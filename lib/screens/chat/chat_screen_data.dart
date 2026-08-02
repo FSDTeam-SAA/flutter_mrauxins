@@ -18,6 +18,7 @@ class ChatScreenData {
   final String aesKey;
   final ParticipantDetail? sender;
   final bool isSendMessage;
+  final bool permissionJustRevokedLive;
   final bool isDeletedUser;
   final bool isShowProfileImage;
   final bool restrictContentSharing;
@@ -35,6 +36,7 @@ class ChatScreenData {
     required this.aesKey,
     required this.sender,
     required this.isSendMessage,
+    this.permissionJustRevokedLive = false,
     required this.isDeletedUser,
     required this.isShowProfileImage,
     required this.restrictContentSharing,

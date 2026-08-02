@@ -118,6 +118,7 @@
   "block": "Blokkeren",
   "unBlockUser": "Gebruiker deblokkeren",
   "onlyAdminsCanSendMessages": "Alleen beheerders kunnen berichten verzenden",
+  "adminDisabledGroupMessages": "Een beheerder heeft berichten van groepsleden uitgeschakeld.",
   "language": "Taal", "languages": "Talen",
   "update": "Bijwerken",
   "blockedUserCannotSendMessage": "Je kunt geen berichten sturen naar {userName} omdat je hen hebt geblokkeerd.",
@@ -184,8 +185,22 @@
   "emailAddressIsAlreadyUpdated": "Wijzig het e-mailadres voordat je het bijwerkt.",
   "noContactsFound": "Geen geregistreerde contacten beschikbaar. Nodig een lid uit.",
   "admin": "Beheerder",
-  "noOfMember": "{value} Leden",
-  "noOfSubscriber": "{value} Abonnee",
+  "noOfMember": "{value, plural, one{{value} Lid} other{{value} Leden}}",
+  "@noOfMember": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "noOfSubscriber": "{value, plural, one{{value} Abonnee} other{{value} Abonnees}}",
+  "@noOfSubscriber": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
   "groupPermission": "Groepsrechten",
   "channelPermission": "Kanaalrechten",
   "groupMembers": "Groepsleden",

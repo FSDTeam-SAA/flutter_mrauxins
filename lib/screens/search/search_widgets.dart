@@ -115,7 +115,14 @@ class _GroupedListWithRailState<T> extends State<GroupedListWithRail<T>> {
     return lastBefore ?? sorted.first;
   }
 
-  void _scrollToSection(String letter) {
+  // `animate: false` (used while the finger is actively dragging) jumps
+  // instantly instead of running the usual 200ms easeOut transition. With a
+  // fast drag, onVerticalDragUpdate fires far more often than every 200ms,
+  // so an animated ensureVisible on every frame kept interrupting its own
+  // still-in-flight animation and the list perpetually chased a moving
+  // target instead of tracking the finger. A single discrete tap still gets
+  // the animated snap.
+  void _scrollToSection(String letter, {required bool animate}) {
     final target = _nearestSection(letter);
     if (target == null) return;
 
@@ -124,7 +131,7 @@ class _GroupedListWithRailState<T> extends State<GroupedListWithRail<T>> {
     if (key?.currentContext != null) {
       Scrollable.ensureVisible(
         key!.currentContext!,
-        duration: const Duration(milliseconds: 200),
+        duration: animate ? const Duration(milliseconds: 200) : Duration.zero,
         curve: Curves.easeOut,
       );
       return;
@@ -144,12 +151,13 @@ class _GroupedListWithRailState<T> extends State<GroupedListWithRail<T>> {
       final k = _sectionKeys[target];
       if (k?.currentContext != null) {
         Scrollable.ensureVisible(k!.currentContext!,
-            duration: const Duration(milliseconds: 100));
+            duration:
+                animate ? const Duration(milliseconds: 100) : Duration.zero);
       }
     });
   }
 
-  void _onRailInteraction(Offset globalPosition) {
+  void _onRailInteraction(Offset globalPosition, {required bool animate}) {
     final railBox = _railKey.currentContext?.findRenderObject() as RenderBox?;
     if (railBox == null) return;
     final localY = railBox.globalToLocal(globalPosition).dy;
@@ -162,7 +170,7 @@ class _GroupedListWithRailState<T> extends State<GroupedListWithRail<T>> {
     if (letter != _activeRailLetter) {
       setState(() => _activeRailLetter = letter);
     }
-    _scrollToSection(letter);
+    _scrollToSection(letter, animate: animate);
   }
 
   @override
@@ -247,8 +255,9 @@ class _GroupedListWithRailState<T> extends State<GroupedListWithRail<T>> {
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#';
     return GestureDetector(
       key: _railKey,
-      onVerticalDragUpdate: (d) => _onRailInteraction(d.globalPosition),
-      onTapDown: (d) => _onRailInteraction(d.globalPosition),
+      onVerticalDragUpdate: (d) =>
+          _onRailInteraction(d.globalPosition, animate: false),
+      onTapDown: (d) => _onRailInteraction(d.globalPosition, animate: true),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: letters

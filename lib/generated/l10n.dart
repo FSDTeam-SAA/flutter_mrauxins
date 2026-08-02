@@ -1,6 +1,7 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import 'intl/messages_all.dart';
 
 // **************************************************************************
@@ -28,10 +29,9 @@ class S {
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name =
-        (locale.countryCode?.isEmpty ?? false)
-            ? locale.languageCode
-            : locale.toString();
+    final name = (locale.countryCode?.isEmpty ?? false)
+        ? locale.languageCode
+        : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -1085,6 +1085,16 @@ class S {
     );
   }
 
+  /// `An administrator has disabled messages from group members.`
+  String get adminDisabledGroupMessages {
+    return Intl.message(
+      'An administrator has disabled messages from group members.',
+      name: 'adminDisabledGroupMessages',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Language`
   String get language {
     return Intl.message('Language', name: 'language', desc: '', args: []);
@@ -1640,20 +1650,24 @@ class S {
     return Intl.message('Admin', name: 'admin', desc: '', args: []);
   }
 
-  /// `{value} Members`
-  String noOfMember(Object value) {
-    return Intl.message(
-      '$value Members',
+  /// `{value, plural, one{{value} Member} other{{value} Members}}`
+  String noOfMember(int value) {
+    return Intl.plural(
+      value,
+      one: '$value Member',
+      other: '$value Members',
       name: 'noOfMember',
       desc: '',
       args: [value],
     );
   }
 
-  /// `{value} Subscriber`
-  String noOfSubscriber(Object value) {
-    return Intl.message(
-      '$value Subscriber',
+  /// `{value, plural, one{{value} Subscriber} other{{value} Subscribers}}`
+  String noOfSubscriber(int value) {
+    return Intl.plural(
+      value,
+      one: '$value Subscriber',
+      other: '$value Subscribers',
       name: 'noOfSubscriber',
       desc: '',
       args: [value],

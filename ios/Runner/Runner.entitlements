@@ -8,15 +8,17 @@
 	     Domains" capability to be enabled for this app's App ID in the Apple
 	     Developer portal (and the provisioning profile regenerated after),
 	     or Xcode will fail to sign the build with this entitlement present.
-	     invite.the212.me is a dedicated subdomain of the client's main site
-	     (the212.me), kept separate from the website's own hosting/DNS. Must
-	     match AppConstants.inviteLinkDomain in lib/utils/constants.dart, and
-	     only actually resolves once
-	     https://invite.the212.me/.well-known/apple-app-site-association is
-	     live with this app's Team ID + Bundle ID. -->
+	     the212.me is the client's main domain — it's being freed up for this
+	     purpose once their host moves the website to whatsthe212.me (mirrors
+	     Telegram's t.me/telegram.org split). Must match
+	     AppConstants.inviteLinkDomain in lib/utils/constants.dart, and only
+	     actually resolves once
+	     https://the212.me/.well-known/apple-app-site-association is live
+	     with this app's Team ID + Bundle ID, and only after that domain swap
+	     happens. -->
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:invite.the212.me</string>
+		<string>applinks:the212.me</string>
 	</array>
 </dict>
 </plist>

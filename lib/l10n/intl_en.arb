@@ -119,6 +119,7 @@
   "block": "Block",
   "unBlockUser": "Unblock User",
   "onlyAdminsCanSendMessages": "Only Admins can send messages",
+  "adminDisabledGroupMessages": "An administrator has disabled messages from group members.",
   "language": "Language",
   "languages": "Languages",
   "update": "Update",
@@ -184,8 +185,22 @@
   "emailAddressIsAlreadyUpdated": "Please change email address before the update",
   "noContactsFound": "No registered contact available. Please invite a member",
   "admin": "Admin",
-  "noOfMember": "{value} Members",
-  "noOfSubscriber": "{value} Subscriber",
+  "noOfMember": "{value, plural, one{{value} Member} other{{value} Members}}",
+  "@noOfMember": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "noOfSubscriber": "{value, plural, one{{value} Subscriber} other{{value} Subscribers}}",
+  "@noOfSubscriber": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
   "groupPermission": "Group Permission",
   "channelPermission": "Channel Permission",
   "groupMembers": "Group Members",

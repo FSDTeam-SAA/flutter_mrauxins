@@ -87,21 +87,21 @@
             </intent-filter>
             <!-- Android App Links for invite-link sharing (tappable in WhatsApp/SMS/etc,
                  unlike the custom scheme above). android:host MUST match
-                 AppConstants.inviteLinkDomain in lib/utils/constants.dart. invite.the212.me
-                 is a dedicated subdomain of the client's main site (the212.me), kept
-                 separate so this never interferes with the website's own hosting/DNS.
-                 This only actually verifies once
-                 https://invite.the212.me/.well-known/assetlinks.json is live with this
-                 app's package name + signing cert SHA-256 fingerprint. Until then Android
-                 silently falls back to showing a disambiguation dialog instead of opening
-                 the app directly. -->
+                 AppConstants.inviteLinkDomain in lib/utils/constants.dart. the212.me is
+                 the client's main domain — it's being freed up for this purpose once
+                 their host moves the website to whatsthe212.me (mirrors Telegram's
+                 t.me/telegram.org split). This only actually verifies once
+                 https://the212.me/.well-known/assetlinks.json is live with this app's
+                 package name + signing cert SHA-256 fingerprint, and only after that
+                 domain swap happens. Until then Android silently falls back to showing a
+                 disambiguation dialog instead of opening the app directly. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data
                     android:scheme="https"
-                    android:host="invite.the212.me"
+                    android:host="the212.me"
                     android:pathPrefix="/join"/>
             </intent-filter>
         </activity>

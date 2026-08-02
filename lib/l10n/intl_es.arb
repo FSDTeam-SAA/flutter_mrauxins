@@ -117,6 +117,7 @@
   "block": "Bloquear",
   "unBlockUser": "Desbloquear usuario",
   "onlyAdminsCanSendMessages": "Solo los administradores pueden enviar mensajes",
+  "adminDisabledGroupMessages": "Un administrador ha deshabilitado los mensajes de los miembros del grupo.",
   "language": "Idioma", "languages": "Idiomas",
   "update": "Actualizar",
   "blockedUserCannotSendMessage": "No puedes enviar mensajes a {userName} porque los has bloqueado.",
@@ -182,8 +183,22 @@
   "emailAddressIsAlreadyUpdated": "Por favor, cambia la dirección de correo electrónico antes de actualizar.",
   "noContactsFound": "No hay contactos registrados disponibles. Por favor, invita a un miembro.",
   "admin": "Administrador",
-  "noOfMember": "{value} Miembros",
-  "noOfSubscriber": "{value} Suscriptor",
+  "noOfMember": "{value, plural, one{{value} Miembro} other{{value} Miembros}}",
+  "@noOfMember": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "noOfSubscriber": "{value, plural, one{{value} Suscriptor} other{{value} Suscriptores}}",
+  "@noOfSubscriber": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
   "groupPermission": "Permiso de grupo",
   "channelPermission": "Permiso del canal",
   "groupMembers": "Miembros del grupo",

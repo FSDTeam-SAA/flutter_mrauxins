@@ -230,7 +230,9 @@ class ChatInputBar extends StatelessWidget {
             alignment: Alignment.center,
             padding: EdgeInsets.all(16.w),
             color: AppColors.dialogBg,
-            child: Text(S.of(context).onlyAdminsCanSendMessages));
+            child: Text(data.permissionJustRevokedLive
+                ? S.of(context).adminDisabledGroupMessages
+                : S.of(context).onlyAdminsCanSendMessages));
       } else {
         return Container(
           color: Colors.red,

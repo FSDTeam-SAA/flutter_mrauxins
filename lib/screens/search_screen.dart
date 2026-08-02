@@ -33,7 +33,6 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void initState() {
     super.initState();
-    _searchDatabase("");
   }
 
   @override
@@ -56,19 +55,25 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _searchDatabase(String query) {
+    if (query.trim().isEmpty) {
+      // Don't fetch or show anything until the user actually searches — the
+      // results area shows a placeholder instead (see DatabaseBody).
+      setState(() {
+        _databaseResults = [];
+        _databaseLoading = false;
+      });
+      return;
+    }
     setState(() => _databaseLoading = true);
     groupCubit.repository.searchDatabase(search: query).then((results) {
       if (mounted) {
         final q = query.toLowerCase();
         final all = results.cast<Map<String, dynamic>>();
-        final filtered = q.isEmpty
-            ? all
-            : all.where((item) {
-                final name = (item['name'] ?? '').toString().toLowerCase();
-                final userName =
-                    (item['userName'] ?? '').toString().toLowerCase();
-                return name.startsWith(q) || userName.startsWith(q);
-              }).toList();
+        final filtered = all.where((item) {
+          final name = (item['name'] ?? '').toString().toLowerCase();
+          final userName = (item['userName'] ?? '').toString().toLowerCase();
+          return name.startsWith(q) || userName.startsWith(q);
+        }).toList();
         setState(() {
           _databaseResults = filtered;
           _databaseLoading = false;
