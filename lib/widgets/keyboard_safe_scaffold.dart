@@ -49,12 +49,22 @@ class _KeyboardSafeScaffoldState extends State<KeyboardSafeScaffold> {
   @override
   void initState() {
     super.initState();
-    activeSelfManagedInsetScreens.value++;
+    // Deferred: mutating the ValueNotifier synchronously here would notify
+    // main.dart's ValueListenableBuilder — an ancestor — while this widget's
+    // own first build is still in progress, which throws "setState() or
+    // markNeedsBuild() called during build". Registering a frame late is
+    // harmless (worst case: one extra frame of the app-root SafeArea still
+    // reserving space, i.e. the safe/conservative direction).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      activeSelfManagedInsetScreens.value++;
+    });
   }
 
   @override
   void dispose() {
-    activeSelfManagedInsetScreens.value--;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      activeSelfManagedInsetScreens.value--;
+    });
     super.dispose();
   }
 
