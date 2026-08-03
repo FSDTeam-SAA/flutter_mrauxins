@@ -131,7 +131,6 @@ dev_dependencies:
 
 dependency_overrides:
   # video_player:
-  record_platform_interface: 1.2.0
   syncfusion_flutter_sliders: ^33.2.7
 
 flutter_launcher_icons:
