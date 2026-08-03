@@ -96,6 +96,8 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
                   ChannelAvatarPicker(
                     selectedGroupPic: state.selectedGroupPic,
                     groupImage: state.groupData?.groupImage,
+                    isGroupProfilePhoto:
+                        state.groupData?.isGroupProfilePhoto ?? true,
                     isAdmin: isAdmin,
                   ),
                   SizedBox(height: 24.h),

@@ -146,6 +146,7 @@ class GroupCubit extends Cubit<GroupState> {
         hideMembersInfo: false,
         hideNewMembersMessage: false,
         restrictContentSharing: false,
+        showGroupProfilePhoto: true,
         groupNameController: TextEditingController(),
         clearSelectedGroupPic: true,
         isUpdateGroupData: true,

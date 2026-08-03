@@ -81,7 +81,7 @@ class _GroupSettingsSectionState extends State<GroupSettingsSection> {
                     ),
                     _buildGroupPermission(
                       context,
-                      text: 'Show Members Profile Photo',
+                      text: 'Show User Profile Photos',
                       defaultValue: state.showProfilePhotoForGroup,
                       onChanged: widget.isAdmin
                           ? (value) {
@@ -92,7 +92,7 @@ class _GroupSettingsSectionState extends State<GroupSettingsSection> {
                     ),
                     _buildGroupPermission(
                       context,
-                      text: 'Show Group Profile Photo',
+                      text: 'Show Group Display Image',
                       defaultValue: state.showGroupProfilePhoto,
                       onChanged: widget.isAdmin
                           ? (value) {

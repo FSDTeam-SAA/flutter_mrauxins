@@ -2239,10 +2239,10 @@ class S {
     return Intl.message('Channel', name: 'channel', desc: '', args: []);
   }
 
-  /// `Show Profile photo`
+  /// `Show User Profile Photos`
   String get lblShowProfilePhoto {
     return Intl.message(
-      'Show Profile photo',
+      'Show User Profile Photos',
       name: 'lblShowProfilePhoto',
       desc: '',
       args: [],

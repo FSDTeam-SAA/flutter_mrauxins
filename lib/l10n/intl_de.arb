@@ -267,7 +267,7 @@
   "channelNameError": "Kanalname darf nicht leer sein",
   "group": "Gruppe",
   "channel": "Kanal",
-  "lblShowProfilePhoto": "Profilfoto anzeigen",
+  "lblShowProfilePhoto": "Benutzerprofilfotos anzeigen",
   "upTo200000Members": "Bis zu 200000 Mitglieder",
   "pleaseSelectGroupImage": "Bitte wähle ein Gruppenbild aus",
   "pleaseSelectChannelImage": "Bitte wähle ein Kanalbild aus",

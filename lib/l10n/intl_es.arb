@@ -266,7 +266,7 @@
   "channelNameError": "El nombre del canal no puede estar vacío",
   "group": "Grupo",
   "channel": "Canal",
-  "lblShowProfilePhoto": "Mostrar foto de perfil",
+  "lblShowProfilePhoto": "Mostrar fotos de perfil de los usuarios",
   "upTo200000Members": "Hasta 200000 miembros",
   "pleaseSelectGroupImage": "Por favor, selecciona una imagen de grupo",
   "pleaseSelectChannelImage": "Por favor, selecciona una imagen de canal",

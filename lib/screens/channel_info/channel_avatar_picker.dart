@@ -15,11 +15,13 @@ class ChannelAvatarPicker extends StatelessWidget {
     super.key,
     required this.selectedGroupPic,
     required this.groupImage,
+    required this.isGroupProfilePhoto,
     required this.isAdmin,
   });
 
   final XFile? selectedGroupPic;
   final String? groupImage;
+  final bool isGroupProfilePhoto;
   final bool isAdmin;
 
   @override
@@ -45,7 +47,8 @@ class ChannelAvatarPicker extends StatelessWidget {
                     backgroundColor: Colors
                         .transparent, // Set background to transparent if needed
                   )
-                : (groupImage ?? "").isNotEmpty
+                : ((groupImage ?? "").isNotEmpty &&
+                        (isGroupProfilePhoto || isAdmin))
                     ? AvatarWidgets(
                         userPic: groupImage ?? "",
                         height: 120,

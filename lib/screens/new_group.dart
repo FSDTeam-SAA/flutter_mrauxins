@@ -291,6 +291,16 @@ class _NewGroupScreenState extends State<NewGroupScreen> {
                             groupCubit.toggleShowProfilePhoto(value);
                           },
                         ),
+                        buildGroupPermission(
+                          context,
+                          text: widget.isGroup
+                              ? 'Show Group Display Image'
+                              : 'Show Channel Display Image',
+                          defaultValue: state.showGroupProfilePhoto,
+                          onChanged: (value) {
+                            groupCubit.toggleShowGroupProfilePhoto(value);
+                          },
+                        ),
                         if (widget.isGroup)
                           buildGroupPermission(
                             context,

@@ -49,6 +49,16 @@ class ChannelPermissionsSection extends StatelessWidget {
               ),
               _buildGroupPermission(
                 context,
+                text: 'Show Channel Display Image',
+                defaultValue: state.showGroupProfilePhoto,
+                onChanged: (value) {
+                  groupCubit.toggleShowGroupProfilePhoto(value);
+                  groupCubit.updateGroupSetting(
+                      context, groupId, ChatType.channel);
+                },
+              ),
+              _buildGroupPermission(
+                context,
                 text: 'Hide Subscribers Info',
                 defaultValue: state.hideMembersInfo,
                 onChanged: (value) {

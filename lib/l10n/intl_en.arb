@@ -269,7 +269,7 @@
   "channelNameError": "Channel name can not be empty",
   "group": "Group",
   "channel": "Channel",
-  "lblShowProfilePhoto": "Show Profile photo",
+  "lblShowProfilePhoto": "Show User Profile Photos",
   "upTo200000Members": "Up to 200000 Members",
   "pleaseSelectGroupImage": "Please select group image",
   "pleaseSelectChannelImage": "Please select channel image",

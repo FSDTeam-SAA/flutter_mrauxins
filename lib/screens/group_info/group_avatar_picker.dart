@@ -52,7 +52,8 @@ class GroupAvatarPicker extends StatelessWidget {
                     backgroundColor: Colors
                         .transparent, // Set background to transparent if needed
                   )
-                : ((groupImage ?? "").isNotEmpty && isGroupProfilePhoto)
+                : ((groupImage ?? "").isNotEmpty &&
+                        (isGroupProfilePhoto || isAdmin))
                     ? AvatarWidgets(
                         userPic: groupImage ?? "",
                         height: 120,

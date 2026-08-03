@@ -353,7 +353,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "lblSearchChat": MessageLookupByLibrary.simpleMessage("Search Chat"),
     "lblSearchUser": MessageLookupByLibrary.simpleMessage("Search User"),
     "lblShowProfilePhoto": MessageLookupByLibrary.simpleMessage(
-      "Show Profile photo",
+      "Show User Profile Photos",
     ),
     "lblUpdateProfile": MessageLookupByLibrary.simpleMessage(
       "Profile updated successfully",

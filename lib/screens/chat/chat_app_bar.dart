@@ -110,6 +110,7 @@ class _ChatAppBarState extends State<ChatAppBar> {
                   builder: (contextChat, state) {
                 final hideGroupPhoto = (data.chatType == ChatType.channel ||
                         data.chatType == ChatType.group) &&
+                    !(state.groupData?.isAdmin ?? false) &&
                     !(state.groupData?.isGroupProfilePhoto ?? true);
                 return AvatarWidgets(
                   userPic: hideGroupPhoto

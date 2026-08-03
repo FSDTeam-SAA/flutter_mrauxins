@@ -80,6 +80,14 @@ class _ChatScreenState extends State<ChatScreen> {
   // setting from the info screen while this chat is open beneath it.
   bool _restrictContentSharing = false;
 
+  // The creator can still copy/forward/screenshot their own content even
+  // while Restrict Content Sharing is on for everyone else.
+  bool get _isChatCreator =>
+      widget.createdBy != null && userData?.sId == widget.createdBy?.id;
+
+  bool get _effectiveRestrictContentSharing =>
+      _restrictContentSharing && !_isChatCreator;
+
   // True only when isSendMessage just flipped to false via the live socket
   // push (not on fresh screen entry) — drives which "can't send" notice
   // ChatInputBar shows. Reset whenever the screen re-syncs from a fetch.
@@ -232,7 +240,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    if (_restrictContentSharing) {
+    if (_effectiveRestrictContentSharing) {
       ScreenProtectionService.instance.disable();
     }
     disposeAllEvents();
@@ -250,7 +258,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _syncRestrictContentSharing(bool latest) {
     if (!mounted || latest == _restrictContentSharing) return;
     setState(() => _restrictContentSharing = latest);
-    if (latest) {
+    if (_effectiveRestrictContentSharing) {
       ScreenProtectionService.instance.enable();
     } else {
       ScreenProtectionService.instance.disable();
@@ -274,7 +282,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> init() async {
     try {
       _focusNode.addListener(_handleFocusChange);
-      if (_restrictContentSharing) {
+      if (_effectiveRestrictContentSharing) {
         ScreenProtectionService.instance.enable();
       }
       userData ??= await chatCubit.dbHelper.getLoginData();
@@ -600,7 +608,7 @@ class _ChatScreenState extends State<ChatScreen> {
       permissionJustRevokedLive: _permissionJustRevokedLive,
       isDeletedUser: widget.isDeletedUser,
       isShowProfileImage: widget.isShowProfileImage,
-      restrictContentSharing: _restrictContentSharing,
+      restrictContentSharing: _effectiveRestrictContentSharing,
       userData: userData,
       disAppearingMessagesTime: disAppearingMessagesTime,
       groupMessageString: groupMessageString,
