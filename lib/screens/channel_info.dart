@@ -18,6 +18,7 @@ import 'channel_info/channel_members_list.dart';
 import 'channel_info/channel_permissions_section.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
+import '../widgets/keyboard_safe_scaffold.dart';
 import '../widgets/appbar.dart';
 import '../widgets/buttons.dart';
 import '../widgets/svg_images.dart';
@@ -48,7 +49,7 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return KeyboardSafeScaffold(
       appBar: CommonAppBar(
         isBackShow: true,
         isActionsShow: false,

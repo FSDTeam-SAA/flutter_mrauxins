@@ -14,6 +14,7 @@ import 'package:two_one_two_messenger/models/conversation_model.dart';
 import 'package:two_one_two_messenger/widgets/buttons.dart';
 import 'package:two_one_two_messenger/widgets/conversation_tile.dart';
 import 'package:two_one_two_messenger/widgets/custom_loading_widget.dart';
+import 'package:two_one_two_messenger/widgets/keyboard_safe_scaffold.dart';
 import 'package:two_one_two_messenger/widgets/refresh_indicator%20copy.dart';
 
 import '../models/otp_verify.dart';
@@ -95,7 +96,7 @@ class _SearchConversationScreenState extends State<SearchConversationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return KeyboardSafeScaffold(
       appBar: CommonAppBar(
         isBackShow: true,
         title: S.of(context).lblSearchChat,

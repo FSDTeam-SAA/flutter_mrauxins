@@ -43,6 +43,7 @@ class NavigationService {
           type: PageTransitionType.fade,
           duration: Duration(milliseconds: durationInMS),
           reverseDuration: Duration(milliseconds: durationInMS),
+          opaque: true,
         ),
       );
       return result;
@@ -62,7 +63,8 @@ class NavigationService {
             child: to,
             type: PageTransitionType.fade,
             duration: Duration(milliseconds: durationInMS),
-            reverseDuration: Duration(milliseconds: durationInMS)));
+            reverseDuration: Duration(milliseconds: durationInMS),
+            opaque: true));
   }
 
   Future<T?> replaceWith<T>(Widget to, {int durationInMS = 250}) async {
@@ -73,7 +75,8 @@ class NavigationService {
             child: to,
             type: PageTransitionType.fade,
             duration: Duration(milliseconds: durationInMS),
-            reverseDuration: Duration(milliseconds: durationInMS)));
+            reverseDuration: Duration(milliseconds: durationInMS),
+            opaque: true));
   }
 
   Future<void> clearAndNavigateTo(Widget to, {int durationInMS = 250}) async {
@@ -84,7 +87,8 @@ class NavigationService {
             child: to,
             type: PageTransitionType.fade,
             duration: Duration(milliseconds: durationInMS),
-            reverseDuration: Duration(milliseconds: durationInMS)),
+            reverseDuration: Duration(milliseconds: durationInMS),
+            opaque: true),
         (route) => false);
   }
 

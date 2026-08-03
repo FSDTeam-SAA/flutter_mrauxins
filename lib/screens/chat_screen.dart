@@ -24,6 +24,7 @@ import '../models/otp_verify.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
 import '../utils/utils.dart';
+import '../widgets/keyboard_safe_scaffold.dart';
 
 class ChatScreen extends StatefulWidget {
   final String userName;
@@ -617,58 +618,40 @@ class _ChatScreenState extends State<ChatScreen> {
         homeCubit.refreshStoriesData(context);
         // await NavigationService().goBack();
       },
-      child: SafeArea(
-        top: false,
-        bottom: false,
-        child: Scaffold(
-          backgroundColor: AppColors.scaffoldBgDark,
-          // The outer Scaffold in main.dart already sets
-          // resizeToAvoidBottomInset: false. Matching it here avoids two
-          // Scaffolds independently reacting to raw per-frame keyboard-inset
-          // updates — that mismatch was producing a tearing/pixelated seam
-          // between the message list and input bar on keyboard close. The
-          // AnimatedPadding below drives a single, smooth transition instead.
-          resizeToAvoidBottomInset: false,
-          appBar: ChatAppBar(
-            data: chatData,
-            onNickNameStatusChanged: _onNickNameStatusChanged,
-            onNickNameChanged: _onNickNameChanged,
-            onRestrictContentSharingChanged: _syncRestrictContentSharing,
-          ),
-          body: AnimatedPadding(
-            padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom),
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
-            child: Column(
-              children: [
-                Expanded(
-                  child: RepaintBoundary(
-                    child: ChatMessageList(
-                      data: chatData,
-                      messageKeys: messageKeys,
-                      highlightedMessageId: highlightedMessageId,
-                      scrollController: _scrollController,
-                      onHighlightMessage: onHighlightMessage,
-                      onMessageListChanged: (list) => messageList = list,
-                      onDisappearingMessagesTimeChanged: (time) =>
-                          disAppearingMessagesTime = time,
-                      onRefresh: () =>
-                          getMessages(widget.chatId, widget.aesKey),
-                    ),
-                  ),
+      child: KeyboardSafeScaffold(
+        backgroundColor: AppColors.scaffoldBgDark,
+        appBar: ChatAppBar(
+          data: chatData,
+          onNickNameStatusChanged: _onNickNameStatusChanged,
+          onNickNameChanged: _onNickNameChanged,
+          onRestrictContentSharingChanged: _syncRestrictContentSharing,
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: RepaintBoundary(
+                child: ChatMessageList(
+                  data: chatData,
+                  messageKeys: messageKeys,
+                  highlightedMessageId: highlightedMessageId,
+                  scrollController: _scrollController,
+                  onHighlightMessage: onHighlightMessage,
+                  onMessageListChanged: (list) => messageList = list,
+                  onDisappearingMessagesTimeChanged: (time) =>
+                      disAppearingMessagesTime = time,
+                  onRefresh: () => getMessages(widget.chatId, widget.aesKey),
                 ),
-                Padding(
-                  padding: EdgeInsets.only(top: 16.h),
-                  child: ChatInputBar(
-                    data: chatData,
-                    messageCon: messageCon,
-                    focusNode: _focusNode,
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+            Padding(
+              padding: EdgeInsets.only(top: 16.h),
+              child: ChatInputBar(
+                data: chatData,
+                messageCon: messageCon,
+                focusNode: _focusNode,
+              ),
+            ),
+          ],
         ),
       ),
     );

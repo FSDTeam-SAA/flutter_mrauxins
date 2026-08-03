@@ -48,6 +48,13 @@ class _InviteFriendScreenState extends State<InviteFriendScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // The outer Scaffold in main.dart already sets
+      // resizeToAvoidBottomInset: false. Matching it here avoids this
+      // Scaffold independently reacting to raw per-frame keyboard-inset
+      // updates while the outer one doesn't — that mismatch produced a
+      // hairline seam on keyboard close. Search lives in the AppBar, so the
+      // keyboard can simply overlay the list instead of resizing for it.
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: AppColors.dark,
         leading: IconButton(

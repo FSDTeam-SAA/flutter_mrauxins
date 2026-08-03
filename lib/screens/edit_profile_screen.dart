@@ -21,6 +21,7 @@ import '../utils/navigation.dart';
 import '../utils/text_style.dart';
 import '../utils/utils.dart';
 import '../widgets/appbar.dart';
+import '../widgets/keyboard_safe_scaffold.dart';
 import '../widgets/buttons.dart';
 import '../widgets/network_image.dart';
 import '../widgets/svg_images.dart';
@@ -70,7 +71,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         context.read<ProfileCubit>().changePhoneBoolValue();
         await NavigationService().goBack();
       },
-      child: Scaffold(
+      child: KeyboardSafeScaffold(
         appBar: CommonAppBar(
           isBackShow: true,
           title: S.of(context).lblEditProfile,

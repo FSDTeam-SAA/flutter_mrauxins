@@ -14,6 +14,7 @@ import 'package:two_one_two_messenger/utils/navigation.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
 
 import '../widgets/appbar.dart';
+import '../widgets/keyboard_safe_scaffold.dart';
 import 'search/add_member_tab.dart';
 import 'search/add_member_widgets.dart';
 import 'search/add_member_contacts_body.dart';
@@ -112,7 +113,7 @@ class _AddMemberGroupScreenState extends State<AddMemberGroupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return KeyboardSafeScaffold(
       appBar: CommonAppBar(
         isActionsShow: false,
         isBackShow: true,

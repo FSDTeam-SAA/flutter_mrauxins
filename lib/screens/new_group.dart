@@ -16,6 +16,7 @@ import '../utils/constants.dart';
 import '../utils/navigation.dart';
 import '../utils/text_style.dart';
 import '../widgets/appbar.dart';
+import '../widgets/keyboard_safe_scaffold.dart';
 import '../widgets/buttons.dart';
 import '../widgets/svg_images.dart';
 import '../widgets/text_fields.dart';
@@ -32,7 +33,7 @@ class _NewGroupScreenState extends State<NewGroupScreen> {
   final _groupFormKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return KeyboardSafeScaffold(
       appBar: CommonAppBar(
         isBackShow: true,
         isActionsShow: false,
