@@ -147,6 +147,7 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
                     inviteLink: state.groupData?.inviteLink,
                     groupName: state.groupData?.groupName,
                     privateGroup: state.privateGroup,
+                    isAdmin: isAdmin,
                   ),
                   30.s,
                   ChannelActionsRow(

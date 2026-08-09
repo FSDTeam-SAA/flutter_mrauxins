@@ -101,7 +101,11 @@ class _DatabaseResultTile extends StatelessWidget {
             if (resultType != 'user' && (item['isMember'] ?? false))
               Text('Joined',
                   style:
-                      AppTextStyles.regular(fontSize: 12.sp, color: Colors.green)),
+                      AppTextStyles.regular(fontSize: 12.sp, color: Colors.green))
+            else if (resultType != 'user')
+              Text('Join',
+                  style: AppTextStyles.regular(
+                      fontSize: 12.sp, color: AppColors.primaryColor)),
           ],
         ),
       ),
@@ -158,6 +162,24 @@ class _DatabaseResultTile extends StatelessWidget {
     } else {
       final user = await homeCubit.dbHelper.getLoginData();
       if (user == null) return;
+
+      final isMember = item['isMember'] ?? false;
+      if (!isMember) {
+        Utils.showLoader();
+        final response = await groupCubit.repository.joinGroupByInvite(
+          chatId: id,
+          inviteLink: '',
+        );
+        Utils.hideLoader();
+        if (response.status != Utils.APISUCCESS) {
+          if (context.mounted) {
+            Utils.showSnackBar(context, response.message ?? 'Failed to join');
+          }
+          return;
+        }
+      }
+
+      if (!context.mounted) return;
       if (type == 'channel') {
         NavigationService()
             .navigateTo(ChannelInfoScreen(currentUser: user, groupId: id));

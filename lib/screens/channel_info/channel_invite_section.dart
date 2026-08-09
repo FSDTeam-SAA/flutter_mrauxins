@@ -18,12 +18,14 @@ class ChannelInviteSection extends StatefulWidget {
     required this.inviteLink,
     required this.groupName,
     required this.privateGroup,
+    required this.isAdmin,
   });
 
   final String groupId;
   final String? inviteLink;
   final String? groupName;
   final bool privateGroup;
+  final bool isAdmin;
 
   @override
   State<ChannelInviteSection> createState() => _ChannelInviteSectionState();
@@ -262,7 +264,9 @@ class _ChannelInviteSectionState extends State<ChannelInviteSection> {
                     Expanded(
                       child: TextField(
                         controller: _customLinkController,
-                        onChanged: _validateCustomLink,
+                        readOnly: !widget.isAdmin,
+                        onChanged:
+                            widget.isAdmin ? _validateCustomLink : null,
                         style: AppTextStyles.regular(fontSize: 14.sp),
                         decoration: InputDecoration(
                           hintText: 'custom-name',
@@ -276,34 +280,36 @@ class _ChannelInviteSectionState extends State<ChannelInviteSection> {
                         ),
                       ),
                     ),
-                    if (_customLinkChecking)
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8.w),
-                        child: SizedBox(
-                          width: 16.w,
-                          height: 16.w,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 1.5,
-                            color: AppColors.white.withValues(alpha: 0.5),
+                    if (widget.isAdmin) ...[
+                      if (_customLinkChecking)
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8.w),
+                          child: SizedBox(
+                            width: 16.w,
+                            height: 16.w,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 1.5,
+                              color: AppColors.white.withValues(alpha: 0.5),
+                            ),
                           ),
+                        )
+                      else if (_customLinkValid)
+                        IconButton(
+                          onPressed: () =>
+                              _saveCustomLink(context, widget.groupId),
+                          icon: Icon(Icons.check_circle,
+                              color: Colors.green, size: 22.sp),
                         ),
-                      )
-                    else if (_customLinkValid)
                       IconButton(
-                        onPressed: () =>
-                            _saveCustomLink(context, widget.groupId),
-                        icon: Icon(Icons.check_circle,
-                            color: Colors.green, size: 22.sp),
+                        onPressed: () => _showRevokeDialog(context),
+                        icon: Icon(Icons.more_vert,
+                            color: AppColors.white, size: 20.sp),
                       ),
-                    IconButton(
-                      onPressed: () => _showRevokeDialog(context),
-                      icon: Icon(Icons.more_vert,
-                          color: AppColors.white, size: 20.sp),
-                    ),
+                    ],
                   ],
                 ),
               ),
-              if (_customLinkStatus != null) ...[
+              if (widget.isAdmin && _customLinkStatus != null) ...[
                 8.s,
                 Text(
                   _customLinkStatus!,
@@ -313,15 +319,17 @@ class _ChannelInviteSectionState extends State<ChannelInviteSection> {
                   ),
                 ),
               ],
-              8.s,
-              Text(
-                'Use a-z, 0-9 and underscores. Minimum 20 characters.',
-                style: AppTextStyles.regular(
-                  fontSize: 13.sp,
-                  color: AppColors.white.withValues(alpha: 0.5),
+              if (widget.isAdmin) ...[
+                8.s,
+                Text(
+                  'Use a-z, 0-9 and underscores. Minimum 20 characters.',
+                  style: AppTextStyles.regular(
+                    fontSize: 13.sp,
+                    color: AppColors.white.withValues(alpha: 0.5),
+                  ),
                 ),
-              ),
-              12.s,
+                12.s,
+              ],
             ],
             Row(
               children: [

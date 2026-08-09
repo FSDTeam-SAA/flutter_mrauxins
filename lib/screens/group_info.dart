@@ -153,6 +153,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                     inviteLink: state.groupData?.inviteLink,
                     groupName: state.groupData?.groupName,
                     privateGroup: state.privateGroup,
+                    isAdmin: isAdmin,
                     expanded: _expandedSection == _GroupInfoSection.invite,
                     onToggleExpanded: () {
                       setState(() {

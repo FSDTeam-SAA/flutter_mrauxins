@@ -22,6 +22,7 @@ class GroupInviteSection extends StatefulWidget {
     required this.privateGroup,
     required this.expanded,
     required this.onToggleExpanded,
+    required this.isAdmin,
   });
 
   final String groupId;
@@ -30,6 +31,7 @@ class GroupInviteSection extends StatefulWidget {
   final bool privateGroup;
   final bool expanded;
   final VoidCallback onToggleExpanded;
+  final bool isAdmin;
 
   @override
   State<GroupInviteSection> createState() => _GroupInviteSectionState();
@@ -144,7 +146,9 @@ class _GroupInviteSectionState extends State<GroupInviteSection> {
       _customLinkController.text = defaultName;
       _customLinkInitialized = true;
       // Kick off the availability check for the pre-populated value
-      Future.microtask(() => _validateCustomLink(defaultName));
+      if (widget.isAdmin) {
+        Future.microtask(() => _validateCustomLink(defaultName));
+      }
     }
 
     return Column(
@@ -212,7 +216,9 @@ class _GroupInviteSectionState extends State<GroupInviteSection> {
                         Expanded(
                           child: TextField(
                             controller: _customLinkController,
-                            onChanged: _validateCustomLink,
+                            readOnly: !widget.isAdmin,
+                            onChanged:
+                                widget.isAdmin ? _validateCustomLink : null,
                             style: AppTextStyles.regular(fontSize: 14.sp),
                             decoration: InputDecoration(
                               hintText: 'your-link-name',
@@ -227,37 +233,40 @@ class _GroupInviteSectionState extends State<GroupInviteSection> {
                             ),
                           ),
                         ),
-                        if (_customLinkChecking)
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8.w),
-                            child: SizedBox(
-                              width: 16.w,
-                              height: 16.w,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 1.5,
-                                color: AppColors.white.withValues(alpha: 0.5),
+                        if (widget.isAdmin) ...[
+                          if (_customLinkChecking)
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8.w),
+                              child: SizedBox(
+                                width: 16.w,
+                                height: 16.w,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 1.5,
+                                  color:
+                                      AppColors.white.withValues(alpha: 0.5),
+                                ),
                               ),
+                            )
+                          else if (_customLinkValid)
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: BoxConstraints(minWidth: 32.w),
+                              onPressed: () =>
+                                  _saveCustomLink(context, widget.groupId),
+                              icon: Icon(Icons.check_circle,
+                                  color: Colors.green, size: 20.sp),
                             ),
-                          )
-                        else if (_customLinkValid)
                           IconButton(
-                            padding: EdgeInsets.zero,
-                            constraints: BoxConstraints(minWidth: 32.w),
-                            onPressed: () =>
-                                _saveCustomLink(context, widget.groupId),
-                            icon: Icon(Icons.check_circle,
-                                color: Colors.green, size: 20.sp),
+                            onPressed: () => _showRevokeDialog(context),
+                            icon: Icon(Icons.more_vert,
+                                color: AppColors.white, size: 20.sp),
                           ),
-                        IconButton(
-                          onPressed: () => _showRevokeDialog(context),
-                          icon: Icon(Icons.more_vert,
-                              color: AppColors.white, size: 20.sp),
-                        ),
+                        ],
                       ],
                     ),
                   ),
                   8.s,
-                  if (_customLinkStatus != null) ...[
+                  if (widget.isAdmin && _customLinkStatus != null) ...[
                     Text(
                       _customLinkStatus!,
                       style: AppTextStyles.regular(
@@ -268,22 +277,24 @@ class _GroupInviteSectionState extends State<GroupInviteSection> {
                     ),
                     6.s,
                   ],
-                  Text(
-                    'You can use a-z, 0-9 and underscores.',
-                    style: AppTextStyles.regular(
-                      fontSize: 13.sp,
-                      color: AppColors.white.withValues(alpha: 0.5),
+                  if (widget.isAdmin) ...[
+                    Text(
+                      'You can use a-z, 0-9 and underscores.',
+                      style: AppTextStyles.regular(
+                        fontSize: 13.sp,
+                        color: AppColors.white.withValues(alpha: 0.5),
+                      ),
                     ),
-                  ),
-                  4.s,
-                  Text(
-                    'Minimum length is 20 Characters.',
-                    style: AppTextStyles.regular(
-                      fontSize: 13.sp,
-                      color: AppColors.white.withValues(alpha: 0.5),
+                    4.s,
+                    Text(
+                      'Minimum length is 20 Characters.',
+                      style: AppTextStyles.regular(
+                        fontSize: 13.sp,
+                        color: AppColors.white.withValues(alpha: 0.5),
+                      ),
                     ),
-                  ),
-                  14.s,
+                    14.s,
+                  ],
                   22.s,
                   Row(
                     children: [
