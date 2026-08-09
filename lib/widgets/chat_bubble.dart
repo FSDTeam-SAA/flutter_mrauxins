@@ -180,7 +180,7 @@ class _ChatBubbleState extends State<ChatBubble> {
   }
 
   Widget _buildMenuItemRow(MenuItem item, Widget icon, VoidCallback onTap) {
-    final color = item.isDestructive ? AppColors.redColor : AppColors.white;
+    final color = item.isDestructive ? AppColors.redColor : AppColors.dark;
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -248,7 +248,7 @@ class _ChatBubbleState extends State<ChatBubble> {
       ChatMessageOption.saveMessage,
       S.current.saveMessage,
       Icons.bookmark_outline,
-      SvgImage(source: SvgAssets.icBookmarks, color: AppColors.white),
+      SvgImage(source: SvgAssets.icBookmarks, color: AppColors.dark),
     );
     if (!widget.restrictContentSharing &&
         (widget.message.type == 'text' || widget.message.type == 'mixed')) {
@@ -256,7 +256,7 @@ class _ChatBubbleState extends State<ChatBubble> {
         ChatMessageOption.copy,
         S.current.copy,
         Icons.copy,
-        Icon(Icons.copy, color: AppColors.white),
+        Icon(Icons.copy, color: AppColors.dark),
       );
     }
     addMenuItem(
@@ -267,7 +267,7 @@ class _ChatBubbleState extends State<ChatBubble> {
         (widget.message.pinned ?? false)
             ? CupertinoIcons.pin_slash_fill
             : CupertinoIcons.pin_fill,
-        color: AppColors.white,
+        color: AppColors.dark,
       ),
     );
     if (widget.aesKey != null && !widget.restrictContentSharing) {
@@ -278,7 +278,7 @@ class _ChatBubbleState extends State<ChatBubble> {
         Transform(
           alignment: Alignment.center,
           transform: Matrix4.rotationY(math.pi),
-          child: Icon(Icons.reply_outlined, color: AppColors.white),
+          child: Icon(Icons.reply_outlined, color: AppColors.dark),
         ),
       );
     }
@@ -295,7 +295,7 @@ class _ChatBubbleState extends State<ChatBubble> {
           Icons.edit,
           SvgImage(
               source: SvgAssets.icEdit,
-              color: AppColors.white.withValues(alpha: 0.6)),
+              color: AppColors.dark.withValues(alpha: 0.6)),
         );
       }
       addMenuItem(
@@ -1528,7 +1528,7 @@ class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
   }
 
   Widget _buildMenuItemRow(MenuItem item, Widget icon, VoidCallback onTap) {
-    final color = item.isDestructive ? AppColors.redColor : AppColors.white;
+    final color = item.isDestructive ? AppColors.redColor : AppColors.dark;
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -1582,7 +1582,7 @@ class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
         ChatMessageOption.copy,
         S.current.copy,
         Icons.copy,
-        Icon(Icons.copy, color: AppColors.white),
+        Icon(Icons.copy, color: AppColors.dark),
       );
     }
     addMenuItem(
@@ -1595,7 +1595,7 @@ class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
         (widget.message.messageDetails?.pinned ?? false)
             ? CupertinoIcons.pin_slash_fill
             : CupertinoIcons.pin_fill,
-        color: AppColors.white,
+        color: AppColors.dark,
       ),
     );
     addMenuItem(
@@ -1605,7 +1605,7 @@ class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
       Transform(
         alignment: Alignment.center,
         transform: Matrix4.rotationY(math.pi),
-        child: Icon(Icons.reply_outlined, color: AppColors.white),
+        child: Icon(Icons.reply_outlined, color: AppColors.dark),
       ),
     );
     if (widget.isSender &&
@@ -1617,7 +1617,7 @@ class _ChatBubbleForSavedMessageState extends State<ChatBubbleForSavedMessage> {
         Icons.edit,
         SvgImage(
             source: SvgAssets.icEdit,
-            color: AppColors.white.withValues(alpha: 0.6)),
+            color: AppColors.dark.withValues(alpha: 0.6)),
       );
     }
     addMenuItem(
