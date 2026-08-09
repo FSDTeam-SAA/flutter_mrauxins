@@ -21,7 +21,7 @@ import 'package:two_one_two_messenger/utils/navigation.dart';
 import 'package:two_one_two_messenger/utils/text_style.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
 import 'package:two_one_two_messenger/widgets/buttons.dart';
-import 'package:two_one_two_messenger/widgets/chat_bubble.dart';
+import 'package:two_one_two_messenger/widgets/chat_bubble_for_saved_message.dart';
 import 'package:two_one_two_messenger/widgets/custom_loading_widget.dart';
 import 'package:two_one_two_messenger/widgets/error_widget.dart';
 import 'package:two_one_two_messenger/widgets/sent_media_widgets.dart';

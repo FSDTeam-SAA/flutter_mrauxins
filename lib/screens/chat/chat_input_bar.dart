@@ -12,7 +12,7 @@ import 'package:two_one_two_messenger/utils/colors.dart';
 import 'package:two_one_two_messenger/utils/constants.dart';
 import 'package:two_one_two_messenger/utils/text_style.dart';
 import 'package:two_one_two_messenger/utils/utils.dart';
-import 'package:two_one_two_messenger/widgets/chat_bubble.dart';
+import 'package:two_one_two_messenger/widgets/reply_message_view.dart';
 import 'package:two_one_two_messenger/widgets/sent_media_widgets.dart';
 import 'package:two_one_two_messenger/widgets/svg_images.dart';
 

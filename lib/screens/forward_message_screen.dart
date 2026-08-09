@@ -19,7 +19,7 @@ import 'package:two_one_two_messenger/utils/navigation.dart';
 import 'package:two_one_two_messenger/widgets/app_check_box.dart';
 import 'package:two_one_two_messenger/widgets/buttons.dart';
 import 'package:two_one_two_messenger/widgets/keyboard_safe_scaffold.dart';
-import 'package:two_one_two_messenger/widgets/chat_bubble.dart';
+import 'package:two_one_two_messenger/widgets/forwarded_message_view.dart';
 import 'package:two_one_two_messenger/widgets/custom_loading_widget.dart';
 import 'package:two_one_two_messenger/widgets/refresh_indicator%20copy.dart';
 

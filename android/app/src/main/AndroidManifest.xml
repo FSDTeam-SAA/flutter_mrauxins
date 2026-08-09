@@ -42,7 +42,7 @@
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
 
     <application
-        android:label="212Messenger"
+        android:label="212 Messenger"
         android:name="${applicationName}"
         android:allowBackup="false"
         android:fullBackupContent="false"

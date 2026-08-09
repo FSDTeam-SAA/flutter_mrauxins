@@ -5,7 +5,7 @@ class Urls {
   static const String swaggerDoc = 'http://18.130.137.253:3001/api-docs';
 
   static const String baseURL = 'http://18.130.137.253:3001';
-  // static const String baseURL = 'http://10.0.2.2:3000';
+  // static const String baseURL = 'http://10.0.2.2:3001';
   static const String mediaUrl =
       'https://telegrameclone.s3.eu-west-2.amazonaws.com/';
 }
@@ -59,6 +59,7 @@ class APIS {
   static const String checkGroupInviteName = "/api/v1/group/check-invite-name";
   static const String getCallsHistory = "/api/v1/get-callhistory";
   static const String getAllNotifications = "/api/v1/get-notifications";
+  static const String respondToInvite = "/api/v1/notification/respond-invite";
   static const String getProfile = "/api/v1/find-one-user";
   static const String clearCallLogs = '/api/v1/clear-call-log';
   static const String syncContact = '/api/v1/sync-contact';

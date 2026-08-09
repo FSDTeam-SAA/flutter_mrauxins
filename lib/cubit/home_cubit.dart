@@ -790,6 +790,43 @@ class HomeCubit extends Cubit<HomeState> {
     emit(state.copyWith(unreadNotificationCount: count));
   }
 
+  Future<void> respondToInvite(
+      BuildContext context, String notificationId, String action) async {
+    if (state.respondingInviteIds.contains(notificationId)) return;
+
+    emit(state.copyWith(
+        respondingInviteIds: {...state.respondingInviteIds, notificationId}));
+
+    try {
+      final updatedNotification = await apiClient.respondToInvite(
+        notificationId: notificationId,
+        action: action,
+      );
+
+      final updatedList = state.allNotification
+          .map((notification) => notification.id == notificationId
+              ? notification.copyWith(
+                  status: updatedNotification.status,
+                  content: updatedNotification.content,
+                )
+              : notification)
+          .toList();
+
+      emit(state.copyWith(
+        allNotification: updatedList,
+        respondingInviteIds: {...state.respondingInviteIds}
+          ..remove(notificationId),
+      ));
+    } catch (e, st) {
+      showMessage("Error respondToInvite==> $e, $st");
+      Utils.showSnackBar(context, S.of(context).somethingWentWrong);
+      emit(state.copyWith(
+        respondingInviteIds: {...state.respondingInviteIds}
+          ..remove(notificationId),
+      ));
+    }
+  }
+
   Future<void> clearCallLog(
       BuildContext context, List<String> callIdList) async {
     try {

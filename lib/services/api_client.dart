@@ -1409,6 +1409,29 @@ class ApiClient {
     }
   }
 
+  Future<NotificationData> respondToInvite({
+    required String notificationId,
+    required String action,
+  }) async {
+    try {
+      final response = await put(
+        APIS.respondToInvite,
+        {
+          "notificationId": notificationId,
+          "action": action,
+        },
+        requiresToken: true,
+      );
+
+      return NotificationData.fromJson(response.data["data"]);
+    } on DioException catch (e) {
+      String errorMessage =
+          e.response?.data['message'] ?? S.current.somethingWentWrong;
+      AppLogger.logs('Respond to invite Error: $errorMessage');
+      throw Exception(errorMessage);
+    }
+  }
+
   Future<CommonMessageResponse> clearCallLogs(List<String> callIdList) async {
     try {
       final response = await delete(

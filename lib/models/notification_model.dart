@@ -97,6 +97,8 @@ class Data {
       };
 }
 
+enum InviteStatus { none, pending, accepted, rejected }
+
 class NotificationData {
   final String? id;
   final String? receiverId;
@@ -107,6 +109,7 @@ class NotificationData {
   final Sender? sender;
   final GroupInfo? groupInfo;
   final String? content;
+  final InviteStatus? status;
   NotificationData({
     this.id,
     this.receiverId,
@@ -117,6 +120,7 @@ class NotificationData {
     this.v,
     this.sender,
     this.groupInfo,
+    this.status,
   });
 
   /// **CopyWith for immutability**
@@ -130,6 +134,7 @@ class NotificationData {
     String? content,
     Sender? sender,
     GroupInfo? groupInfo,
+    InviteStatus? status,
   }) {
     return NotificationData(
       id: id ?? this.id,
@@ -141,6 +146,7 @@ class NotificationData {
       v: v ?? this.v,
       sender: sender ?? this.sender,
       groupInfo: groupInfo ?? this.groupInfo,
+      status: status ?? this.status,
     );
   }
 
@@ -160,6 +166,7 @@ class NotificationData {
       groupInfo: json["groupInfo"] == null
           ? null
           : GroupInfo.fromJson(json["groupInfo"]),
+      status: _parseInviteStatus(json["status"]),
     );
   }
 
@@ -175,7 +182,17 @@ class NotificationData {
       "sender": sender?.toJson(),
       "groupInfo": groupInfo?.toJson(),
       "content": content,
+      "status": status?.name,
     };
+  }
+
+  /// **Helper Function to Parse `InviteStatus` Enum Safely**
+  static InviteStatus? _parseInviteStatus(String? status) {
+    if (status == null) return null;
+    return InviteStatus.values.firstWhere(
+      (e) => e.name == status,
+      orElse: () => InviteStatus.none,
+    );
   }
 
   /// **Helper Function to Parse `NotificationType` Enum Safely**

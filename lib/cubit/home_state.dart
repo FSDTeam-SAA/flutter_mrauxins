@@ -37,6 +37,7 @@ class HomeState extends Equatable {
   // Call & notification history
   final List<CallHistoryList> callHistory;
   final List<NotificationData> allNotification;
+  final Set<String> respondingInviteIds;
 
   // Error messages for respective loading states
   final String? homeErrorMessage;
@@ -67,6 +68,7 @@ class HomeState extends Equatable {
     this.displayedContacts = const [],
     this.callHistory = const [],
     this.allNotification = const [],
+    this.respondingInviteIds = const {},
     this.homeErrorMessage,
     this.storiesErrorMessage,
     Set<ContactUser>? otherContact,
@@ -101,6 +103,7 @@ class HomeState extends Equatable {
     Set<ContactUser>? otherContact,
     List<CallHistoryList>? callHistory,
     List<NotificationData>? allNotification,
+    Set<String>? respondingInviteIds,
     int? currentContactPage,
     AllUserData? allUserData,
     int? unreadNotificationCount,
@@ -135,6 +138,7 @@ class HomeState extends Equatable {
       otherContact: otherContact ?? this.otherContact,
       callHistory: callHistory ?? this.callHistory,
       allNotification: allNotification ?? this.allNotification,
+      respondingInviteIds: respondingInviteIds ?? this.respondingInviteIds,
       unreadNotificationCount:
           unreadNotificationCount ?? this.unreadNotificationCount,
       userHaveStory: userHaveStory ?? this.userHaveStory,
@@ -165,6 +169,7 @@ class HomeState extends Equatable {
         displayedContacts,
         callHistory,
         allNotification,
+        respondingInviteIds,
         allUserData,
         unreadNotificationCount,
         userHaveStory
